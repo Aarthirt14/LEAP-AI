@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: leap_ai
+      POSTGRES_USER: leap
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-leap-password}
+    volumes:
+      - leap_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leap -d leap_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://leap:${POSTGRES_PASSWORD:-local-leap-password}@postgres:5432/leap_ai
+      SECRET_KEY: ${SECRET_KEY:-development-secret-change-me}
+      JWT_SECRET: ${JWT_SECRET:-development-jwt-change-me}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  leap_postgres_data:

@@ -1,37 +1,47 @@
-# LEAP AI
+# LEAP-AI
 
-**Livelihood Enablement through AI Pathways**
+LEAP-AI is a full-stack SIH prototype for converting a beneficiary's verified qualifications, lived experience, aspirations, and constraints into explainable education, training, and livelihood pathways.
 
-Frontend-only prototype for Smart India Hackathon Problem Statement 26097.
+## Repository structure
 
-LEAP AI is a voice-first livelihood decision-support platform concept for PM-AJAY beneficiaries. It recognizes informal skills, protects beneficiary aspirations, simulates support interventions, routes uncertain recommendations to human facilitators, and measures sustained livelihood outcomes.
+- The repository root contains the existing React/Vite frontend.
+- `backend/` contains the FastAPI API, deterministic decision engines, database schema, migrations, seed data, tests, and Docker configuration.
 
-## Prototype roles
-
-- Beneficiary
-- Field Worker
-- Human Facilitator
-- District Officer
-
-## Stack
-
-- Next.js
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Lucide Icons
-- Recharts
-- Framer Motion
-
-## Run locally
+## Run the frontend
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Open the local URL printed by the development server.
+## Run the backend locally
 
-## Important
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+alembic upgrade head
+python -m seed.seed_data
+uvicorn app.main:app --reload
+```
 
-This repository contains a frontend prototype only. All beneficiary records and dashboard statistics are synthetic demo data. No backend, database, or external AI/government service is integrated.
+Open Swagger at http://localhost:8000/docs.
+
+## Run the backend with Docker
+
+```bash
+cd backend
+cp .env.example .env
+docker compose up --build
+```
+
+## Tests
+
+```bash
+cd backend
+pytest -q
+```
+
+All seeded people, qualifications, opportunities, and outcomes are synthetic and unverified demo data. Pathway ranking is deterministic and auditable; an LLM must not make eligibility, scoring, or final recommendation decisions.

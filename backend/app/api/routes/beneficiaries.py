@@ -75,8 +75,20 @@ def patch_profile(beneficiary_id: int, payload: ProfileData, db: Session = Depen
 def add_skill(beneficiary_id: int, payload: SkillCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     assert_beneficiary_access(db, user, beneficiary_id, True); normalized = payload.name.strip().lower()
     skill = db.scalar(select(Skill).where(Skill.normalized_name == normalized))
-    if not skill: skill = Skill(name=payload.name.strip(), normalized_name=normalized, sector=payload.sector); db.add(skill); db.flush()
-    row = BeneficiarySkill(beneficiary_id=beneficiary_id, skill_id=skill.id, experience_years=payload.experience_years, proficiency_level=payload.proficiency_level, source=payload.source, formal_certificate=payload.formal_certificate, verified=payload.verified); db.add(row); db.commit(); db.refresh(row); row.skill_name = skill.name; return row
+    if not skill:
+        skill = Skill(name=payload.name.strip(), normalized_name=normalized, sector=payload.sector)
+        db.add(skill); db.flush()
+    row = db.scalar(select(BeneficiarySkill).where(BeneficiarySkill.beneficiary_id == beneficiary_id, BeneficiarySkill.skill_id == skill.id))
+    if row:
+        row.experience_years = payload.experience_years
+        row.proficiency_level = payload.proficiency_level
+        row.source = payload.source
+        row.formal_certificate = payload.formal_certificate
+        row.verified = payload.verified
+    else:
+        row = BeneficiarySkill(beneficiary_id=beneficiary_id, skill_id=skill.id, experience_years=payload.experience_years, proficiency_level=payload.proficiency_level, source=payload.source, formal_certificate=payload.formal_certificate, verified=payload.verified)
+        db.add(row)
+    db.commit(); db.refresh(row); row.skill_name = skill.name; return row
 
 
 @router.get("/{beneficiary_id}/skills", response_model=list[SkillOut], description="List skills with experience and provenance.")

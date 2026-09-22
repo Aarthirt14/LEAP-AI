@@ -12,6 +12,16 @@ from app.utils.errors import AppError
 router = APIRouter(prefix="/beneficiaries", tags=["Beneficiaries"])
 
 
+@router.get("/me", response_model=BeneficiaryOut, description="Return the beneficiary profile linked to the signed-in account.")
+def get_my_beneficiary(db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> Beneficiary:
+    if user.role != UserRole.BENEFICIARY:
+        raise AppError("BENEFICIARY_ACCOUNT_REQUIRED", "This endpoint is available to beneficiary accounts only.", 403)
+    row = db.scalar(select(Beneficiary).where(Beneficiary.user_id == user.id))
+    if not row:
+        raise AppError("BENEFICIARY_NOT_FOUND", "No beneficiary profile is linked to this account yet.", 404)
+    return row
+
+
 @router.post("", response_model=BeneficiaryOut, status_code=status.HTTP_201_CREATED, description="Create a consent-aware beneficiary record.")
 def create_beneficiary(payload: BeneficiaryCreate, db: Session = Depends(get_db), user: User = Depends(require_roles(UserRole.BENEFICIARY, UserRole.FIELD_WORKER, UserRole.ADMIN))) -> Beneficiary:
     if user.role == UserRole.BENEFICIARY and payload.user_id not in {None, user.id}:

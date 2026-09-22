@@ -1,26 +1,23 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   BadgeCheck,
   BriefcaseBusiness,
-  CheckCircle2,
   ChevronRight,
   CircleAlert,
   ClipboardList,
   Headphones,
   Loader2,
   LogOut,
-  MapPin,
   Menu,
   Mic,
   Route,
   ShieldCheck,
   Sparkles,
   Target,
-  UserRound,
   Wifi,
   X,
 } from "lucide-react";

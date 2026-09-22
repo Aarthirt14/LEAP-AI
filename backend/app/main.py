@@ -14,7 +14,8 @@ app.add_exception_handler(AppError, app_error_handler)
 app.add_exception_handler(RequestValidationError, validation_error_handler)
 app.add_exception_handler(HTTPException, http_error_handler)
 app.add_exception_handler(Exception, internal_error_handler)
-app.add_middleware(CORSMiddleware, allow_origins=[url.strip() for url in settings.frontend_url.split(",")], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+_allowed_origins = [url.strip() for url in settings.frontend_url.split(",") if url.strip()]
+app.add_middleware(CORSMiddleware, allow_origins=_allowed_origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 for router in [auth.router, beneficiaries.router, interviews.router, pathways.router, reviews.router, outcomes.router, field_worker.router, dashboard.router, sync.router, admin.router]:
     app.include_router(router, prefix="/api")

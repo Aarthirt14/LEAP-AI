@@ -106,8 +106,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new ApiError("LEAP AI could not reach the server. Check that the backend is running.", 0, "NETWORK_ERROR");
   }
 
-  if (response.status === 204) return undefined as T;
-  const body = await response.json().catch(() => null);
+  const body: any = await response.json().catch(() => null);
   if (!response.ok) {
     const message = body?.error?.message || body?.detail || "Something went wrong.";
     const code = body?.error?.code;

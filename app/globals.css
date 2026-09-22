@@ -3,12 +3,12 @@
 @import "../vendor/shadcn-tailwind-4.13.0.css";
 
 :root {
-  --background: #f6f8fb; --foreground: #15233b; --card: #ffffff; --card-foreground: #15233b;
-  --popover: #ffffff; --popover-foreground: #15233b; --primary: #174b8a; --primary-foreground: #ffffff;
-  --secondary: #e9f0f8; --secondary-foreground: #173e6d; --muted: #eef2f6; --muted-foreground: #5e6d82;
-  --accent: #f4a826; --accent-foreground: #4b2e00; --destructive: #b42318; --border: #dbe3ed;
-  --input: #cbd6e4; --ring: #3b73b9; --chart-1: #174b8a; --chart-2: #2f7d66;
-  --chart-3: #e09b25; --chart-4: #8a5aa8; --chart-5: #b8493c; --radius: 0.9rem;
+  --background: #f8fafc; --foreground: #0f172a; --card: #ffffff; --card-foreground: #0f172a;
+  --popover: #ffffff; --popover-foreground: #0f172a; --primary: #1e3a8a; --primary-foreground: #ffffff;
+  --secondary: #e2e8f0; --secondary-foreground: #1e293b; --muted: #f1f5f9; --muted-foreground: #334155;
+  --accent: #f59e0b; --accent-foreground: #451a03; --destructive: #dc2626; --border: #cbd5e1;
+  --input: #cbd5e1; --ring: #2563eb; --chart-1: #1e3a8a; --chart-2: #059669;
+  --chart-3: #d97706; --chart-4: #7c3aed; --chart-5: #dc2626; --radius: 0.9rem;
   --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 @theme inline {
@@ -26,15 +26,15 @@
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans); }
 button, a, select, textarea, input { font: inherit; }
-button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid #f4a826; outline-offset: 3px; }
-.civic-grid { background-image: linear-gradient(#174b8a0a 1px, transparent 1px), linear-gradient(90deg, #174b8a0a 1px, transparent 1px); background-size: 28px 28px; }
-.score-ring { background: conic-gradient(#174b8a calc(var(--score) * 1%), #e4eaf1 0); }
+button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
+.civic-grid { background-image: linear-gradient(#1e3a8a0a 1px, transparent 1px), linear-gradient(90deg, #1e3a8a0a 1px, transparent 1px); background-size: 28px 28px; }
+.score-ring { background: conic-gradient(#1e3a8a calc(var(--score) * 1%), #cbd5e1 0); }
 .score-ring::after { content: ""; position: absolute; inset: 8px; border-radius: 999px; background: white; }
 .wave span { animation: wave 1s ease-in-out infinite; }
 .wave span:nth-child(2n) { animation-delay: .15s; } .wave span:nth-child(3n) { animation-delay: .3s; }
 @keyframes wave { 0%,100% { height: 12px } 50% { height: 42px } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
 
-.field { width: 100%; min-height: 44px; border: 1px solid #dbe1e7; background: #fff; border-radius: 12px; padding: 0 13px; color: #172033; outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
-.field::placeholder { color: #9aa3af; }
-.field:focus { border-color: #6f91b1; box-shadow: 0 0 0 3px rgba(23,75,138,.08); }
+.field { width: 100%; min-height: 44px; border: 1px solid #cbd5e1; background: #fff; border-radius: 12px; padding: 0 13px; color: #0f172a; outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
+.field::placeholder { color: #64748b; }
+.field:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }

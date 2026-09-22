@@ -4,7 +4,12 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 from app.models import ExtractedProfileFact, InterviewSession, LivelihoodProfile
 
-PROFILE_FIELDS = ["education_level", "current_occupation", "family_occupation", "employment_preference", "aspiration_text", "mobility_km", "relocation_willingness", "available_hours_start", "available_hours_end", "capital_available"]
+PROFILE_FIELDS = [
+    "education_level", "current_occupation", "family_occupation",
+    "employment_preference", "aspiration_text", "mobility_km",
+    "relocation_willingness", "available_hours_start", "available_hours_end",
+    "capital_available", "physical_constraints", "family_responsibilities",
+]
 
 
 def completion_percentage(data: dict) -> float:

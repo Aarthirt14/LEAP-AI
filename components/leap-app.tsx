@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
@@ -73,14 +73,14 @@ function Logo() {
       </div>
       <div>
         <div className="text-[15px] font-semibold tracking-[-0.02em] text-[#163d69]">LEAP AI</div>
-        <div className="hidden text-[12px] text-[#6f7c8f] sm:block">Livelihood pathways that fit real lives</div>
+        <div className="hidden text-[12px] text-[#334155] sm:block">Livelihood pathways that fit real lives</div>
       </div>
     </div>
   );
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {
-  return <div className="mb-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#49627f]">{children}</div>;
+  return <div className="mb-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#1e293b]">{children}</div>;
 }
 
 function Shell({ state, onLogout, children }: { state: AppState; onLogout: () => void; children: ReactNode }) {
@@ -100,13 +100,13 @@ function Shell({ state, onLogout, children }: { state: AppState; onLogout: () =>
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] text-[#172033]">
-      <header className="sticky top-0 z-40 border-b border-[#e5e9ef] bg-white/95 backdrop-blur">
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a]">
+      <header className="sticky top-0 z-40 border-b border-[#e2e8f0] bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-[68px] max-w-[1240px] items-center justify-between px-5 sm:px-7">
           <button onClick={() => go("/")} aria-label="Go to home"><Logo /></button>
           <nav className="hidden items-center gap-1 md:flex">
             {state.signedIn && state.beneficiary && nav.map((item) => (
-              <button key={item.href} onClick={() => go(item.href)} className={`rounded-lg px-3.5 py-2 text-sm font-medium transition ${pathname === item.href ? "bg-[#edf3f8] text-[#163d69]" : "text-[#5e6a7d] hover:bg-[#f3f5f7] hover:text-[#172033]"}`}>
+              <button key={item.href} onClick={() => go(item.href)} className={`rounded-lg px-3.5 py-2 text-sm font-medium transition ${pathname === item.href ? "bg-[#e2e8f0] text-[#1e3a8a]" : "text-[#334155] hover:bg-[#f1f5f9] hover:text-[#0f172a]"}`}>
                 {item.label}
               </button>
             ))}
@@ -206,25 +206,25 @@ function Landing({ state }: { state: AppState }) {
       <section className="border-b border-[#e7ebf0] bg-white">
         <div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-16 sm:px-7 sm:py-20 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:py-24">
           <div>
-            <Badge className="mb-5 bg-[#edf5f1] text-[#2b6b57] hover:bg-[#edf5f1]">Voice-first livelihood guidance</Badge>
-            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.08] tracking-[-0.045em] text-[#172033] sm:text-6xl">Start with what you know. Build toward what you want.</h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-[#667386]">LEAP AI listens to your experience, goals and real-life limits, then maps them to practical livelihood pathways you can understand and act on.</p>
+            <Badge className="mb-5 bg-[#dbeafe] text-[#1e40af] hover:bg-[#dbeafe]">Voice-first livelihood guidance</Badge>
+            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.08] tracking-[-0.045em] text-[#0f172a] sm:text-6xl">Start with what you know. Build toward what you want.</h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-[#1e293b]">LEAP AI listens to your experience, goals and real-life limits, then maps them to practical livelihood pathways you can understand and act on.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" onClick={() => router.push(nextHref)} className="h-12 px-5">Start assessment <ArrowRight className="ml-2" size={18} /></Button>
               {state.signedIn && state.beneficiary && <Button size="lg" variant="outline" onClick={() => router.push("/pathways")} className="h-12 px-5">View my pathways</Button>}
             </div>
           </div>
-          <div className="rounded-[28px] border border-[#e2e7ec] bg-[#f8fafb] p-5 sm:p-7">
+          <div className="rounded-[28px] border border-[#cbd5e1] bg-[#f8fafc] p-5 sm:p-7">
             <div className="rounded-[22px] bg-white p-6 shadow-[0_14px_45px_rgba(26,40,60,.07)]">
               <div className="flex items-center justify-between">
-                <div className="grid h-11 w-11 place-items-center rounded-full bg-[#eaf2f8] text-[#163d69]"><Mic size={20} /></div>
-                <div className="flex items-center gap-2 text-xs font-medium text-[#43806d]"><span className="h-2 w-2 rounded-full bg-[#4c9a7d]" /> Listening can be paused anytime</div>
+                <div className="grid h-11 w-11 place-items-center rounded-full bg-[#dbeafe] text-[#1e3a8a]"><Mic size={20} /></div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#065f46]"><span className="h-2 w-2 rounded-full bg-[#059669]" /> Listening can be paused anytime</div>
               </div>
-              <div className="mt-8 text-sm text-[#7a8493]">LEAP AI asks</div>
-              <div className="mt-2 text-2xl font-medium leading-9 tracking-[-0.02em]">“What work do you already know how to do?”</div>
-              <div className="mt-7 rounded-2xl border border-[#e3e7eb] bg-[#fbfcfd] p-4 text-[15px] leading-7 text-[#48566a]">I have been helping with tailoring work for four years, but I want to learn solar installation.</div>
+              <div className="mt-8 text-sm font-medium text-[#334155]">LEAP AI asks</div>
+              <div className="mt-2 text-2xl font-semibold leading-9 tracking-[-0.02em] text-[#0f172a]">“What work do you already know how to do?”</div>
+              <div className="mt-7 rounded-2xl border border-[#cbd5e1] bg-[#f8fafc] p-4 text-[15px] leading-7 font-medium text-[#1e293b]">I have been helping with tailoring work for four years, but I want to learn solar installation.</div>
               <div className="mt-6 flex flex-wrap gap-2">
-                {['Tailoring experience', '4 years', 'Solar aspiration'].map((item) => <span key={item} className="rounded-full bg-[#eef4f8] px-3 py-1.5 text-xs font-medium text-[#365875]">{item}</span>)}
+                {['Tailoring experience', '4 years', 'Solar aspiration'].map((item) => <span key={item} className="rounded-full bg-[#e2e8f0] px-3 py-1.5 text-xs font-semibold text-[#1e3a8a]">{item}</span>)}
               </div>
             </div>
           </div>
@@ -239,7 +239,7 @@ function Landing({ state }: { state: AppState }) {
             [ShieldCheck, "Know why a path fits", "Every recommendation comes with reasons. Uncertain cases can be reviewed by a person."],
           ].map(([Icon, title, copy]) => {
             const Comp = Icon as typeof Headphones;
-            return <Card key={String(title)} className="border-[#e2e7ec] shadow-none"><CardContent className="p-6"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#eef3f7] text-[#214d76]"><Comp size={19} /></div><h2 className="mt-5 text-lg font-semibold tracking-[-0.02em]">{String(title)}</h2><p className="mt-2 text-sm leading-6 text-[#6a7688]">{String(copy)}</p></CardContent></Card>;
+            return <Card key={String(title)} className="border-[#cbd5e1] shadow-none"><CardContent className="p-6"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#e2e8f0] text-[#1e3a8a]"><Comp size={19} /></div><h2 className="mt-5 text-lg font-semibold tracking-[-0.02em] text-[#0f172a]">{String(title)}</h2><p className="mt-2 text-sm leading-6 text-[#334155]">{String(copy)}</p></CardContent></Card>;
           })}
         </div>
       </section>
@@ -280,16 +280,16 @@ function AuthScreen({ onReady }: { onReady: () => Promise<void> }) {
     <main className="mx-auto grid max-w-[1100px] gap-10 px-5 py-12 sm:px-7 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:py-20">
       <div className="hidden lg:block">
         <SectionLabel>Your account</SectionLabel>
-        <h1 className="text-4xl font-semibold tracking-[-0.04em]">Your profile should come from your story, not from a pre-filled template.</h1>
-        <p className="mt-5 max-w-lg text-base leading-7 text-[#687588]">Create an account, tell LEAP what you actually know and want, and let the recommendation engine build pathways from your own inputs.</p>
+        <h1 className="text-4xl font-semibold tracking-[-0.04em] text-[#0f172a]">Your profile should come from your story, not from a pre-filled template.</h1>
+        <p className="mt-5 max-w-lg text-base leading-7 text-[#1e293b]">Create an account, tell LEAP what you actually know and want, and let the recommendation engine build pathways from your own inputs.</p>
       </div>
-      <Card className="mx-auto w-full max-w-[520px] border-[#e1e6eb] shadow-[0_20px_60px_rgba(26,40,60,.08)]">
+      <Card className="mx-auto w-full max-w-[520px] border-[#cbd5e1] shadow-[0_20px_60px_rgba(26,40,60,.08)]">
         <CardContent className="p-6 sm:p-8">
-          <div className="flex gap-1 rounded-xl bg-[#f1f3f5] p-1">
-            <button className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${mode === "login" ? "bg-white text-[#172033] shadow-sm" : "text-[#697588]"}`} onClick={() => setMode("login")}>Sign in</button>
-            <button className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${mode === "register" ? "bg-white text-[#172033] shadow-sm" : "text-[#697588]"}`} onClick={() => setMode("register")}>Create account</button>
+          <div className="flex gap-1 rounded-xl bg-[#e2e8f0] p-1">
+            <button className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${mode === "login" ? "bg-white text-[#0f172a] shadow-sm" : "text-[#334155]"}`} onClick={() => setMode("login")}>Sign in</button>
+            <button className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${mode === "register" ? "bg-white text-[#0f172a] shadow-sm" : "text-[#334155]"}`} onClick={() => setMode("register")}>Create account</button>
           </div>
-          <h2 className="mt-7 text-2xl font-semibold tracking-[-0.03em]">{mode === "login" ? "Welcome back" : "Create your LEAP account"}</h2>
+          <h2 className="mt-7 text-2xl font-semibold tracking-[-0.03em] text-[#0f172a]">{mode === "login" ? "Welcome back" : "Create your LEAP account"}</h2>
           <form onSubmit={submit} className="mt-6 space-y-4">
             <Field label="Email"><input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="field" placeholder="you@example.com" /></Field>
             {mode === "register" && <Field label="Phone (optional)"><input value={phone} onChange={(e) => setPhone(e.target.value)} className="field" placeholder="Mobile number" /></Field>}
@@ -303,7 +303,7 @@ function AuthScreen({ onReady }: { onReady: () => Promise<void> }) {
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <label className="block"><span className="mb-1.5 block text-sm font-medium text-[#354154]">{label}</span>{children}</label>;
+  return <label className="block"><span className="mb-1.5 block text-sm font-semibold text-[#0f172a]">{label}</span>{children}</label>;
 }
 
 function Onboarding({ onCreated }: { onCreated: () => Promise<void> }) {
@@ -327,9 +327,9 @@ function Onboarding({ onCreated }: { onCreated: () => Promise<void> }) {
   return (
     <main className="mx-auto max-w-[900px] px-5 py-12 sm:px-7">
       <SectionLabel>Start here</SectionLabel>
-      <h1 className="text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">A few basics before we talk about work.</h1>
-      <p className="mt-3 max-w-2xl text-base leading-7 text-[#697588]">These details help LEAP make recommendations that are relevant to your location and preferred language.</p>
-      <Card className="mt-8 border-[#e1e6eb] shadow-none"><CardContent className="grid gap-5 p-6 sm:grid-cols-2 sm:p-8">
+      <h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#0f172a] sm:text-4xl">A few basics before we talk about work.</h1>
+      <p className="mt-3 max-w-2xl text-base leading-7 text-[#1e293b]">These details help LEAP make recommendations that are relevant to your location and preferred language.</p>
+      <Card className="mt-8 border-[#cbd5e1] shadow-none"><CardContent className="grid gap-5 p-6 sm:grid-cols-2 sm:p-8">
         <form onSubmit={submit} className="contents">
           <Field label="Name"><input required value={form.name} onChange={(e) => update("name", e.target.value)} className="field" placeholder="Your name" /></Field>
           <Field label="Age"><input type="number" min="14" max="100" value={form.age} onChange={(e) => update("age", e.target.value)} className="field" placeholder="Age" /></Field>
@@ -337,7 +337,7 @@ function Onboarding({ onCreated }: { onCreated: () => Promise<void> }) {
           <Field label="District"><input required value={form.district} onChange={(e) => update("district", e.target.value)} className="field" placeholder="For example: Madurai" /></Field>
           <Field label="Preferred language"><select value={form.preferred_language} onChange={(e) => update("preferred_language", e.target.value)} className="field"><option>Tamil</option><option>Hindi</option><option>English</option></select></Field>
           <Field label="Comfort with smartphones"><select value={form.digital_literacy} onChange={(e) => update("digital_literacy", e.target.value)} className="field"><option value="LOW">I need simple guidance</option><option value="MEDIUM">I can use basic apps</option><option value="HIGH">I am comfortable with apps</option></select></Field>
-          <label className="sm:col-span-2 flex items-start gap-3 rounded-xl border border-[#e1e6eb] bg-[#fafbfc] p-4 text-sm leading-6 text-[#536175]"><input type="checkbox" checked={form.consent_given} onChange={(e) => update("consent_given", e.target.checked)} className="mt-1" /><span>I agree to let LEAP store my answers so it can build and explain my livelihood profile.</span></label>
+          <label className="sm:col-span-2 flex items-start gap-3 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] p-4 text-sm leading-6 text-[#1e293b]"><input type="checkbox" checked={form.consent_given} onChange={(e) => update("consent_given", e.target.checked)} className="mt-1" /><span className="font-medium">I agree to let LEAP store my answers so it can build and explain my livelihood profile.</span></label>
           <div className="sm:col-span-2 flex justify-end"><Button disabled={busy || !form.consent_given} size="lg">{busy && <Loader2 className="mr-2 animate-spin" size={16} />}Continue to assessment <ArrowRight className="ml-2" size={17} /></Button></div>
         </form>
       </CardContent></Card>
@@ -457,20 +457,20 @@ function Interview({ beneficiary }: { beneficiary: Beneficiary }) {
   return (
     <main className="mx-auto max-w-[1040px] px-5 py-10 sm:px-7 sm:py-14">
       <div className="flex items-center justify-between gap-4">
-        <div><SectionLabel>Livelihood assessment</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em]">Tell us about your work, in your own words.</h1></div>
-        <div className="hidden text-right sm:block"><div className="text-sm font-medium text-[#566276]">Question {index + 1} of {questions.length}</div><div className="mt-1 text-xs text-[#8a93a1]">{progress}% complete</div></div>
+        <div><SectionLabel>Livelihood assessment</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#0f172a]">Tell us about your work, in your own words.</h1></div>
+        <div className="hidden text-right sm:block"><div className="text-sm font-semibold text-[#1e293b]">Question {index + 1} of {questions.length}</div><div className="mt-1 text-xs font-medium text-[#334155]">{progress}% complete</div></div>
       </div>
       <Progress value={progress} className="mt-6 h-1.5" />
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
-        <Card className="border-[#e0e5ea] shadow-[0_18px_50px_rgba(26,40,60,.07)]"><CardContent className="p-6 sm:p-9">
-          <div className="text-sm font-medium text-[#6f7b8d]">LEAP asks</div>
-          <h2 className="mt-2 text-2xl font-medium leading-9 tracking-[-0.025em] sm:text-3xl">{question.title}</h2>
-          <p className="mt-3 text-sm leading-6 text-[#768294]">{question.hint}</p>
+        <Card className="border-[#cbd5e1] shadow-[0_18px_50px_rgba(26,40,60,.07)]"><CardContent className="p-6 sm:p-9">
+          <div className="text-sm font-semibold text-[#1e3a8a]">LEAP asks</div>
+          <h2 className="mt-2 text-2xl font-semibold leading-9 tracking-[-0.025em] text-[#0f172a] sm:text-3xl">{question.title}</h2>
+          <p className="mt-3 text-sm font-medium leading-6 text-[#1e293b]">{question.hint}</p>
           <div className="mt-7">
-            <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)} rows={5} placeholder={question.placeholder} className="resize-none rounded-2xl border-[#dbe1e7] bg-[#fcfdfe] p-4 text-base leading-7" />
+            <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)} rows={5} placeholder={question.placeholder} className="resize-none rounded-2xl border-[#cbd5e1] bg-white p-4 text-base leading-7 font-medium text-[#0f172a]" />
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <button type="button" onClick={listening ? stopListening : startListening} className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition ${listening ? "border-[#b9dccc] bg-[#edf8f3] text-[#28634f]" : "border-[#dbe1e7] bg-white text-[#405066] hover:bg-[#f7f9fa]"}`}>
+              <button type="button" onClick={listening ? stopListening : startListening} className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition ${listening ? "border-[#059669] bg-[#ecfdf5] text-[#065f46]" : "border-[#cbd5e1] bg-white text-[#0f172a] hover:bg-[#f8fafc]"}`}>
                 <Mic size={17} /> {listening ? "Listening… tap to stop" : "Answer by voice"}
               </button>
               <Button disabled={busy || !answer.trim()} onClick={saveAnswer}>{busy && <Loader2 className="mr-2 animate-spin" size={16} />}{index === questions.length - 1 ? "Build my pathways" : "Save and continue"}<ChevronRight className="ml-1" size={17} /></Button>
@@ -479,13 +479,13 @@ function Interview({ beneficiary }: { beneficiary: Beneficiary }) {
         </CardContent></Card>
 
         <aside className="space-y-4">
-          <div className="rounded-2xl border border-[#dfe5ea] bg-white p-5">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#314259]"><ShieldCheck size={17} /> How LEAP uses this</div>
-            <p className="mt-3 text-sm leading-6 text-[#6c7889]">Your answers become profile evidence. The final pathway ranking comes from the rule-based scoring engine, not from a chatbot guessing a career.</p>
+          <div className="rounded-2xl border border-[#cbd5e1] bg-white p-5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#0f172a]"><ShieldCheck size={17} /> How LEAP uses this</div>
+            <p className="mt-3 text-sm leading-6 text-[#1e293b]">Your answers become profile evidence. The final pathway ranking comes from the rule-based scoring engine, not from a chatbot guessing a career.</p>
           </div>
-          <div className="rounded-2xl border border-[#dfe5ea] bg-[#f3f7fa] p-5">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#314259]"><Wifi size={17} /> Voice is optional</div>
-            <p className="mt-3 text-sm leading-6 text-[#6c7889]">If speech input is unavailable, type naturally. The same backend workflow stores and evaluates your answer.</p>
+          <div className="rounded-2xl border border-[#cbd5e1] bg-[#f1f5f9] p-5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#0f172a]"><Wifi size={17} /> Voice is optional</div>
+            <p className="mt-3 text-sm leading-6 text-[#1e293b]">If speech input is unavailable, type naturally. The same backend workflow stores and evaluates your answer.</p>
           </div>
         </aside>
       </div>
@@ -516,17 +516,19 @@ function ProfileScreen({ beneficiary }: { beneficiary: Beneficiary }) {
     ["Work preference", profile.employment_preference || "Not provided"],
     ["Travel range", profile.mobility_km != null ? `${profile.mobility_km} km` : "Not provided"],
     ["Available capital", profile.capital_available != null ? `₹${profile.capital_available}` : "Not provided"],
+    ["Family responsibilities", profile.family_responsibilities || "Not provided"],
+    ["Physical constraints", profile.physical_constraints || "None noted"],
   ];
 
   return (
     <main className="mx-auto max-w-[1100px] px-5 py-10 sm:px-7 sm:py-14">
       <div className="flex flex-wrap items-end justify-between gap-5">
-        <div><SectionLabel>Your livelihood profile</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em]">What LEAP understood about you</h1><p className="mt-3 text-base text-[#6b7789]">This profile comes from your saved assessment answers.</p></div>
-        <div className="min-w-[220px]"><div className="mb-2 flex justify-between text-sm"><span className="text-[#687588]">Profile completeness</span><span className="font-semibold">{Math.round(profile.profile_completion_percentage)}%</span></div><Progress value={profile.profile_completion_percentage} /></div>
+        <div><SectionLabel>Your livelihood profile</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#0f172a]">What LEAP understood about you</h1><p className="mt-3 text-base text-[#1e293b]">This profile comes from your saved assessment answers.</p></div>
+        <div className="min-w-[220px]"><div className="mb-2 flex justify-between text-sm"><span className="text-[#1e293b] font-medium">Profile completeness</span><span className="font-bold text-[#0f172a]">{Math.round(profile.profile_completion_percentage)}%</span></div><Progress value={profile.profile_completion_percentage} /></div>
       </div>
       <div className="mt-8 grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
-        <Card className="border-[#e1e6eb] shadow-none"><CardContent className="p-6 sm:p-7"><div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">{details.map(([label, value]) => <div key={label}><div className="text-xs font-medium uppercase tracking-[0.08em] text-[#8993a0]">{label}</div><div className="mt-1.5 text-[15px] font-medium leading-6 text-[#273449]">{value}</div></div>)}</div></CardContent></Card>
-        <Card className="border-[#e1e6eb] shadow-none"><CardContent className="p-6 sm:p-7"><div className="flex items-center gap-2 font-semibold"><BriefcaseBusiness size={18} /> Skills and experience</div><div className="mt-5 space-y-3">{skills.length ? skills.map((skill) => <div key={skill.id} className="rounded-xl border border-[#e4e8ec] bg-[#fbfcfd] p-4"><div className="font-medium">{skill.skill_name || "Skill"}</div><div className="mt-1 text-sm text-[#707b8b]">{skill.experience_years} years · {skill.verified ? "Verified evidence" : "Self-reported"}</div></div>) : <p className="text-sm leading-6 text-[#707b8b]">No skills have been added yet.</p>}</div></CardContent></Card>
+        <Card className="border-[#cbd5e1] shadow-none"><CardContent className="p-6 sm:p-7"><div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">{details.map(([label, value]) => <div key={label}><div className="text-xs font-semibold uppercase tracking-[0.08em] text-[#334155]">{label}</div><div className="mt-1.5 text-[15px] font-semibold leading-6 text-[#0f172a]">{value}</div></div>)}</div></CardContent></Card>
+        <Card className="border-[#cbd5e1] shadow-none"><CardContent className="p-6 sm:p-7"><div className="flex items-center gap-2 font-semibold text-[#0f172a]"><BriefcaseBusiness size={18} /> Skills and experience</div><div className="mt-5 space-y-3">{skills.length ? skills.map((skill) => <div key={skill.id} className="rounded-xl border border-[#cbd5e1] bg-[#f8fafc] p-4"><div className="font-semibold text-[#0f172a]">{skill.skill_name || "Skill"}</div><div className="mt-1 text-sm font-medium text-[#334155]">{skill.experience_years} years · {skill.verified ? "Verified evidence" : "Self-reported"}</div></div>) : <p className="text-sm leading-6 text-[#334155]">No skills have been added yet.</p>}</div></CardContent></Card>
       </div>
       <div className="mt-6 flex justify-end"><Button onClick={() => router.push("/pathways")}>See my pathways <ArrowRight className="ml-2" size={17} /></Button></div>
     </main>
@@ -555,7 +557,7 @@ function PathwaysScreen({ beneficiary }: { beneficiary: Beneficiary }) {
   return (
     <main className="mx-auto max-w-[1120px] px-5 py-10 sm:px-7 sm:py-14">
       <div className="flex flex-wrap items-end justify-between gap-5">
-        <div><SectionLabel>Your recommendations</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em]">Paths that fit your situation</h1><p className="mt-3 max-w-2xl text-base leading-7 text-[#697588]">Scores are calculated from your profile, current skills, eligibility, local training access and practical constraints.</p></div>
+        <div><SectionLabel>Your recommendations</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#0f172a]">Paths that fit your situation</h1><p className="mt-3 max-w-2xl text-base leading-7 text-[#1e293b]">Scores are calculated from your profile, current skills, eligibility, local training access and practical constraints.</p></div>
         <Button variant="outline" disabled={regenerating} onClick={() => { setRegenerating(true); void load(true); }}>{regenerating && <Loader2 className="mr-2 animate-spin" size={16} />}Recalculate</Button>
       </div>
       {pathways.length === 0 ? <div className="mt-10"><EmptyState title="No valid pathways found yet" copy="Your profile may need more evidence, or the local qualification data may not have a valid match yet." action="Review profile" onAction={() => router.push("/profile")} /></div> : (
@@ -563,22 +565,22 @@ function PathwaysScreen({ beneficiary }: { beneficiary: Beneficiary }) {
           {pathways.map((pathway, i) => <PathwayCard key={pathway.id} pathway={pathway} rank={i + 1} onOpen={() => router.push(`/pathway?id=${pathway.id}`)} />)}
         </div>
       )}
-      <div className="mt-8 rounded-2xl border border-[#dfe5ea] bg-white p-5 text-sm leading-6 text-[#677487]"><span className="font-semibold text-[#334259]">Why this is different from a chatbot answer:</span> the backend excludes invalid qualifications, checks constraints, applies one scoring model, and sends low-confidence cases for human review.</div>
+      <div className="mt-8 rounded-2xl border border-[#cbd5e1] bg-white p-5 text-sm leading-6 text-[#1e293b]"><span className="font-semibold text-[#0f172a]">Why this is different from a chatbot answer:</span> the backend excludes invalid qualifications, checks constraints, applies one scoring model, and sends low-confidence cases for human review.</div>
     </main>
   );
 }
 
 function PathwayCard({ pathway, rank, onOpen }: { pathway: Pathway; rank: number; onOpen: () => void }) {
-  const confidenceStyle = pathway.confidence === "GREEN" ? "bg-[#eaf5ef] text-[#2c6a55]" : pathway.confidence === "RED" ? "bg-[#fff0ee] text-[#9b372e]" : "bg-[#fff5df] text-[#86601b]";
+  const confidenceStyle = pathway.confidence === "GREEN" ? "bg-[#d1fae5] text-[#065f46]" : pathway.confidence === "RED" ? "bg-[#fee2e2] text-[#991b1b]" : "bg-[#fef3c7] text-[#92400e]";
   return (
-    <Card className="group border-[#e0e5ea] shadow-none transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(30,45,65,.08)]">
+    <Card className="group border-[#cbd5e1] shadow-none transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(30,45,65,.08)]">
       <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-3"><div className="grid h-9 w-9 place-items-center rounded-full bg-[#eef3f7] text-sm font-semibold text-[#214b72]">{rank}</div><Badge className={confidenceStyle}>{pathway.confidence.toLowerCase()} confidence</Badge></div>
-        <div className="mt-5 text-xs font-semibold uppercase tracking-[0.1em] text-[#798595]">{pathway.type.replaceAll("_", " ")}</div>
-        <h2 className="mt-2 text-xl font-semibold leading-7 tracking-[-0.025em]">{pathway.title}</h2>
-        <div className="mt-5 flex items-end gap-2"><span className="text-4xl font-semibold tracking-[-0.04em] text-[#163d69]">{Math.round(pathway.score)}</span><span className="pb-1 text-sm text-[#7c8795]">fit score</span></div>
-        <div className="mt-5 flex flex-wrap gap-2"><span className="rounded-full bg-[#f1f4f6] px-3 py-1.5 text-xs font-medium text-[#4e5d70]">{routeLabel(pathway.recommended_route)}</span>{pathway.constraints.slice(0, 1).map((constraint) => <span key={constraint.constraint_type} className="rounded-full bg-[#fff4e8] px-3 py-1.5 text-xs font-medium text-[#855a19]">{humanize(constraint.constraint_type)}</span>)}</div>
-        <button onClick={onOpen} className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-[#174b8a]">See why this fits <ChevronRight size={16} className="transition group-hover:translate-x-0.5" /></button>
+        <div className="flex items-start justify-between gap-3"><div className="grid h-9 w-9 place-items-center rounded-full bg-[#dbeafe] text-sm font-semibold text-[#1e3a8a]">{rank}</div><Badge className={confidenceStyle}>{pathway.confidence.toLowerCase()} confidence</Badge></div>
+        <div className="mt-5 text-xs font-semibold uppercase tracking-[0.1em] text-[#334155]">{pathway.type.replaceAll("_", " ")}</div>
+        <h2 className="mt-2 text-xl font-semibold leading-7 tracking-[-0.025em] text-[#0f172a]">{pathway.title}</h2>
+        <div className="mt-5 flex items-end gap-2"><span className="text-4xl font-semibold tracking-[-0.04em] text-[#1e3a8a]">{Math.round(pathway.score)}</span><span className="pb-1 text-sm font-medium text-[#334155]">fit score</span></div>
+        <div className="mt-5 flex flex-wrap gap-2"><span className="rounded-full bg-[#e2e8f0] px-3 py-1.5 text-xs font-semibold text-[#0f172a]">{routeLabel(pathway.recommended_route)}</span>{pathway.constraints.slice(0, 1).map((constraint) => <span key={constraint.constraint_type} className="rounded-full bg-[#fef3c7] px-3 py-1.5 text-xs font-semibold text-[#92400e]">{humanize(constraint.constraint_type)}</span>)}</div>
+        <button onClick={onOpen} className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-[#1d4ed8]">See why this fits <ChevronRight size={16} className="transition group-hover:translate-x-0.5" /></button>
       </CardContent>
     </Card>
   );
@@ -601,25 +603,100 @@ function PathwayScreen() {
 
   return (
     <main className="mx-auto max-w-[980px] px-5 py-10 sm:px-7 sm:py-14">
-      <button onClick={() => router.push("/pathways")} className="mb-7 text-sm font-medium text-[#506078]">← Back to pathways</button>
+      <button onClick={() => router.push("/pathways")} className="mb-7 text-sm font-semibold text-[#1e3a8a]">← Back to pathways</button>
       <div className="grid gap-7 lg:grid-cols-[1fr_300px]">
         <div>
           <SectionLabel>{pathway.type.replaceAll("_", " ")}</SectionLabel>
-          <h1 className="text-4xl font-semibold tracking-[-0.04em]">{pathway.title}</h1>
-          <p className="mt-4 text-base leading-7 text-[#697588]">{pathway.description}</p>
+          <h1 className="text-4xl font-semibold tracking-[-0.04em] text-[#0f172a]">{pathway.title}</h1>
+          <p className="mt-4 text-base leading-7 text-[#1e293b]">{pathway.description}</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <InfoBlock icon={BadgeCheck} title="Recommended route" value={routeLabel(pathway.recommended_route)} />
             <InfoBlock icon={ShieldCheck} title="Confidence" value={`${humanize(pathway.confidence)} confidence`} />
           </div>
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold">What LEAP used</h2>
-            <div className="mt-4 space-y-3">{pathway.evidence.length ? pathway.evidence.map((item, index) => <div key={`${item.label}-${index}`} className="rounded-xl border border-[#e1e6eb] bg-white p-4"><div className="font-medium">{item.label}</div><div className="mt-1 text-sm text-[#6c7889]">{item.value}</div></div>) : <div className="rounded-xl border border-[#e1e6eb] bg-white p-4 text-sm leading-6 text-[#6c7889]">This pathway was generated from your saved profile, skills, qualification eligibility and available training data.</div>}</div>
+          <div className="mt-8 border-t border-[#cbd5e1] pt-8">
+            <h2 className="text-2xl font-bold tracking-[-0.03em] text-[#0f172a]">Why this pathway fits</h2>
+
+            {/* Subsection 1: What already works in your favour */}
+            <div className="mt-6">
+              <h3 className="text-base font-semibold text-[#0f172a] flex items-center gap-2">
+                <BadgeCheck className="text-[#059669]" size={19} /> What already works in your favour
+              </h3>
+              <div className="mt-3 space-y-3">
+                {pathway.evidence.filter((e) => ["SKILL", "ASPIRATION", "ELIGIBILITY", "OPPORTUNITY"].includes(e.evidence_type)).map((item, index) => (
+                  <div key={`favour-${index}`} className="rounded-xl border border-[#cbd5e1] bg-white p-4">
+                    <div className="font-semibold text-[#0f172a]">{item.label}</div>
+                    <div className="mt-1 text-sm font-medium text-[#1e293b]">{item.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Subsection 2: What you may need */}
+            <div className="mt-7">
+              <h3 className="text-base font-semibold text-[#0f172a] flex items-center gap-2">
+                <BriefcaseBusiness className="text-[#2563eb]" size={19} /> What you may need
+              </h3>
+              <div className="mt-3 space-y-3">
+                {pathway.evidence.filter((e) => e.evidence_type === "RPL").map((item, index) => (
+                  <div key={`need-${index}`} className="rounded-xl border border-[#cbd5e1] bg-[#f8fafc] p-4">
+                    <div className="font-semibold text-[#0f172a]">{item.label}</div>
+                    <div className="mt-1 text-sm font-medium text-[#1e293b]">{item.value}</div>
+                  </div>
+                ))}
+                <div className="rounded-xl border border-[#cbd5e1] bg-white p-4">
+                  <div className="font-semibold text-[#0f172a]">Recommended Route</div>
+                  <div className="mt-1 text-sm font-medium text-[#1e293b]">{routeLabel(pathway.recommended_route)}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Subsection 3: Things to plan around */}
+            <div className="mt-7">
+              <h3 className="text-base font-semibold text-[#0f172a] flex items-center gap-2">
+                <CircleAlert className="text-[#d97706]" size={19} /> Things to plan around
+              </h3>
+              <div className="mt-3 space-y-3">
+                {pathway.evidence.filter((e) => ["CONSTRAINT", "MOBILITY"].includes(e.evidence_type)).map((item, index) => (
+                  <div key={`plan-${index}`} className="flex gap-3 rounded-xl border border-[#fde68a] bg-[#fffbeb] p-4">
+                    <CircleAlert className="mt-0.5 shrink-0 text-[#92400e]" size={18} />
+                    <div>
+                      <div className="font-semibold text-[#78350f]">{item.label}</div>
+                      <div className="mt-1 text-sm font-medium text-[#92400e]">{item.value}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Subsection 4: How this score was calculated */}
+            <div className="mt-7">
+              <h3 className="text-base font-semibold text-[#0f172a] flex items-center gap-2">
+                <Sparkles className="text-[#7c3aed]" size={19} /> How this score was calculated
+              </h3>
+              <div className="mt-3 rounded-xl border border-[#cbd5e1] bg-white p-5 space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-[#334155]">Overall Fit Score</span>
+                  <span className="font-bold text-[#1e3a8a] text-lg">{Math.round(pathway.score)} / 100</span>
+                </div>
+                <div className="text-xs text-[#334155] leading-5">
+                  Calculated deterministically from skill evidence, aspiration alignment, minimum qualification eligibility, local training accessibility, mobility constraints, and historical outcome verification.
+                </div>
+                {pathway.evidence.some((e) => e.evidence_type === "OUTCOME_EVIDENCE") ? (
+                  <div className="rounded-lg bg-[#ecfdf5] p-3 text-xs font-semibold text-[#065f46]">
+                    ✓ Includes verified historical 90-day employment outcome evidence
+                  </div>
+                ) : (
+                  <div className="rounded-lg bg-[#f1f5f9] p-3 text-xs font-medium text-[#334155]">
+                    Note: Outcome evidence component uses neutral baseline score (historical sample size below minimum threshold).
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          {pathway.constraints.length > 0 && <div className="mt-8"><h2 className="text-lg font-semibold">Things to plan around</h2><div className="mt-4 space-y-3">{pathway.constraints.map((item, index) => <div key={`${item.constraint_type}-${index}`} className="flex gap-3 rounded-xl border border-[#eee2cf] bg-[#fffaf2] p-4"><CircleAlert className="mt-0.5 shrink-0 text-[#9a6b1f]" size={18} /><div><div className="font-medium">{humanize(item.constraint_type)}</div><div className="mt-1 text-sm leading-6 text-[#746853]">{item.effect}</div></div></div>)}</div></div>}
         </div>
         <aside>
-          <div className="sticky top-24 rounded-2xl bg-[#173f6b] p-6 text-white">
-            <div className="text-sm text-[#c6d6e7]">Overall fit</div><div className="mt-1 text-5xl font-semibold tracking-[-0.05em]">{Math.round(pathway.score)}</div><div className="mt-6 border-t border-white/15 pt-5 text-sm leading-6 text-[#d7e2ed]">This score is recalculated from stored evidence. It is not a fixed display value.</div>
+          <div className="sticky top-24 rounded-2xl bg-[#1e3a8a] p-6 text-white">
+            <div className="text-sm font-medium text-[#bfdbfe]">Overall fit</div><div className="mt-1 text-5xl font-semibold tracking-[-0.05em]">{Math.round(pathway.score)}</div><div className="mt-6 border-t border-white/20 pt-5 text-sm leading-6 text-[#e0e7ff]">This score is recalculated from stored evidence. It is not a fixed display value.</div>
           </div>
         </aside>
       </div>
@@ -628,15 +705,15 @@ function PathwayScreen() {
 }
 
 function InfoBlock({ icon: Icon, title, value }: { icon: typeof Sparkles; title: string; value: string }) {
-  return <div className="rounded-2xl border border-[#e1e6eb] bg-white p-5"><div className="flex items-center gap-2 text-sm text-[#738092]"><Icon size={17} /> {title}</div><div className="mt-2 font-semibold text-[#29374b]">{value}</div></div>;
+  return <div className="rounded-2xl border border-[#cbd5e1] bg-white p-5"><div className="flex items-center gap-2 text-sm font-semibold text-[#334155]"><Icon size={17} /> {title}</div><div className="mt-2 font-bold text-[#0f172a]">{value}</div></div>;
 }
 
 function PageLoader({ text }: { text: string }) {
-  return <main className="mx-auto grid min-h-[60vh] max-w-[900px] place-items-center px-5"><div className="flex items-center gap-3 text-sm font-medium text-[#5e6b7d]"><Loader2 size={18} className="animate-spin" /> {text}</div></main>;
+  return <main className="mx-auto grid min-h-[60vh] max-w-[900px] place-items-center px-5"><div className="flex items-center gap-3 text-sm font-semibold text-[#0f172a]"><Loader2 size={18} className="animate-spin" /> {text}</div></main>;
 }
 
 function EmptyState({ title, copy, action, onAction }: { title: string; copy: string; action: string; onAction: () => void }) {
-  return <main className="mx-auto grid min-h-[60vh] max-w-[760px] place-items-center px-5"><div className="w-full rounded-2xl border border-[#e1e6eb] bg-white p-8 text-center"><div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-[#eef3f7] text-[#214b72]"><ClipboardList size={20} /></div><h1 className="mt-5 text-2xl font-semibold tracking-[-0.03em]">{title}</h1><p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[#6b7788]">{copy}</p><Button className="mt-6" onClick={onAction}>{action}</Button></div></main>;
+  return <main className="mx-auto grid min-h-[60vh] max-w-[760px] place-items-center px-5"><div className="w-full rounded-2xl border border-[#cbd5e1] bg-white p-8 text-center"><div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-[#dbeafe] text-[#1e3a8a]"><ClipboardList size={20} /></div><h1 className="mt-5 text-2xl font-semibold tracking-[-0.03em] text-[#0f172a]">{title}</h1><p className="mx-auto mt-3 max-w-lg text-sm leading-6 font-medium text-[#1e293b]">{copy}</p><Button className="mt-6" onClick={onAction}>{action}</Button></div></main>;
 }
 
 function humanize(value: string) {

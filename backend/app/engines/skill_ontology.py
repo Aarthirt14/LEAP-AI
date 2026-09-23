@@ -81,7 +81,6 @@ def competency_aliases(value: str | None) -> set[str]:
     aliases = {normalized}
     for canonical, values in OCCUPATION_ALIASES.items():
         if canonical in canonical_occupations(value):
-            aliases.update(normalize_text(item) for item in SKILL_COMPETENCIES.get(canonical, {}))
             aliases.update(normalize_text(alias) for alias in values)
     return aliases
 
@@ -100,7 +99,7 @@ def best_skill_evidence(skills: Iterable[dict], competency_name: str) -> tuple[f
     best_skill: dict | None = None
     competency = normalize_text(competency_name)
     for skill in skills:
-        direct = 1.0 if competency in competency_aliases(skill.get("name")) else 0.0
+        direct = 1.0 if normalize_text(skill.get("name")) == competency else 0.0
         mapped = skill_evidence(skill.get("name"), competency_name)
         score = max(direct, mapped)
         if score > best_score:

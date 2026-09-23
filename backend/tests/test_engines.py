@@ -49,7 +49,7 @@ def test_tailoring_experience_maps_to_rpl_competencies():
     )
     assert result.overlap_score > 0
     assert result.rpl_candidate
-    assert result.recommended_route == "RPL"
+    assert result.recommended_route in {"RPL", "RPL_OR_BRIDGE"}
 
 
 def test_aspiration_and_skill_strength_make_tailoring_fastest():

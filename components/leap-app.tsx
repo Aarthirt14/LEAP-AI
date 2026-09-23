@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState, type ReactNode } from "react";
+import { FormEvent, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
@@ -128,7 +128,7 @@ function Shell({ state, onLogout, onSelectLocale, children }: { state: AppState;
           { label: t("nav.home", locale), href: "/" },
           { label: t("nav.profile", locale), href: "/profile" },
           { label: t("nav.pathways", locale), href: "/pathways" },
-          { label: t("nav.progress", locale), href: "/profile" },
+          { label: t("nav.progress", locale), href: "/progress" },
         ];
 
   const go = (href: string) => {
@@ -199,7 +199,7 @@ export function LeapApp() {
     setStoredLocale(nextLocale);
     setState((prev) => ({ ...prev, locale: nextLocale }));
     setLanguageReady(false);
-    const validPath = ["/", "/auth", "/onboarding", "/interview", "/profile", "/pathways", "/pathway", "/field-worker", "/review", "/officer", "/admin"];
+    const validPath = ["/", "/auth", "/onboarding", "/interview", "/profile", "/pathways", "/pathway", "/progress", "/field-worker", "/review", "/officer", "/admin"];
     if (validPath.includes(pathname)) {
       router.refresh();
     }
@@ -259,6 +259,7 @@ export function LeapApp() {
   else if (pathname === "/profile") content = <RequireBeneficiary state={state}><ProfileScreen beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
   else if (pathname === "/pathways") content = <RequireBeneficiary state={state}><PathwaysScreen beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
   else if (pathname === "/pathway") content = <RequireBeneficiary state={state}><PathwayScreen locale={state.locale} /></RequireBeneficiary>;
+  else if (pathname === "/progress") content = <RequireBeneficiary state={state}><ProgressScreen beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
   else if (pathname === "/field-worker") content = <RequireRole role="FIELD_WORKER" state={state}>{selectedBeneficiaryId ? <FieldWorkerBeneficiaryView beneficiaryId={selectedBeneficiaryId} locale={state.locale} /> : <FieldWorkerDashboard locale={state.locale} />}</RequireRole>;
   else if (pathname === "/review") content = <RequireRole role="FACILITATOR" state={state}><ReviewDashboard locale={state.locale} /></RequireRole>;
   else if (pathname === "/officer") content = <RequireRole role="DISTRICT_OFFICER" state={state}><OfficerDashboard locale={state.locale} /></RequireRole>;
@@ -875,7 +876,7 @@ function PathwayCard({ pathway, rank, onOpen }: { pathway: Pathway; rank: number
   );
 }
 
-function PathwayScreen({ locale }: { locale: Locale }) {
+function PathwayScreenInner({ locale }: { locale: Locale }) {
   const search = useSearchParams();
   const router = useRouter();
   const id = Number(search.get("id"));
@@ -1000,6 +1001,89 @@ function PathwayScreen({ locale }: { locale: Locale }) {
             <div className="text-sm font-medium text-[#bfdbfe]">Overall fit</div><div className="mt-1 text-5xl font-semibold tracking-[-0.05em]">{Math.round(pathway.score)}%</div><div className="mt-6 border-t border-white/20 pt-5 text-sm leading-6 text-[#e0e7ff]">{confidenceMessage(pathway)}</div>
           </div>
         </aside>
+      </div>
+    </main>
+  );
+}
+
+function PathwayScreen({ locale }: { locale: Locale }) {
+  return (
+    <Suspense fallback={<PageLoader text="Loading pathway details…" />}>
+      <PathwayScreenInner locale={locale} />
+    </Suspense>
+  );
+}
+
+function ProgressScreen({ beneficiary, locale }: { beneficiary: Beneficiary; locale: Locale }) {
+  const router = useRouter();
+
+  return (
+    <main className="mx-auto max-w-[1000px] px-5 py-10 sm:px-7 sm:py-14">
+      <SectionLabel>Milestones & Follow-up</SectionLabel>
+      <div className="flex flex-wrap items-end justify-between gap-5">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#0f172a] sm:text-4xl">
+            Livelihood Journey Progress
+          </h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-[#1e293b]">
+            Track verified milestones, training attendance, and post-placement 30, 90, and 180-day follow-up checks.
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => router.push("/pathways")}>
+          View Pathways
+        </Button>
+      </div>
+
+      <div className="mt-8 grid gap-6">
+        <div className="rounded-2xl border border-[#cbd5e1] bg-white p-6 sm:p-8">
+          <h2 className="text-xl font-semibold text-[#0f172a]">Follow-up Tracking Milestones</h2>
+          <p className="mt-1 text-sm text-[#475569]">
+            PM-AJAY livelihood pathways include structured follow-ups to ensure wage growth and retention.
+          </p>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#64748b]">Day 30</div>
+              <div className="mt-1 font-semibold text-[#0f172a]">Early Check-in</div>
+              <div className="mt-2 text-xs text-[#64748b]">Training start & attendance verification</div>
+              <div className="mt-4 inline-block rounded-full bg-[#e2e8f0] px-2.5 py-1 text-xs font-medium text-[#475569]">
+                Pending
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#64748b]">Day 90</div>
+              <div className="mt-1 font-semibold text-[#0f172a]">Placement Verification</div>
+              <div className="mt-2 text-xs text-[#64748b]">Employment status & initial wage record</div>
+              <div className="mt-4 inline-block rounded-full bg-[#e2e8f0] px-2.5 py-1 text-xs font-medium text-[#475569]">
+                Pending
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#64748b]">Day 180</div>
+              <div className="mt-1 font-semibold text-[#0f172a]">Retention & Sustainability</div>
+              <div className="mt-2 text-xs text-[#64748b]">Sustained livelihood & enterprise growth check</div>
+              <div className="mt-4 inline-block rounded-full bg-[#e2e8f0] px-2.5 py-1 text-xs font-medium text-[#475569]">
+                Pending
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-dashed border-[#cbd5e1] bg-[#f8fafc] p-8 text-center">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#e0e7ff] text-[#3730a3]">
+            <ClipboardList size={22} />
+          </div>
+          <h3 className="mt-4 text-lg font-semibold text-[#0f172a]">No follow-up data yet</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#475569]">
+            Follow-up records will appear here once your field worker or facilitator conducts the first 30-day post-recommendation check-in.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Button onClick={() => router.push("/profile")}>Review Profile</Button>
+            <Button variant="outline" onClick={() => router.push("/pathways")}>Explore Pathways</Button>
+          </div>
+        </div>
       </div>
     </main>
   );

@@ -98,6 +98,7 @@ export function getAccessToken() {
 }
 
 export function saveTokens(tokens: TokenPair) {
+  if (typeof window === "undefined") return;
   window.localStorage.setItem(ACCESS_KEY, tokens.access_token);
   window.localStorage.setItem(REFRESH_KEY, tokens.refresh_token);
 }

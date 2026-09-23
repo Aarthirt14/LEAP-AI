@@ -14,11 +14,11 @@ from app.utils.errors import AppError
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 DEMO_EMAILS = {
-    "BENEFICIARY": "beneficiary.demo@leapai.local",
-    "FIELD_WORKER": "fieldworker.demo@leapai.local",
-    "FACILITATOR": "facilitator.demo@leapai.local",
-    "DISTRICT_OFFICER": "officer.demo@leapai.local",
-    "ADMIN": "admin.demo@leapai.local",
+    "BENEFICIARY": "beneficiary.demo@demo.leapai.dev",
+    "FIELD_WORKER": "fieldworker.demo@demo.leapai.dev",
+    "FACILITATOR": "facilitator.demo@demo.leapai.dev",
+    "DISTRICT_OFFICER": "officer.demo@demo.leapai.dev",
+    "ADMIN": "admin.demo@demo.leapai.dev",
 }
 
 

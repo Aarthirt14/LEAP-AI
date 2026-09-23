@@ -16,11 +16,11 @@ from app.services.pathway_service import generate_pathways
 
 DEMO_PASSWORD = "LeapDemo@2026"
 DEMO_EMAILS = {
-    UserRole.BENEFICIARY: "beneficiary.demo@leapai.local",
-    UserRole.FIELD_WORKER: "fieldworker.demo@leapai.local",
-    UserRole.FACILITATOR: "facilitator.demo@leapai.local",
-    UserRole.DISTRICT_OFFICER: "officer.demo@leapai.local",
-    UserRole.ADMIN: "admin.demo@leapai.local",
+    UserRole.BENEFICIARY: "beneficiary.demo@demo.leapai.dev",
+    UserRole.FIELD_WORKER: "fieldworker.demo@demo.leapai.dev",
+    UserRole.FACILITATOR: "facilitator.demo@demo.leapai.dev",
+    UserRole.DISTRICT_OFFICER: "officer.demo@demo.leapai.dev",
+    UserRole.ADMIN: "admin.demo@demo.leapai.dev",
 }
 
 

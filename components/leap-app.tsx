@@ -189,7 +189,7 @@ export function LeapApp() {
   const router = useRouter();
   const pathname = usePathname();
   const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState<number | null>(null);
-  const [state, setState] = useState<AppState>({ loading: true, signedIn: false, beneficiary: null, role: null, locale: getStoredLocale() });
+  const [state, setState] = useState<AppState>({ loading: true, signedIn: false, beneficiary: null, role: null, locale: "en" });
   const [languageReady, setLanguageReady] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     return !window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
@@ -229,7 +229,11 @@ export function LeapApp() {
     }
   };
 
-  useEffect(() => { void refreshSession(); }, []);
+  useEffect(() => {
+    const storedLocale = getStoredLocale();
+    setState((prev) => ({ ...prev, locale: storedLocale }));
+    void refreshSession();
+  }, []);
   useEffect(() => {
     if (pathname !== "/field-worker") {
       setSelectedBeneficiaryId(null);

@@ -889,6 +889,15 @@ function PathwayScreen({ locale }: { locale: Locale }) {
 
   if (loading) return <PageLoader text="Loading pathway details…" />;
   if (!pathway) return <EmptyState title="Pathway not found" copy="Return to your recommendations and choose a pathway again." action="Back to pathways" onAction={() => router.push("/pathways")} />;
+  const scoreBreakdown = pathway.score_breakdown || {
+    skill_fit: 0,
+    aspiration_fit: 0,
+    eligibility: 0,
+    opportunity: 0,
+    mobility: 0,
+    training_burden: 0,
+    outcome_evidence: 0.5,
+  };
 
   return (
     <main className="mx-auto max-w-[980px] px-5 py-10 sm:px-7 sm:py-14">
@@ -968,7 +977,7 @@ function PathwayScreen({ locale }: { locale: Locale }) {
                   <span className="font-bold text-[#1e3a8a] text-lg">{Math.round(pathway.score)}%</span>
                 </div>
                 <div className="space-y-3 pt-2">
-                  {Object.entries(pathway.score_breakdown).map(([key, value]) => <div key={key}><div className="mb-1 flex justify-between text-xs font-semibold text-[#334155]"><span>{scoreLabel(key)}</span><span>{Math.round(value * 100)}%</span></div><div className="h-2 overflow-hidden rounded-full bg-[#e2e8f0]"><div className="h-full rounded-full bg-[#2f66d0]" style={{ width: `${Math.round(value * 100)}%` }} /></div></div>)}
+                  {Object.entries(scoreBreakdown).map(([key, value]) => <div key={key}><div className="mb-1 flex justify-between text-xs font-semibold text-[#334155]"><span>{scoreLabel(key)}</span><span>{Math.round(value * 100)}%</span></div><div className="h-2 overflow-hidden rounded-full bg-[#e2e8f0]"><div className="h-full rounded-full bg-[#2f66d0]" style={{ width: `${Math.round(value * 100)}%` }} /></div></div>)}
                 </div>
                 <div className="text-xs text-[#334155] leading-5">
                   Calculated deterministically from skill evidence, aspiration alignment, minimum qualification eligibility, local training accessibility, mobility constraints, and historical outcome verification.

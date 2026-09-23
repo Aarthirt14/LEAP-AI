@@ -100,13 +100,13 @@ function Shell({ state, onLogout, children }: { state: AppState; onLogout: () =>
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a]">
-      <header className="sticky top-0 z-40 border-b border-[#e2e8f0] bg-white/95 backdrop-blur">
+    <div className="min-h-screen bg-[#f4f7fb] text-[#163d69]">
+      <header className="sticky top-0 z-40 border-b border-[#dfe7f1] bg-white/90 shadow-[0_4px_20px_rgba(22,61,105,.06)] backdrop-blur">
         <div className="mx-auto flex h-[68px] max-w-[1240px] items-center justify-between px-5 sm:px-7">
           <button onClick={() => go("/")} aria-label="Go to home"><Logo /></button>
           <nav className="hidden items-center gap-1 md:flex">
             {state.signedIn && state.beneficiary && nav.map((item) => (
-              <button key={item.href} onClick={() => go(item.href)} className={`rounded-lg px-3.5 py-2 text-sm font-medium transition ${pathname === item.href ? "bg-[#e2e8f0] text-[#1e3a8a]" : "text-[#334155] hover:bg-[#f1f5f9] hover:text-[#0f172a]"}`}>
+              <button key={item.href} onClick={() => go(item.href)} className={`rounded-full px-3.5 py-2 text-sm font-semibold transition ${pathname === item.href ? "bg-[#e7eefb] text-[#163d69] shadow-[inset_0_-2px_0_#2f66d0]" : "text-[#41526d] hover:bg-[#f1f5fb] hover:text-[#163d69]"}`}>
                 {item.label}
               </button>
             ))}
@@ -125,7 +125,7 @@ function Shell({ state, onLogout, children }: { state: AppState; onLogout: () =>
           </div>
         </div>
         {menuOpen && (
-          <div className="border-t border-[#edf0f4] bg-white px-5 py-3 md:hidden">
+          <div className="border-t border-[#dfe7f1] bg-white px-5 py-3 md:hidden">
             {nav.map((item) => <button key={item.href} onClick={() => go(item.href)} className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[#374357] hover:bg-[#f3f5f7]">{item.label}</button>)}
             <button onClick={onLogout} className="mt-1 block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[#8b2f28] hover:bg-[#fff2f0]">Sign out</button>
           </div>
@@ -523,13 +523,14 @@ function ProfileScreen({ beneficiary }: { beneficiary: Beneficiary }) {
   return (
     <main className="mx-auto max-w-[1100px] px-5 py-10 sm:px-7 sm:py-14">
       <div className="flex flex-wrap items-end justify-between gap-5">
-        <div><SectionLabel>Your livelihood profile</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#0f172a]">What LEAP understood about you</h1><p className="mt-3 text-base text-[#1e293b]">This profile comes from your saved assessment answers.</p></div>
-        <div className="min-w-[220px]"><div className="mb-2 flex justify-between text-sm"><span className="text-[#1e293b] font-medium">Profile completeness</span><span className="font-bold text-[#0f172a]">{Math.round(profile.profile_completion_percentage)}%</span></div><Progress value={profile.profile_completion_percentage} /></div>
+        <div><SectionLabel>Your livelihood profile</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#163d69]">What LEAP understood about you</h1><p className="mt-3 text-base text-[#41526d]">A living picture of your experience, responsibilities and direction.</p></div>
+        <div className="flex items-center gap-3 rounded-2xl bg-[#e7eefb] px-4 py-3"><div className="score-ring h-16 w-16" style={{ "--score": profile.profile_completion_percentage } as React.CSSProperties}><span className="relative z-10 text-sm font-bold text-[#163d69]">{Math.round(profile.profile_completion_percentage)}%</span></div><div><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#41526d]">Profile</div><div className="font-semibold text-[#163d69]">Completeness</div></div></div>
       </div>
       <div className="mt-8 grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
-        <Card className="border-[#cbd5e1] shadow-none"><CardContent className="p-6 sm:p-7"><div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">{details.map(([label, value]) => <div key={label}><div className="text-xs font-semibold uppercase tracking-[0.08em] text-[#334155]">{label}</div><div className="mt-1.5 text-[15px] font-semibold leading-6 text-[#0f172a]">{value}</div></div>)}</div></CardContent></Card>
-        <Card className="border-[#cbd5e1] shadow-none"><CardContent className="p-6 sm:p-7"><div className="flex items-center gap-2 font-semibold text-[#0f172a]"><BriefcaseBusiness size={18} /> Skills and experience</div><div className="mt-5 space-y-3">{skills.length ? skills.map((skill) => <div key={skill.id} className="rounded-xl border border-[#cbd5e1] bg-[#f8fafc] p-4"><div className="font-semibold text-[#0f172a]">{skill.skill_name || "Skill"}</div><div className="mt-1 text-sm font-medium text-[#334155]">{skill.experience_years} years · {skill.verified ? "Verified evidence" : "Self-reported"}</div></div>) : <p className="text-sm leading-6 text-[#334155]">No skills have been added yet.</p>}</div></CardContent></Card>
+        <Card className="border-[#c7d8ee] bg-[#edf4fd] shadow-none"><CardContent className="p-6 sm:p-7"><div className="flex items-center gap-2 font-semibold text-[#163d69]"><BriefcaseBusiness size={18} /> Current experience</div><div className="mt-5 grid gap-x-8 gap-y-6 sm:grid-cols-2">{details.slice(0, 6).map(([label, value]) => <div key={label}><div className="text-xs font-semibold uppercase tracking-[0.08em] text-[#41526d]">{label}</div><div className="mt-1.5 text-[15px] font-semibold leading-6 text-[#163d69]">{value}</div></div>)}</div></CardContent></Card>
+        <div className="space-y-5"><Card className="border-[#d2d2f6] bg-[#f0f0ff] shadow-none"><CardContent className="p-6 sm:p-7"><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#5b5bd6]">What you want to become</div><blockquote className="mt-4 text-2xl font-semibold leading-9 tracking-[-0.025em] text-[#303078]">“{profile.aspiration_text || "Your next chapter will take shape here."}”</blockquote><div className="mt-4 text-sm font-medium text-[#4b4b9e]">Your aspiration is considered separately from your current experience.</div></CardContent></Card><Card className="border-[#c5e4d9] bg-[#edf9f3] shadow-none"><CardContent className="p-6 sm:p-7"><div className="flex items-center gap-2 font-semibold text-[#176b58]"><BriefcaseBusiness size={18} /> Skills and experience</div><div className="mt-5 flex flex-wrap gap-2">{skills.length ? skills.map((skill) => <span key={skill.id} className="rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#176b58] shadow-sm">{skill.skill_name || "Skill"} · {skill.experience_years}y{skill.verified ? " · verified" : ""}</span>) : <p className="text-sm leading-6 font-medium text-[#176b58]">Your experience will appear here after assessment.</p>}</div></CardContent></Card></div>
       </div>
+      <div className="mt-6 grid gap-4 rounded-2xl border border-[#c5e4d9] bg-[#eaf8f1] p-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center"><div><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#1f8a70]">What you know</div><div className="mt-1 font-semibold text-[#176b58]">Experience, skills and real constraints</div></div><div className="hidden text-2xl text-[#5b5bd6] sm:block">↔</div><div><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#5b5bd6]">What you want</div><div className="mt-1 font-semibold text-[#303078]">Aspiration and possibility</div></div><p className="text-sm font-semibold text-[#163d69] sm:col-span-3">Your past does not decide your future. Both matter.</p></div>
       <div className="mt-6 flex justify-end"><Button onClick={() => router.push("/pathways")}>See my pathways <ArrowRight className="ml-2" size={17} /></Button></div>
     </main>
   );
@@ -557,7 +558,7 @@ function PathwaysScreen({ beneficiary }: { beneficiary: Beneficiary }) {
   return (
     <main className="mx-auto max-w-[1120px] px-5 py-10 sm:px-7 sm:py-14">
       <div className="flex flex-wrap items-end justify-between gap-5">
-        <div><SectionLabel>Your recommendations</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#0f172a]">Paths that fit your situation</h1><p className="mt-3 max-w-2xl text-base leading-7 text-[#1e293b]">Scores are calculated from your profile, current skills, eligibility, local training access and practical constraints.</p></div>
+        <div><SectionLabel>Your recommendations</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#163d69]">Paths that fit your situation</h1><p className="mt-3 max-w-2xl text-base leading-7 text-[#41526d]">Scores are calculated from your profile, current skills, eligibility, local training access and practical constraints.</p></div>
         <Button variant="outline" disabled={regenerating} onClick={() => { setRegenerating(true); void load(true); }}>{regenerating && <Loader2 className="mr-2 animate-spin" size={16} />}Recalculate</Button>
       </div>
       {pathways.length === 0 ? <div className="mt-10"><EmptyState title="No valid pathways found yet" copy="Your profile may need more evidence, or the local qualification data may not have a valid match yet." action="Review profile" onAction={() => router.push("/profile")} /></div> : (
@@ -573,12 +574,12 @@ function PathwaysScreen({ beneficiary }: { beneficiary: Beneficiary }) {
 function PathwayCard({ pathway, rank, onOpen }: { pathway: Pathway; rank: number; onOpen: () => void }) {
   const confidenceStyle = pathway.confidence === "GREEN" ? "bg-[#d1fae5] text-[#065f46]" : pathway.confidence === "RED" ? "bg-[#fee2e2] text-[#991b1b]" : "bg-[#fef3c7] text-[#92400e]";
   return (
-    <Card className="group border-[#cbd5e1] shadow-none transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(30,45,65,.08)]">
-      <CardContent className="p-6">
+    <Card className={`group border shadow-none transition hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(30,45,65,.1)] ${rank === 1 ? "border-[#b9d0f0] bg-[#edf4fd] lg:-mt-3" : rank === 2 ? "border-[#d2d2f6] bg-[#f0f0ff]" : "border-[#c5e4d9] bg-[#edf9f3]"}`}>
+      <CardContent className="p-6 sm:p-7">
         <div className="flex items-start justify-between gap-3"><div className="grid h-9 w-9 place-items-center rounded-full bg-[#dbeafe] text-sm font-semibold text-[#1e3a8a]">{rank}</div><Badge className={confidenceStyle}>{pathway.confidence.toLowerCase()} confidence</Badge></div>
         <div className="mt-5 text-xs font-semibold uppercase tracking-[0.1em] text-[#334155]">{pathway.type.replaceAll("_", " ")}</div>
         <h2 className="mt-2 text-xl font-semibold leading-7 tracking-[-0.025em] text-[#0f172a]">{pathway.title}</h2>
-        <div className="mt-5 flex items-end gap-2"><span className="text-4xl font-semibold tracking-[-0.04em] text-[#1e3a8a]">{Math.round(pathway.score)}</span><span className="pb-1 text-sm font-medium text-[#334155]">fit score</span></div>
+        <div className="mt-5 flex items-center gap-4"><div className="score-ring h-20 w-20" style={{ "--score": pathway.score } as React.CSSProperties}><span className="relative z-10 text-2xl font-bold text-[#163d69]">{Math.round(pathway.score)}</span></div><div><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#41526d]">Fit score</div><div className="mt-1 text-sm font-semibold text-[#163d69]">{humanize(pathway.confidence)} confidence</div></div></div>
         <div className="mt-5 flex flex-wrap gap-2"><span className="rounded-full bg-[#e2e8f0] px-3 py-1.5 text-xs font-semibold text-[#0f172a]">{routeLabel(pathway.recommended_route)}</span>{pathway.constraints.slice(0, 1).map((constraint) => <span key={constraint.constraint_type} className="rounded-full bg-[#fef3c7] px-3 py-1.5 text-xs font-semibold text-[#92400e]">{humanize(constraint.constraint_type)}</span>)}</div>
         <button onClick={onOpen} className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-[#1d4ed8]">See why this fits <ChevronRight size={16} className="transition group-hover:translate-x-0.5" /></button>
       </CardContent>

@@ -115,4 +115,3 @@ DEMO_MODE=true python -m seed.seed_data --reset
 
 The five local accounts use `@demo.leapai.dev` addresses and the shared presentation password `LeapDemo@2026`. The seed creates Meena's Tamil beneficiary profile, tailoring skills, qualification competencies, realistic training distances, engine-generated pathways, a review case, follow-up data, and aggregate records. Passwords are stored only as Argon2 hashes. All domain demo records are explicitly `SYNTHETIC` or `UNVERIFIED`; they must never be presented as official PM-AJAY/NQR data. Keep `DEMO_MODE=false` outside a controlled prototype environment.
 
-Seeded demo account password: `DemoPassword123!`. Change or disable all demo accounts outside a controlled prototype environment.

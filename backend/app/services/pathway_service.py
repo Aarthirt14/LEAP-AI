@@ -1,6 +1,7 @@
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, selectinload
 from app.engines.pathway_engine import rank_pathways
+from app.engines.skill_ontology import occupation_match
 from app.models import Beneficiary, BeneficiarySkill, ConfidenceLevel, HumanReview, LivelihoodPathway, PathwayStatus, PathwayType, Qualification, RecommendationEvidence, SourceType, TrainingOpportunity, VerificationStatus
 from app.services.outcome_evidence_service import qualification_evidence_scores
 
@@ -30,6 +31,21 @@ def _add_evidence(db: Session, pathway_id: int, evidence_type: str, label: str, 
     ))
 
 
+def _pathway_description(title: str, sector: str | None, aspiration_fit: float, skill_fit: float) -> str:
+    text = f"{title} {sector or ''}".lower()
+    if "tailor" in text or "apparel" in text:
+        if aspiration_fit >= 0.75 and skill_fit >= 0.6:
+            return "This pathway builds on your existing tailoring experience and matches your goal of working as a tailor."
+        return "This pathway uses your tailoring background but may require additional production-focused training."
+    if "solar" in text:
+        return "This pathway matches your interest in technical work but requires new technical training."
+    if aspiration_fit >= 0.75:
+        return f"This pathway matches your stated goal and the evidence currently available in your profile."
+    if skill_fit >= 0.6:
+        return "This pathway builds on skills and experience already present in your profile."
+    return "This pathway is a possible option based on your current profile and local opportunity data."
+
+
 def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathway]:
     beneficiary = db.execute(select(Beneficiary).where(Beneficiary.id == beneficiary_id).options(selectinload(Beneficiary.profile), selectinload(Beneficiary.skills).selectinload(BeneficiarySkill.skill))).scalar_one()
     qualifications = db.execute(select(Qualification).options(selectinload(Qualification.competencies))).scalars().all()
@@ -47,7 +63,7 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
         pathway = LivelihoodPathway(
             beneficiary_id=beneficiary_id, qualification_id=result["qualification_id"],
             pathway_type=PathwayType(result["pathway_type"]), title=result["title"],
-            description=f"Deterministic pathway for {result['sector']} based on profile evidence and constraints.",
+            description=_pathway_description(result["title"], result.get("sector"), parts["aspiration_fit"], parts["skill_fit"]),
             skill_fit_score=parts["skill_fit"], aspiration_fit_score=parts["aspiration_fit"],
             opportunity_score=parts["opportunity"], eligibility_score=parts["eligibility"],
             mobility_score=parts["mobility"], training_access_score=parts["opportunity"],
@@ -60,8 +76,10 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
         # --- Traceable evidence: 8 categories strictly grounded in backend data ---
         # 1. ASPIRATION
         if profile and profile.aspiration_text:
+            aspiration_strength = parts["aspiration_fit"]
+            aspiration_label = "Strong match" if aspiration_strength >= 0.75 else "Possible match" if aspiration_strength > 0 else "Not yet matched"
             _add_evidence(db, pathway.id, "ASPIRATION", "Career aspiration fit",
-                f"Score {parts['aspiration_fit']:.2f} — Your stated goal: '{profile.aspiration_text}'",
+                f"{aspiration_label} — You said: '{profile.aspiration_text}'.",
                 "livelihood_profile.aspiration_text", SourceType.SELF_REPORTED, VerificationStatus.UNVERIFIED)
 
         # 2. SKILL
@@ -70,8 +88,11 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
             status_text = "Verified" if bs.verified else "Self-reported"
             skills_summary.append(f"{bs.skill.name} ({bs.experience_years}y, {status_text})")
         if skills_summary:
+            years = max((float(skill.experience_years) for skill in beneficiary.skills), default=0)
+            years_text = f"{years:g} years" if years.is_integer() else f"{years:g} years"
+            skill_label = "Strong match" if parts["skill_fit"] >= 0.75 else "Partial match" if parts["skill_fit"] > 0 else "Not yet matched"
             _add_evidence(db, pathway.id, "SKILL", "Matched skills and experience",
-                f"Score {parts['skill_fit']:.2f} — Matched skills: {', '.join(skills_summary[:5])}",
+                f"{skill_label} — You reported {years_text} of {beneficiary.skills[0].skill.name.lower()} experience. " + ", ".join(skills_summary[:5]),
                 "beneficiary_skills", SourceType.FIELD_WORKER if any(s.verified for s in beneficiary.skills) else SourceType.SELF_REPORTED,
                 VerificationStatus.VERIFIED if any(s.verified for s in beneficiary.skills) else VerificationStatus.UNVERIFIED)
 
@@ -80,11 +101,11 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
         min_edu = q_obj.minimum_education if q_obj else None
         ben_edu = profile.education_level if profile else "Not specified"
         _add_evidence(db, pathway.id, "ELIGIBILITY", "Educational qualification eligibility",
-            f"Your level: {ben_edu}" + (f" | Required: {min_edu} (Eligible)" if min_edu else " | Eligible"),
+            f"Eligible — You completed {ben_edu}; this pathway requires {min_edu}." if min_edu else f"Eligible — Your education is {ben_edu}.",
             "livelihood_profile.education_level", SourceType.SELF_REPORTED, VerificationStatus.UNVERIFIED)
 
         # 4. OPPORTUNITY
-        if training:
+        if training and training.get("distance_km") is not None and training.get("seats_available") is not None:
             provider = training.get("provider_name", "Local training centre")
             seats = training.get("seats_available", 0)
             dist = training.get("distance_km")
@@ -92,13 +113,21 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
             _add_evidence(db, pathway.id, "OPPORTUNITY", f"Local training centre: {provider}",
                 f"{seats} seats available{dist_str}",
                 "training_opportunities", SourceType.SYNTHETIC, VerificationStatus.SYNTHETIC)
+        else:
+            _add_evidence(db, pathway.id, "OPPORTUNITY", "Training availability",
+                "Qualification available; local training availability is not yet verified.",
+                "training_opportunities", SourceType.SYNTHETIC, VerificationStatus.UNVERIFIED)
 
         # 5. MOBILITY
         pref_km = profile.mobility_km if profile else None
         t_dist = training.get("distance_km") if training else None
         if pref_km is not None:
-            fits = "Fits within range" if (t_dist is None or t_dist <= pref_km) else f"Exceeds range by {t_dist - pref_km:.1f} km"
-            t_str = f"{t_dist:.1f} km" if t_dist is not None else "Location pending"
+            if t_dist is None:
+                fits = "Unable to confirm travel fit"
+                t_str = "Training location not yet verified"
+            else:
+                fits = "Fits within range" if t_dist <= pref_km else f"Exceeds range by {t_dist - pref_km:.1f} km"
+                t_str = f"{t_dist:.1f} km"
             _add_evidence(db, pathway.id, "MOBILITY", "Travel distance compatibility",
                 f"Your range: {pref_km} km | Centre distance: {t_str} ({fits})",
                 "livelihood_profile.mobility_km", SourceType.SELF_REPORTED, VerificationStatus.UNVERIFIED)
@@ -109,7 +138,13 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
         missing_comp = rpl_info.get("missing_competencies", [])
         overlap_score = rpl_info.get("overlap_score", 0.0)
         route_name = rpl_info.get("recommended_route", "FULL_TRAINING")
-        rpl_details = [f"Overlap: {int(overlap_score * 100)}%", f"Recommended Route: {route_name}"]
+        route_explanations = {
+            "RPL": "Your existing experience strongly matches this qualification. An RPL assessment may allow formal recognition.",
+            "RPL_OR_BRIDGE": "Your experience matches several competencies, but some skills still need training.",
+            "BRIDGE_TRAINING": "Your experience provides a starting point, but additional bridge training is needed.",
+            "FULL_TRAINING": "We could not verify enough matching competencies for RPL yet.",
+        }
+        rpl_details = [route_explanations.get(route_name, "This route is based on the evidence currently available."), f"Matched competency overlap: {int(overlap_score * 100)}%"]
         if matched_comp:
             rpl_details.append(f"Matched: {', '.join(matched_comp[:3])}")
         if missing_comp:

@@ -214,6 +214,18 @@ class LivelihoodPathway(TimestampMixin, Base):
     qualification: Mapped[Qualification | None] = relationship()
     evidence: Mapped[list[RecommendationEvidence]] = relationship(back_populates="pathway", cascade="all, delete-orphan")
 
+    @property
+    def score_breakdown(self) -> dict[str, float]:
+        return {
+            "skill_fit": self.skill_fit_score,
+            "aspiration_fit": self.aspiration_fit_score,
+            "eligibility": self.eligibility_score,
+            "opportunity": self.opportunity_score,
+            "mobility": self.mobility_score,
+            "training_burden": self.training_burden_score,
+            "outcome_evidence": self.outcome_evidence_score if self.outcome_evidence_score is not None else 0.5,
+        }
+
 
 class RecommendationEvidence(Base):
     __tablename__ = "recommendation_evidence"

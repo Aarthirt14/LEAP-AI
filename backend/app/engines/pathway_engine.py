@@ -3,14 +3,7 @@ from app.engines.aspiration_guard import protect_aspiration
 from app.engines.confidence_engine import calculate_confidence
 from app.engines.constraint_engine import evaluate_constraints
 from app.engines.rpl_engine import evaluate_rpl
-
-
-def _text_match(query: str | None, *targets: str) -> float:
-    if not query:
-        return 0.0
-    q = set(query.lower().replace("/", " ").split())
-    t = set(" ".join(targets).lower().replace("/", " ").split())
-    return round(len(q & t) / max(1, min(len(q), len(t))), 3)
+from app.engines.skill_ontology import occupation_match
 
 
 def rank_pathways(profile: dict, skills: list[dict], qualifications: list[dict], training_by_qualification: dict[int, dict], outcome_scores: dict[int, float | None], *, gender: str | None = None, caste: str | None = None) -> list[dict]:
@@ -26,20 +19,24 @@ def rank_pathways(profile: dict, skills: list[dict], qualifications: list[dict],
         rpl = evaluate_rpl(skills, competencies, float(q.get("minimum_experience_years", 0)))
         guard = guarded[q["title"]]
         skill_fit = max(rpl.overlap_score, guard.skill_evidence_score)
-        aspiration_fit = max(guard.aspiration_score, _text_match(profile.get("aspiration_text"), q["title"], q.get("sector", "")))
+        aspiration_fit = max(guard.aspiration_score, occupation_match(profile.get("aspiration_text"), q["title"], q.get("sector", "")))
         training = training_by_qualification.get(q["id"])
-        opportunity = 0.85 if training and (training.get("seats_available") or 0) > 0 else 0.35
+        training_known = bool(training)
+        location_known = bool(training and training.get("distance_km") is not None)
+        seats_known = bool(training and training.get("seats_available") is not None)
+        opportunity = 0.85 if training and seats_known and (training.get("seats_available") or 0) > 0 and location_known else 0.5
         eligibility = 1.0
-        mobility = max(0.0, 1.0 - next((r["penalty"] for r in constraints["reasons"] if r["constraint_type"] == "MOBILITY"), 0))
+        mobility_reason = next((r for r in constraints["reasons"] if r["constraint_type"] == "MOBILITY"), None)
+        mobility = 0.5 if profile.get("mobility_km") is not None and not location_known else max(0.0, 1.0 - (mobility_reason["penalty"] if mobility_reason else 0))
         training_burden = max(0.1, 1.0 - min(float(q.get("duration_hours") or 0) / 1200, 0.9))
         outcome = outcome_scores.get(q["id"])
         score_parts = {"skill_fit": skill_fit, "aspiration_fit": aspiration_fit, "opportunity": opportunity, "eligibility": eligibility, "mobility": mobility, "training_burden": training_burden, "outcome_evidence": outcome if outcome is not None else 0.5}
         score = sum(score_parts[k] * settings.scoring_weights[k] for k in settings.scoring_weights)
         score = max(0, score - constraints["total_penalty"])
-        confidence = calculate_confidence(profile_completion=float(profile.get("profile_completion_percentage", 0)), extraction_confidences=profile.get("extraction_confidences", []), education_verified=bool(profile.get("education_verified", False)), qualification_validity=q.get("validity_status", "UNKNOWN"), training_verification=training.get("verification_status") if training else None, evidence_count=int(profile.get("evidence_count", 0)))
+        confidence = calculate_confidence(profile_completion=float(profile.get("profile_completion_percentage", 0)), extraction_confidences=profile.get("extraction_confidences", []), education_verified=bool(profile.get("education_verified", False)), qualification_validity=q.get("validity_status", "UNKNOWN"), training_verification=training.get("verification_status") if training else None, evidence_count=int(profile.get("evidence_count", 0)), training_location_known=location_known if training_known else None, training_seats_known=seats_known if training_known else None)
         if outcome is None and confidence["level"] == "GREEN":
             confidence["level"] = "AMBER"
-        ranked.append({"qualification_id": q["id"], "title": q["title"], "sector": q.get("sector"), "pathway_type": guard.pathway_type, "score": round(score * 100, 2), "confidence": confidence["level"], "confidence_reasons": confidence["reasons"], "rpl": rpl.as_dict(), "constraints": constraints["reasons"], "score_parts": score_parts})
+        ranked.append({"qualification_id": q["id"], "title": q["title"], "sector": q.get("sector"), "pathway_type": guard.pathway_type, "score": round(score * 100, 2), "confidence": confidence["level"], "confidence_reasons": confidence["reasons"], "rpl": rpl.as_dict(), "constraints": constraints["reasons"], "score_parts": score_parts, "training_available": training_known, "training_location_known": location_known, "training_seats_known": seats_known})
     ranked.sort(key=lambda item: (-item["score"], item["title"]))
     selected: list[dict] = []
     for kind in ("FASTEST", "ASPIRATIONAL", "ALTERNATIVE"):

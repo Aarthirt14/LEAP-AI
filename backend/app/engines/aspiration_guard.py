@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from app.engines.skill_ontology import occupation_match
 
 
 @dataclass(frozen=True)
@@ -10,11 +11,7 @@ class GuardedCandidate:
 
 
 def _match(text: str | None, target: str) -> float:
-    if not text:
-        return 0.0
-    words = set(text.lower().replace("/", " ").split())
-    target_words = set(target.lower().replace("/", " ").split())
-    return len(words & target_words) / max(1, len(target_words))
+    return occupation_match(text, target)
 
 
 def protect_aspiration(*, candidates: list[dict], skills: list[dict], family_occupation: str | None, aspiration: str | None, education: str | None, constraints: dict | None = None, gender: str | None = None, caste: str | None = None) -> list[GuardedCandidate]:
@@ -25,9 +22,13 @@ def protect_aspiration(*, candidates: list[dict], skills: list[dict], family_occ
         target = f"{candidate.get('title','')} {candidate.get('sector','')}"
         aspiration_score = _match(aspiration, target)
         evidence_score = max(_match(skill_text, target), _match(family_occupation, target))
-        if aspiration_score > 0:
+        strong_aspiration = aspiration_score >= 0.75
+        strong_skill = evidence_score >= 0.75
+        if strong_aspiration and strong_skill:
+            kind = "FASTEST"
+        elif strong_aspiration:
             kind = "ASPIRATIONAL"
-        elif evidence_score > 0:
+        elif strong_skill or evidence_score > 0:
             kind = "FASTEST"
         else:
             kind = "ALTERNATIVE"

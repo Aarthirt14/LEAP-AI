@@ -182,6 +182,16 @@ class ConstraintOut(BaseModel):
     detail: dict[str, Any] = {}
 
 
+class ScoreBreakdownOut(BaseModel):
+    skill_fit: float
+    aspiration_fit: float
+    eligibility: float
+    opportunity: float
+    mobility: float
+    training_burden: float
+    outcome_evidence: float
+
+
 class PathwayOut(ORMModel):
     id: int
     type: PathwayType = Field(validation_alias="pathway_type")
@@ -195,6 +205,7 @@ class PathwayOut(ORMModel):
     constraints: list[ConstraintOut] = []
     evidence: list[EvidenceOut] = []
     required_interventions: list[str] = []
+    score_breakdown: ScoreBreakdownOut
 
 
 class InterventionInput(BaseModel):

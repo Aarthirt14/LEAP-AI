@@ -143,7 +143,7 @@ function Shell({ state, onLogout, onSelectLocale, children }: { state: AppState;
           <button onClick={() => go("/")} aria-label="Go to home"><Logo /></button>
           <nav className="hidden items-center gap-1 md:flex">
             {state.signedIn && nav.map((item) => (
-              <button key={item.href} onClick={() => go(item.href)} className={`rounded-full px-3.5 py-2 text-sm font-semibold transition ${pathname === item.href ? "bg-[#e7eefb] text-[#163d69] shadow-[inset_0_-2px_0_#2f66d0]" : "text-[#41526d] hover:bg-[#f1f5fb] hover:text-[#163d69]"}`}>
+              <button key={`${item.label}-${item.href}`} onClick={() => go(item.href)} className={`rounded-full px-3.5 py-2 text-sm font-semibold transition ${pathname === item.href ? "bg-[#e7eefb] text-[#163d69] shadow-[inset_0_-2px_0_#2f66d0]" : "text-[#41526d] hover:bg-[#f1f5fb] hover:text-[#163d69]"}`}>
                 {item.label}
               </button>
             ))}
@@ -174,7 +174,7 @@ function Shell({ state, onLogout, onSelectLocale, children }: { state: AppState;
         </div>
         {menuOpen && (
           <div className="border-t border-[#dfe7f1] bg-white px-5 py-3 md:hidden">
-            {nav.map((item) => <button key={item.href} onClick={() => go(item.href)} className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[#374357] hover:bg-[#f3f5f7]">{item.label}</button>)}
+            {nav.map((item) => <button key={`${item.label}-${item.href}`} onClick={() => go(item.href)} className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[#374357] hover:bg-[#f3f5f7]">{item.label}</button>)}
             <button onClick={onLogout} className="mt-1 block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[#8b2f28] hover:bg-[#fff2f0]">{t("nav.signOut", locale)}</button>
           </div>
         )}

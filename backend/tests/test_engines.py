@@ -79,6 +79,20 @@ def test_unknown_training_distance_is_neutral_not_within_range():
     assert "TRAINING_LOCATION_UNVERIFIED" in rows[0]["confidence_reasons"]
 
 
+def test_direct_tailoring_pathway_ranks_above_unrelated_solar():
+    rows = rank_pathways(
+        {**profile(), "education_level": "12th Standard", "aspiration_text": "I want to become a tailor", "experience_years": 8},
+        [{"name": "Tailoring", "experience_years": 8, "verified": False}],
+        [
+            {"id": 1, "title": "Solar Installation", "sector": "Solar", "validity_status": "VALID", "minimum_education": "10th Standard", "duration_hours": 300, "competencies": [{"name": "solar wiring", "weight": 1}]},
+            {"id": 2, "title": "Tailoring", "sector": "Tailoring", "validity_status": "VALID", "minimum_education": "10th Standard", "duration_hours": 240, "competencies": [{"name": "basic stitching", "weight": 1}]},
+        ],
+        {},
+        {},
+    )
+    assert rows[0]["title"] == "Tailoring"
+
+
 def test_beginner_not_incorrectly_rpl():
     result = evaluate_rpl([{"name": "painting", "experience_years": 0}], [{"name": "electrical"}], 2)
     assert not result.rpl_candidate

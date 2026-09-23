@@ -28,6 +28,20 @@ def test_public_registration_cannot_create_admin(client):
     assert response.status_code == 403
 
 
+def test_demo_config_is_disabled_by_default(client):
+    response = client.get("/api/auth/demo-config")
+    assert response.status_code == 200
+    assert response.json() == {"enabled": False, "roles": {}}
+
+
+def test_facilitator_and_admin_route_boundaries(client, db):
+    facilitator = make_user(db, UserRole.FACILITATOR, "facilitator-test@example.com")
+    admin = make_user(db, UserRole.ADMIN, "admin-test@example.com")
+    assert client.get("/api/reviews", headers=auth(facilitator)).status_code == 200
+    assert client.get("/api/admin/diagnostics", headers=auth(admin)).status_code == 200
+    assert client.get("/api/admin/diagnostics", headers=auth(facilitator)).status_code == 403
+
+
 def test_consent_required_before_interview(client, db):
     user = make_user(db, UserRole.BENEFICIARY, "consent@example.com"); person = Beneficiary(user_id=user.id, name="No Consent", district="Madurai", state="Tamil Nadu", preferred_language="Tamil", consent_given=False, created_by=user.id); db.add(person); db.commit()
     response = client.post("/api/interviews", json={"beneficiary_id":person.id,"language":"Tamil"}, headers=auth(user)); assert response.status_code == 422

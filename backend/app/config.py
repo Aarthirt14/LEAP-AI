@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "LEAP AI API"
     environment: str = "development"
+    demo_mode: bool = False
     database_url: str = "sqlite:///./leap_ai.db"
     secret_key: str = "development-only-change-me"
     jwt_secret: str = "development-jwt-change-me"

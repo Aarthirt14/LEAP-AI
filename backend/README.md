@@ -106,6 +106,13 @@ The suite covers invalid qualifications, RPL safeguards, aspiration protection, 
 
 ## Demo data
 
-`python -m seed.seed_data` creates 100 qualifications, 40 training opportunities, 30 beneficiaries, and 30/90/180-day follow-ups. All domain demo records are explicitly `SYNTHETIC` or `UNVERIFIED`; they must never be presented as official PM-AJAY/NQR data.
+Demo accounts and synthetic presentation data are disabled unless `DEMO_MODE=true` is set in the backend environment. The idempotent local seed command is:
+
+```bash
+DEMO_MODE=true python -m seed.seed_data
+DEMO_MODE=true python -m seed.seed_data --reset
+```
+
+The five local accounts use `@leapai.local` addresses and the shared presentation password `LeapDemo@2026`. The seed creates Meena's Tamil beneficiary profile, tailoring skills, qualification competencies, realistic training distances, engine-generated pathways, a review case, follow-up data, and aggregate records. Passwords are stored only as Argon2 hashes. All domain demo records are explicitly `SYNTHETIC` or `UNVERIFIED`; they must never be presented as official PM-AJAY/NQR data. Keep `DEMO_MODE=false` outside a controlled prototype environment.
 
 Seeded demo account password: `DemoPassword123!`. Change or disable all demo accounts outside a controlled prototype environment.

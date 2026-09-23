@@ -4,6 +4,12 @@ export type TokenPair = {
   token_type: string;
 };
 
+export type DemoConfig = {
+  enabled: boolean;
+  roles: Record<string, string>;
+  password?: string;
+};
+
 export type Beneficiary = {
   id: number;
   user_id: number | null;
@@ -122,7 +128,9 @@ export const api = {
   login: (payload: { email: string; password: string }) =>
     request<TokenPair>("/api/auth/login", { method: "POST", body: JSON.stringify(payload) }),
   me: () => request<{ id: number; email: string; role: string }>("/api/auth/me"),
+  demoConfig: () => request<DemoConfig>("/api/auth/demo-config"),
   myBeneficiary: () => request<Beneficiary>("/api/beneficiaries/me"),
+  beneficiary: (id: number) => request<Beneficiary>(`/api/beneficiaries/${id}`),
   createBeneficiary: (payload: Record<string, unknown>) =>
     request<Beneficiary>("/api/beneficiaries", { method: "POST", body: JSON.stringify(payload) }),
   profile: (id: number) => request<Profile>(`/api/beneficiaries/${id}/profile`),
@@ -139,4 +147,11 @@ export const api = {
     request<Pathway[]>(`/api/beneficiaries/${beneficiaryId}/generate-pathways`, { method: "POST" }),
   pathways: (beneficiaryId: number) => request<Pathway[]>(`/api/beneficiaries/${beneficiaryId}/pathways`),
   pathway: (id: number) => request<Pathway>(`/api/pathways/${id}`),
+  fieldWorkerTasks: () => request<{ interviews_due: number; followups_due: number; human_review_cases: number; rpl_verification_cases: number }>("/api/field-worker/tasks"),
+  fieldWorkerBeneficiaries: () => request<Array<{ id: number; name: string; district: string; preferred_language: string }>>("/api/field-worker/beneficiaries"),
+  reviewQueue: () => request<{ items: Array<{ id: number; beneficiary_id: number; pathway_id: number | null; reason_code: string; reason_description: string; status: string }>; total: number }>("/api/reviews"),
+  reviewAction: (id: number, action: "approve" | "edit" | "reject" | "resolve") => request(`/api/reviews/${id}/${action}`, { method: "POST", body: JSON.stringify({ notes: "Reviewed during presentation demo.", resolution: action }) }),
+  officerSummary: () => request<Record<string, number>>("/api/dashboard/summary"),
+  officerFunnel: () => request<Record<string, number>>("/api/dashboard/funnel"),
+  adminDiagnostics: () => request<Record<string, number | string>>("/api/admin/diagnostics"),
 };

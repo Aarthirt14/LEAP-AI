@@ -1,197 +1,732 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { FormEvent, useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft, ArrowRight, BadgeCheck, BarChart3, BriefcaseBusiness, Check, ChevronRight,
-  CircleAlert, ClipboardCheck, Clock3, GraduationCap, Headphones, HeartHandshake, Home,
-  Languages, Lightbulb, MapPin, Menu, Mic, Pause, Play, RefreshCcw, Route, ShieldCheck,
-  Sparkles, Target, UserRoundCheck, Users, Volume2, WifiOff, X, Zap
+  ArrowRight,
+  BadgeCheck,
+  BriefcaseBusiness,
+  ChevronRight,
+  CircleAlert,
+  ClipboardList,
+  Headphones,
+  Loader2,
+  LogOut,
+  Menu,
+  Mic,
+  Route,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Wifi,
+  X,
 } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast, Toaster } from "sonner";
+import {
+  ApiError,
+  api,
+  Beneficiary,
+  clearTokens,
+  getAccessToken,
+  Pathway,
+  Profile,
+  saveTokens,
+  Skill,
+} from "@/lib/api";
 
-type Role = "Beneficiary" | "Field Worker" | "Human Facilitator" | "District Officer";
-type DemoStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
-
-const roles: Role[] = ["Beneficiary", "Field Worker", "Human Facilitator", "District Officer"];
-const routes: Record<Role, { label: string; href: string }[]> = {
-  Beneficiary: [{ label: "Home", href: "/" }, { label: "My profile", href: "/profile" }, { label: "My pathways", href: "/pathways" }, { label: "Follow-up", href: "/follow-up" }],
-  "Field Worker": [{ label: "Visit plan", href: "/field-worker" }, { label: "Assisted interview", href: "/interview" }, { label: "Follow-ups", href: "/follow-up" }],
-  "Human Facilitator": [{ label: "Review queue", href: "/review" }, { label: "Profile", href: "/profile" }, { label: "Pathways", href: "/pathways" }],
-  "District Officer": [{ label: "Overview", href: "/dashboard" }, { label: "Mismatch radar", href: "/dashboard/mismatch" }, { label: "Outcomes", href: "/dashboard/outcomes" }],
+type AppState = {
+  loading: boolean;
+  signedIn: boolean;
+  beneficiary: Beneficiary | null;
 };
 
-const interviewQuestions = [
-  "Which language are you most comfortable speaking?", "What is the highest class you completed?",
-  "What work are you doing currently?", "How many years have you worked or helped with work?",
-  "Tell us what kind of work you already know how to do.", "What kind of work does your family do?",
-  "What work would you genuinely like to do next?", "Would you prefer a job or self-employment?",
-  "How far can you travel regularly?", "What hours are available for work or training?",
-  "How much money could you invest safely?", "Is there anything that could make work or training difficult?"
+type InterviewQuestion = {
+  key: string;
+  title: string;
+  hint: string;
+  placeholder: string;
+};
+
+const questions: InterviewQuestion[] = [
+  { key: "education_level", title: "What is the highest class or qualification you completed?", hint: "This helps us check training eligibility.", placeholder: "For example: 10th Standard" },
+  { key: "current_occupation", title: "What work do you already know how to do?", hint: "Informal experience counts too.", placeholder: "For example: tailoring, electrical work, food preparation" },
+  { key: "experience_years", title: "How long have you been doing that work?", hint: "A rough number is enough.", placeholder: "For example: 4 years" },
+  { key: "family_occupation", title: "What kind of work does your family usually do?", hint: "We use this as context, not as a limit on your choices.", placeholder: "For example: farming, tailoring, daily wage work" },
+  { key: "aspiration_text", title: "What kind of work would you genuinely like to do next?", hint: "Say what you want, even if it is different from your current work.", placeholder: "For example: I want to work in solar installation" },
+  { key: "employment_preference", title: "Would you prefer a job, self-employment, or either?", hint: "This changes which routes are practical.", placeholder: "Job / self-employment / either" },
+  { key: "mobility_km", title: "How far can you travel regularly for work or training?", hint: "Distance is used as a real constraint.", placeholder: "For example: 8 km" },
+  { key: "capital_available", title: "How much could you safely invest if self-employment is an option?", hint: "You can say zero. We do not assume you can invest.", placeholder: "For example: 3000" },
+  { key: "family_responsibilities", title: "Are there hours or responsibilities we should plan around?", hint: "This helps avoid unrealistic recommendations.", placeholder: "For example: I am free after 10 AM" },
+  { key: "physical_constraints", title: "Is there anything that could make work or training difficult?", hint: "Only share what you are comfortable sharing.", placeholder: "For example: cannot stand for long hours" },
 ];
 
-const pathways = [
-  { label: "FASTEST PATH", title: "Home Tailoring Enterprise", score: 86, accent: "#2f7d66", badges: ["Existing Skill Strong", "RPL Possible", "Low Mobility Need"], copy: "Uses your current tailoring experience and requires minimal additional training.", training: "RPL assessment + enterprise basics", barrier: "Customer access" },
-  { label: "ASPIRATIONAL PATH", title: "Solar Technician", score: 78, accent: "#174b8a", badges: ["High Interest", "Education Eligible", "Bridge Training Needed"], copy: "Matches your future aspiration but requires basic electrical skill development.", training: "Electrical foundation + solar installation", barrier: "Training distance" },
-  { label: "ALTERNATIVE PATH", title: "Garment Operator", score: 70, accent: "#93641d", badges: ["Skill Match", "Training Available", "Travel Constraint"], copy: "Builds on tailoring skill through structured production training.", training: "Industrial stitching module", barrier: "Daily travel" },
-];
-
-function Logo({ compact = false }: { compact?: boolean }) {
-  return <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-white shadow-sm"><Route size={22} /></div><div><div className="font-extrabold tracking-tight text-primary">LEAP AI</div>{!compact && <div className="hidden text-xs text-muted-foreground sm:block">Livelihood Enablement through AI Pathways</div>}</div></div>;
+function Logo() {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="grid h-10 w-10 place-items-center rounded-[14px] bg-[#163d69] text-white">
+        <Route size={21} strokeWidth={2.2} />
+      </div>
+      <div>
+        <div className="text-[15px] font-semibold tracking-[-0.02em] text-[#163d69]">LEAP AI</div>
+        <div className="hidden text-[12px] text-[#334155] sm:block">Livelihood pathways that fit real lives</div>
+      </div>
+    </div>
+  );
 }
 
-function DemoData() { return <Badge variant="secondary" className="border border-[#f0cd85] bg-[#fff7e7] text-[#754a00]">Demo Data</Badge>; }
-
-function PageIntro({ eyebrow, title, copy, demo = false }: { eyebrow?: string; title: string; copy?: string; demo?: boolean }) {
-  return <div className="mb-7"><div className="mb-3 flex flex-wrap items-center gap-3">{eyebrow && <span className="text-sm font-bold uppercase tracking-[.13em] text-primary">{eyebrow}</span>}{demo && <DemoData />}</div><h1 className="max-w-4xl text-3xl font-extrabold tracking-[-.035em] sm:text-4xl">{title}</h1>{copy && <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">{copy}</p>}</div>;
+function SectionLabel({ children }: { children: ReactNode }) {
+  return <div className="mb-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#1e293b]">{children}</div>;
 }
 
-function Stat({ value, label, tone = "blue" }: { value: string; label: string; tone?: "blue" | "green" | "amber" | "red" }) {
-  const tones = { blue: "border-l-primary", green: "border-l-[#2f7d66]", amber: "border-l-[#d08a17]", red: "border-l-[#b42318]" };
-  return <Card className={`border-l-4 ${tones[tone]} shadow-none`}><CardContent className="p-5"><div className="text-3xl font-extrabold tracking-tight">{value}</div><div className="mt-1 text-sm leading-5 text-muted-foreground">{label}</div></CardContent></Card>;
-}
+function Shell({ state, onLogout, children }: { state: AppState; onLogout: () => void; children: ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const nav = [
+    { label: "Home", href: "/" },
+    { label: "Assessment", href: "/interview" },
+    { label: "Profile", href: "/profile" },
+    { label: "Pathways", href: "/pathways" },
+  ];
 
-function ScoreRing({ score, size = 88 }: { score: number; size?: number }) {
-  return <div className="score-ring relative grid shrink-0 place-items-center rounded-full" style={{ width: size, height: size, "--score": score } as React.CSSProperties}><span className="relative z-10 text-xl font-extrabold text-primary">{score}%</span></div>;
+  const go = (href: string) => {
+    setMenuOpen(false);
+    router.push(href);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a]">
+      <header className="sticky top-0 z-40 border-b border-[#e2e8f0] bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-[68px] max-w-[1240px] items-center justify-between px-5 sm:px-7">
+          <button onClick={() => go("/")} aria-label="Go to home"><Logo /></button>
+          <nav className="hidden items-center gap-1 md:flex">
+            {state.signedIn && state.beneficiary && nav.map((item) => (
+              <button key={item.href} onClick={() => go(item.href)} className={`rounded-lg px-3.5 py-2 text-sm font-medium transition ${pathname === item.href ? "bg-[#e2e8f0] text-[#1e3a8a]" : "text-[#334155] hover:bg-[#f1f5f9] hover:text-[#0f172a]"}`}>
+                {item.label}
+              </button>
+            ))}
+          </nav>
+          <div className="flex items-center gap-2">
+            {state.signedIn ? (
+              <Button variant="ghost" onClick={onLogout} className="hidden sm:inline-flex"><LogOut className="mr-2" size={16} /> Sign out</Button>
+            ) : (
+              <Button onClick={() => go("/auth")}>Sign in</Button>
+            )}
+            {state.signedIn && state.beneficiary && (
+              <Button size="icon" variant="ghost" className="md:hidden" onClick={() => setMenuOpen((v) => !v)} aria-label="Open navigation">
+                {menuOpen ? <X /> : <Menu />}
+              </Button>
+            )}
+          </div>
+        </div>
+        {menuOpen && (
+          <div className="border-t border-[#edf0f4] bg-white px-5 py-3 md:hidden">
+            {nav.map((item) => <button key={item.href} onClick={() => go(item.href)} className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[#374357] hover:bg-[#f3f5f7]">{item.label}</button>)}
+            <button onClick={onLogout} className="mt-1 block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[#8b2f28] hover:bg-[#fff2f0]">Sign out</button>
+          </div>
+        )}
+      </header>
+      {children}
+      <Toaster richColors position="top-right" />
+    </div>
+  );
 }
 
 export function LeapApp() {
-  const pathname = usePathname(); const router = useRouter();
-  const [role, setRole] = useState<Role>("Beneficiary"); const [menu, setMenu] = useState(false);
-  const go = (href: string) => { setMenu(false); router.push(href); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  useEffect(() => {
-    const context = (document as Document & { modelContext?: { registerTool: (tool: object, options?: { signal?: AbortSignal }) => void | Promise<void> } }).modelContext;
-    if (!context?.registerTool) return;
-    const lifecycle = new AbortController();
-    const screens = ["interview", "profile", "pathways", "simulator", "review", "follow-up", "field-worker", "dashboard", "demo"];
-    void Promise.resolve(context.registerTool({
-      name: "open_leap_screen",
-      title: "Open LEAP AI screen",
-      description: "Navigate the visible LEAP AI prototype to a named workflow screen.",
-      inputSchema: { type: "object", properties: { screen: { type: "string", enum: screens } }, required: ["screen"], additionalProperties: false },
-      annotations: { readOnlyHint: false, untrustedContentHint: false },
-      execute(input: unknown) {
-        const screen = (input as { screen?: string })?.screen;
-        if (!screen || !screens.includes(screen)) throw new Error("Unknown LEAP AI screen");
-        const href = screen === "dashboard" ? "/dashboard" : `/${screen}`;
-        router.push(href); window.scrollTo({ top: 0, behavior: "smooth" });
-        return { screen, status: "opened" };
+  const router = useRouter();
+  const pathname = usePathname();
+  const [state, setState] = useState<AppState>({ loading: true, signedIn: false, beneficiary: null });
+
+  const refreshSession = async () => {
+    if (!getAccessToken()) {
+      setState({ loading: false, signedIn: false, beneficiary: null });
+      return;
+    }
+    try {
+      await api.me();
+      let beneficiary: Beneficiary | null = null;
+      try {
+        beneficiary = await api.myBeneficiary();
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.status !== 404) throw error;
       }
-    }, { signal: lifecycle.signal })).catch(() => undefined);
-    return () => lifecycle.abort();
-  }, [router]);
-  useEffect(() => { if (pathname.startsWith("/dashboard")) setRole("District Officer"); else if (pathname === "/field-worker") setRole("Field Worker"); else if (pathname === "/review") setRole("Human Facilitator"); }, [pathname]);
-  const content = useMemo(() => {
-    if (pathname === "/interview") return <Interview go={go} />;
-    if (pathname === "/profile") return <Profile go={go} />;
-    if (pathname === "/pathways") return <Pathways go={go} />;
-    if (pathname === "/pathway-details") return <PathwayDetails go={go} />;
-    if (pathname === "/simulator") return <Simulator go={go} />;
-    if (pathname === "/review") return <Review />;
-    if (pathname === "/follow-up") return <FollowUp />;
-    if (pathname === "/field-worker") return <FieldWorker go={go} />;
-    if (pathname === "/dashboard/mismatch") return <Mismatch />;
-    if (pathname === "/dashboard/outcomes") return <Outcomes />;
-    if (pathname === "/dashboard") return <Dashboard go={go} />;
-    if (pathname === "/demo") return <Demo go={go} />;
-    return <Landing go={go} />;
-  }, [pathname]);
+      setState({ loading: false, signedIn: true, beneficiary });
+    } catch {
+      clearTokens();
+      setState({ loading: false, signedIn: false, beneficiary: null });
+    }
+  };
 
-  return <div className="min-h-screen bg-background">
-    <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur"><div className="mx-auto flex h-17 max-w-[1440px] items-center justify-between px-4 sm:px-7"><button onClick={() => go("/")} aria-label="Go to home"><Logo compact /></button><nav className="hidden items-center gap-1 lg:flex">{routes[role].map((item) => <Button key={item.href} variant={pathname === item.href ? "secondary" : "ghost"} onClick={() => go(item.href)}>{item.label}</Button>)}<Button variant="ghost" onClick={() => go("/demo")}>SIH Demo</Button></nav><div className="flex items-center gap-2"><label className="sr-only" htmlFor="role-switch">View as</label><select id="role-switch" value={role} onChange={(e) => { const next = e.target.value as Role; setRole(next); if (next === "District Officer") go("/dashboard"); if (next === "Field Worker") go("/field-worker"); if (next === "Human Facilitator") go("/review"); if (next === "Beneficiary") go("/"); }} className="max-w-[145px] rounded-lg border bg-white px-3 py-2 text-sm font-semibold text-primary sm:max-w-none">{roles.map(r => <option key={r}>{r}</option>)}</select><Button className="lg:hidden" size="icon" variant="outline" aria-label="Open menu" onClick={() => setMenu(!menu)}>{menu ? <X /> : <Menu />}</Button></div></div>{menu && <nav className="border-t bg-white p-3 lg:hidden">{[...routes[role], { label: "SIH Demo", href: "/demo" }].map(item => <Button key={item.href} className="mb-1 w-full justify-start" variant="ghost" onClick={() => go(item.href)}>{item.label}</Button>)}</nav>}</header>
-    <AnimatePresence mode="wait"><motion.main key={pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: .22 }}>{content}</motion.main></AnimatePresence><Toaster richColors position="top-center" />
-  </div>;
+  useEffect(() => { void refreshSession(); }, []);
+
+  const logout = () => {
+    clearTokens();
+    setState({ loading: false, signedIn: false, beneficiary: null });
+    router.push("/");
+  };
+
+  if (state.loading) return <LoadingScreen />;
+
+  let content: ReactNode;
+  if (pathname === "/auth") content = <AuthScreen onReady={refreshSession} />;
+  else if (pathname === "/onboarding") content = <Onboarding onCreated={refreshSession} />;
+  else if (pathname === "/interview") content = <RequireBeneficiary state={state}><Interview beneficiary={state.beneficiary!} /></RequireBeneficiary>;
+  else if (pathname === "/profile") content = <RequireBeneficiary state={state}><ProfileScreen beneficiary={state.beneficiary!} /></RequireBeneficiary>;
+  else if (pathname === "/pathways") content = <RequireBeneficiary state={state}><PathwaysScreen beneficiary={state.beneficiary!} /></RequireBeneficiary>;
+  else if (pathname === "/pathway") content = <RequireBeneficiary state={state}><PathwayScreen /></RequireBeneficiary>;
+  else content = <Landing state={state} />;
+
+  return <Shell state={state} onLogout={logout}>{content}</Shell>;
 }
 
-function Landing({ go }: { go: (x: string) => void }) {
-  const innovations = [
-    [BadgeCheck, "RPL-First Intelligence", "Recognizes existing informal skills before recommending new training."],
-    [Target, "Aspiration Guard", "Evaluates future aspirations without trapping beneficiaries in traditional occupations."],
-    [Zap, "Intervention Simulator", "Shows what support can unlock a blocked livelihood pathway."],
-    [BarChart3, "Outcome Intelligence", "Tracks whether recommendations actually result in sustained livelihoods."]
-  ] as const;
-  return <><section className="civic-grid border-b bg-white"><div className="mx-auto grid max-w-[1280px] gap-10 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[1.12fr_.88fr] lg:items-center"><div><Badge className="mb-5 bg-[#fff2d8] text-[#754a00] hover:bg-[#fff2d8]">SIH 26097 · Frontend Prototype</Badge><h1 className="text-5xl font-black leading-[1.02] tracking-[-.055em] text-primary sm:text-6xl lg:text-7xl">From Voice to<br/><span className="text-foreground">Sustainable Livelihood</span></h1><p className="mt-7 max-w-2xl text-lg leading-8 text-muted-foreground">LEAP AI understands what beneficiaries already know, what they aspire to become, and what support can help them reach a sustainable livelihood.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><Button size="lg" className="h-14 px-7 text-base" onClick={() => go("/interview")}><Mic className="mr-2" /> Start Voice Assessment</Button><Button size="lg" className="h-14 px-7 text-base" variant="outline" onClick={() => go("/demo")}><Play className="mr-2" /> View SIH Demo</Button></div></div><div className="relative"><div className="rounded-[2rem] border bg-primary p-7 text-white shadow-[0_20px_70px_rgba(23,75,138,.18)] sm:p-9"><p className="text-sm font-bold uppercase tracking-[.16em] text-[#bcd4ef]">One clear decision journey</p><div className="mt-7 space-y-4">{["What do you already know?", "What do you actually want?", "What can make it possible?", "Did it create a livelihood?"].map((q, i) => <motion.div key={q} initial={{ x: 15, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: .12 * i }} className="flex items-center gap-4 rounded-xl bg-white/10 p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#f4a826] font-extrabold text-[#3d2b08]">{i + 1}</span><span className="text-lg font-semibold">{q}</span></motion.div>)}</div></div><div className="absolute -bottom-5 -left-4 rounded-xl border bg-white p-4 shadow-lg"><div className="flex items-center gap-3"><ShieldCheck className="text-[#2f7d66]"/><div><div className="text-xs text-muted-foreground">Design principle</div><div className="font-bold">Evidence before decision</div></div></div></div></div></div></section>
-  <section className="mx-auto max-w-[1280px] px-5 py-16 sm:px-8"><PageIntro eyebrow="Four innovations" title="Built around the full livelihood journey" /><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{innovations.map(([Icon, title, copy]) => <Card key={title} className="shadow-none transition-transform hover:-translate-y-1"><CardContent className="p-6"><div className="mb-5 grid h-12 w-12 place-items-center rounded-xl bg-secondary text-primary"><Icon /></div><h2 className="text-lg font-bold">{title}</h2><p className="mt-2 leading-6 text-muted-foreground">{copy}</p></CardContent></Card>)}</div><div className="mt-14 flex flex-wrap items-center justify-center gap-3 text-lg font-extrabold text-primary sm:gap-5 sm:text-2xl"><span>Recognize</span><ArrowRight/><span>Unlock</span><ArrowRight/><span>Measure</span><ArrowRight/><span>Learn</span></div></section></>;
+function LoadingScreen() {
+  return <div className="grid min-h-screen place-items-center bg-[#f7f8fa]"><div className="flex items-center gap-3 text-sm font-medium text-[#536175]"><Loader2 className="animate-spin" size={18} /> Opening LEAP AI…</div></div>;
 }
 
-function Interview({ go }: { go: (x: string) => void }) {
-  const [q, setQ] = useState(4); const [language, setLanguage] = useState<"English" | "தமிழ்">("English"); const [mode, setMode] = useState<"idle" | "listening" | "done" | "typing">("idle"); const [transcript, setTranscript] = useState("Amma tailoring pannuvanga. Naanum naalu varushama help panren.");
-  const listen = () => { setMode("listening"); window.setTimeout(() => setMode("done"), 1600); };
-  const next = () => { if (q === 11) go("/profile"); else { setQ(q + 1); setMode("idle"); } };
-  return <section className="mx-auto max-w-4xl px-5 py-8 sm:px-8 sm:py-12"><div className="mb-6 flex flex-wrap items-center justify-between gap-3"><Logo/><div className="flex rounded-xl border bg-white p-1"><Button size="sm" variant={language === "English" ? "default" : "ghost"} onClick={() => setLanguage("English")}>English</Button><Button size="sm" variant={language === "தமிழ்" ? "default" : "ghost"} onClick={() => setLanguage("தமிழ்")}>தமிழ்</Button></div></div><div className="mb-5 flex items-center justify-between gap-4"><span className="font-bold">Question {q + 1} of 12</span><span className="text-sm text-muted-foreground">Voice assessment</span></div><Progress value={((q + 1) / 12) * 100} className="mb-7 h-2"/><Card className="overflow-hidden border-0 shadow-[0_16px_50px_rgba(23,47,78,.10)]"><div className="h-2 bg-primary"/><CardContent className="p-6 text-center sm:p-10"><div className="mx-auto mb-5 grid h-12 w-12 place-items-center rounded-full bg-secondary text-primary"><Volume2/></div><p className="text-sm font-bold uppercase tracking-[.15em] text-muted-foreground">LEAP AI asks</p><h1 className="mx-auto mt-4 max-w-2xl text-2xl font-extrabold leading-tight sm:text-4xl">{interviewQuestions[q]}</h1><div className="mt-9 flex flex-col items-center"><button onClick={listen} disabled={mode === "listening"} aria-label="Start speaking" className={`grid h-28 w-28 place-items-center rounded-full border-8 border-[#dce8f5] text-white shadow-lg transition-transform hover:scale-105 ${mode === "listening" ? "bg-[#b42318]" : "bg-primary"}`}>{mode === "listening" ? <Pause size={42}/> : <Mic size={42}/>}</button><p className="mt-4 font-bold">{mode === "listening" ? "Listening…" : mode === "done" ? "We heard you" : "Tap to speak"}</p>{mode === "listening" && <div className="wave mt-5 flex h-12 items-center gap-1" aria-label="Audio waveform">{Array.from({ length: 14 }).map((_, i) => <span key={i} className="block w-1.5 rounded-full bg-primary"/>)}</div>}</div>{(mode === "done" || mode === "typing") && <div className="mx-auto mt-8 max-w-2xl text-left"><label htmlFor="transcript" className="mb-2 block text-sm font-bold">Your response — edit if needed</label><Textarea id="transcript" value={transcript} onChange={e => setTranscript(e.target.value)} className="min-h-28 bg-[#f9fbfd] text-base"/></div>}<div className="mt-8 flex flex-wrap justify-center gap-3"><Button variant="outline" onClick={() => setMode("typing")}><Languages className="mr-2"/> Type Instead</Button><Button variant="outline" onClick={() => { toast("Question replayed"); }}><Volume2 className="mr-2"/> Replay Question</Button></div></CardContent></Card><div className="mt-6 flex items-center justify-between gap-3"><Button variant="ghost" disabled={q === 0} onClick={() => { setQ(Math.max(0, q - 1)); setMode("idle"); }}><ArrowLeft className="mr-2"/> Back</Button><div className="flex gap-2"><Button variant="ghost" onClick={next}>Skip</Button><Button onClick={next}>{q === 11 ? "Create My Livelihood Profile" : "Continue"}<ArrowRight className="ml-2"/></Button></div></div></section>;
+function RequireBeneficiary({ state, children }: { state: AppState; children: ReactNode }) {
+  const router = useRouter();
+  useEffect(() => {
+    if (!state.signedIn) router.replace("/auth");
+    else if (!state.beneficiary) router.replace("/onboarding");
+  }, [state, router]);
+  if (!state.signedIn || !state.beneficiary) return <LoadingScreen />;
+  return <>{children}</>;
 }
 
-function Profile({ go }: { go: (x: string) => void }) {
-  const details = [["Education", "10th Standard"], ["Existing Skill", "Tailoring"], ["Experience", "4 Years"], ["Family Occupation", "Tailoring"], ["Aspiration", "Solar / Electrical Work"], ["Mobility", "7 km"], ["Capital", "₹8,000"], ["Preference", "Employment"], ["Relocation", "Not Possible"], ["Available Hours", "10 AM – 4 PM"]];
-  return <section className="mx-auto max-w-[1120px] px-5 py-10 sm:px-8 sm:py-14"><PageIntro eyebrow="Kavitha's profile" title="Your Livelihood State" copy="A clear picture of your skills, aspiration and practical situation."/><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{details.map(([k,v]) => <Card key={k} className="shadow-none"><CardContent className="p-4"><div className="text-sm text-muted-foreground">{k}</div><div className="mt-1 font-bold">{v}</div></CardContent></Card>)}</div><div className="mt-7 grid gap-5 lg:grid-cols-2"><Card className="border-[#b9d9cd] bg-[#f3faf7] shadow-none"><CardContent className="p-7"><div className="flex items-start justify-between gap-4"><div className="grid h-12 w-12 place-items-center rounded-xl bg-[#d9efe7] text-[#276b57]"><BadgeCheck/></div><Badge className="bg-[#d9efe7] text-[#276b57] hover:bg-[#d9efe7]">Potential RPL Candidate</Badge></div><p className="mt-6 text-sm font-bold uppercase tracking-[.14em] text-[#276b57]">Existing Strength</p><h2 className="mt-2 text-3xl font-extrabold">Tailoring</h2><p className="mt-3 leading-7 text-muted-foreground">Your existing experience may help you avoid unnecessary beginner-level training.</p></CardContent></Card><Card className="border-primary bg-primary text-white shadow-[0_16px_45px_rgba(23,75,138,.17)]"><CardContent className="p-7"><div className="grid h-12 w-12 place-items-center rounded-xl bg-white/15"><Target/></div><p className="mt-6 text-sm font-bold uppercase tracking-[.14em] text-[#bcd4ef]">Future Aspiration</p><h2 className="mt-2 text-3xl font-extrabold">Solar / Electrical Work</h2><p className="mt-3 leading-7 text-[#d7e6f7]">Your aspiration is evaluated independently from your family occupation.</p><div className="mt-6 rounded-xl border border-white/20 bg-white/10 p-4 font-bold">Family occupation is skill evidence, not destiny.</div></CardContent></Card></div><div className="mt-8 flex justify-end"><Button size="lg" onClick={() => go("/pathways")}>Find My Livelihood Paths <ArrowRight className="ml-2"/></Button></div></section>;
+function Landing({ state }: { state: AppState }) {
+  const router = useRouter();
+  const nextHref = state.signedIn ? (state.beneficiary ? "/interview" : "/onboarding") : "/auth";
+  return (
+    <main>
+      <section className="border-b border-[#e7ebf0] bg-white">
+        <div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-16 sm:px-7 sm:py-20 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:py-24">
+          <div>
+            <Badge className="mb-5 bg-[#dbeafe] text-[#1e40af] hover:bg-[#dbeafe]">Voice-first livelihood guidance</Badge>
+            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.08] tracking-[-0.045em] text-[#0f172a] sm:text-6xl">Start with what you know. Build toward what you want.</h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-[#1e293b]">LEAP AI listens to your experience, goals and real-life limits, then maps them to practical livelihood pathways you can understand and act on.</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button size="lg" onClick={() => router.push(nextHref)} className="h-12 px-5">Start assessment <ArrowRight className="ml-2" size={18} /></Button>
+              {state.signedIn && state.beneficiary && <Button size="lg" variant="outline" onClick={() => router.push("/pathways")} className="h-12 px-5">View my pathways</Button>}
+            </div>
+          </div>
+          <div className="rounded-[28px] border border-[#cbd5e1] bg-[#f8fafc] p-5 sm:p-7">
+            <div className="rounded-[22px] bg-white p-6 shadow-[0_14px_45px_rgba(26,40,60,.07)]">
+              <div className="flex items-center justify-between">
+                <div className="grid h-11 w-11 place-items-center rounded-full bg-[#dbeafe] text-[#1e3a8a]"><Mic size={20} /></div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#065f46]"><span className="h-2 w-2 rounded-full bg-[#059669]" /> Listening can be paused anytime</div>
+              </div>
+              <div className="mt-8 text-sm font-medium text-[#334155]">LEAP AI asks</div>
+              <div className="mt-2 text-2xl font-semibold leading-9 tracking-[-0.02em] text-[#0f172a]">“What work do you already know how to do?”</div>
+              <div className="mt-7 rounded-2xl border border-[#cbd5e1] bg-[#f8fafc] p-4 text-[15px] leading-7 font-medium text-[#1e293b]">I have been helping with tailoring work for four years, but I want to learn solar installation.</div>
+              <div className="mt-6 flex flex-wrap gap-2">
+                {['Tailoring experience', '4 years', 'Solar aspiration'].map((item) => <span key={item} className="rounded-full bg-[#e2e8f0] px-3 py-1.5 text-xs font-semibold text-[#1e3a8a]">{item}</span>)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="mx-auto max-w-[1240px] px-5 py-14 sm:px-7">
+        <SectionLabel>How it works</SectionLabel>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            [Headphones, "Tell us your story", "Speak or type in simple language. Your informal experience matters."],
+            [Target, "See realistic options", "LEAP checks aspiration, eligibility, distance, training access and existing skills."],
+            [ShieldCheck, "Know why a path fits", "Every recommendation comes with reasons. Uncertain cases can be reviewed by a person."],
+          ].map(([Icon, title, copy]) => {
+            const Comp = Icon as typeof Headphones;
+            return <Card key={String(title)} className="border-[#cbd5e1] shadow-none"><CardContent className="p-6"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#e2e8f0] text-[#1e3a8a]"><Comp size={19} /></div><h2 className="mt-5 text-lg font-semibold tracking-[-0.02em] text-[#0f172a]">{String(title)}</h2><p className="mt-2 text-sm leading-6 text-[#334155]">{String(copy)}</p></CardContent></Card>;
+          })}
+        </div>
+      </section>
+    </main>
+  );
 }
 
-function Pathways({ go }: { go: (x: string) => void }) {
-  return <section className="mx-auto max-w-[1250px] px-5 py-10 sm:px-8 sm:py-14"><PageIntro eyebrow="Kavitha · three choices" title="Your Best Livelihood Pathways" copy="We compare current strengths, genuine aspiration and real-world constraints — without making the decision for you."/><div className="grid gap-5 lg:grid-cols-3">{pathways.map((p, i) => <Card key={p.title} className={`relative overflow-hidden shadow-none ${i === 1 ? "border-2 border-primary shadow-[0_18px_55px_rgba(23,75,138,.14)] lg:-translate-y-3" : ""}`}><div className="h-2" style={{ background: p.accent }}/><CardContent className="p-6"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-extrabold tracking-[.16em]" style={{ color: p.accent }}>{p.label}</p><h2 className="mt-2 text-2xl font-extrabold leading-tight">{p.title}</h2></div><ScoreRing score={p.score}/></div><div className="mt-5 flex flex-wrap gap-2">{p.badges.map(b => <Badge key={b} variant="secondary">{b}</Badge>)}</div><p className="mt-5 min-h-18 leading-6 text-muted-foreground">{p.copy}</p><div className="mt-5 space-y-3 border-t pt-5 text-sm"><div><span className="font-bold">Required training</span><p className="text-muted-foreground">{p.training}</p></div><div><span className="font-bold">Main barrier</span><p className="text-muted-foreground">{p.barrier}</p></div></div><Button className="mt-6 w-full" variant={i === 1 ? "default" : "outline"} onClick={() => { if (i !== 1) toast(`${p.title} selected for comparison`); go("/pathway-details"); }}>View Path <ChevronRight className="ml-2"/></Button></CardContent></Card>)}</div></section>;
+function AuthScreen({ onReady }: { onReady: () => Promise<void> }) {
+  const router = useRouter();
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    setBusy(true);
+    try {
+      const tokens = mode === "login" ? await api.login({ email, password }) : await api.register({ email, password, phone: phone || undefined });
+      saveTokens(tokens);
+      await onReady();
+      try {
+        await api.myBeneficiary();
+        router.push("/");
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) router.push("/onboarding");
+        else throw error;
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not sign in.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <main className="mx-auto grid max-w-[1100px] gap-10 px-5 py-12 sm:px-7 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:py-20">
+      <div className="hidden lg:block">
+        <SectionLabel>Your account</SectionLabel>
+        <h1 className="text-4xl font-semibold tracking-[-0.04em] text-[#0f172a]">Your profile should come from your story, not from a pre-filled template.</h1>
+        <p className="mt-5 max-w-lg text-base leading-7 text-[#1e293b]">Create an account, tell LEAP what you actually know and want, and let the recommendation engine build pathways from your own inputs.</p>
+      </div>
+      <Card className="mx-auto w-full max-w-[520px] border-[#cbd5e1] shadow-[0_20px_60px_rgba(26,40,60,.08)]">
+        <CardContent className="p-6 sm:p-8">
+          <div className="flex gap-1 rounded-xl bg-[#e2e8f0] p-1">
+            <button className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${mode === "login" ? "bg-white text-[#0f172a] shadow-sm" : "text-[#334155]"}`} onClick={() => setMode("login")}>Sign in</button>
+            <button className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${mode === "register" ? "bg-white text-[#0f172a] shadow-sm" : "text-[#334155]"}`} onClick={() => setMode("register")}>Create account</button>
+          </div>
+          <h2 className="mt-7 text-2xl font-semibold tracking-[-0.03em] text-[#0f172a]">{mode === "login" ? "Welcome back" : "Create your LEAP account"}</h2>
+          <form onSubmit={submit} className="mt-6 space-y-4">
+            <Field label="Email"><input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="field" placeholder="you@example.com" /></Field>
+            {mode === "register" && <Field label="Phone (optional)"><input value={phone} onChange={(e) => setPhone(e.target.value)} className="field" placeholder="Mobile number" /></Field>}
+            <Field label="Password"><input required minLength={10} type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="field" placeholder="At least 10 characters" /></Field>
+            <Button disabled={busy} className="h-11 w-full">{busy && <Loader2 className="mr-2 animate-spin" size={16} />}{mode === "login" ? "Sign in" : "Create account"}</Button>
+          </form>
+        </CardContent>
+      </Card>
+    </main>
+  );
 }
 
-function PathwayDetails({ go }: { go: (x: string) => void }) {
-  return <section className="mx-auto max-w-[1080px] px-5 py-10 sm:px-8 sm:py-14"><Button variant="ghost" onClick={() => go("/pathways")} className="mb-5"><ArrowLeft className="mr-2"/> All pathways</Button><div className="flex flex-col justify-between gap-5 border-b pb-8 sm:flex-row sm:items-end"><div><Badge className="bg-primary">Aspirational Path</Badge><h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Solar Technician</h1></div><div className="flex items-center gap-3"><span className="text-sm font-bold text-muted-foreground">Fit score</span><ScoreRing score={78}/></div></div><div className="mt-8 grid gap-5 lg:grid-cols-2"><Card className="shadow-none"><CardHeader><CardTitle className="flex items-center gap-2"><BadgeCheck className="text-[#2f7d66]"/> Why This Fits You</CardTitle></CardHeader><CardContent className="space-y-3">{["Strong personal interest", "Education requirement satisfied", "Related skill pathway available", "Employment potential is favorable"].map(x => <div key={x} className="flex gap-3"><Check className="mt-0.5 shrink-0 text-[#2f7d66]" size={20}/><span>{x}</span></div>)}</CardContent></Card><Card className="border-[#edcf98] bg-[#fffaf0] shadow-none"><CardHeader><CardTitle className="flex items-center gap-2"><CircleAlert className="text-[#ad7212]"/> What Is Blocking This Path?</CardTitle></CardHeader><CardContent className="space-y-3">{["Basic electrical knowledge missing", "Training centre currently beyond preferred travel distance"].map(x => <div key={x} className="flex gap-3"><CircleAlert className="mt-0.5 shrink-0 text-[#ad7212]" size={20}/><span>{x}</span></div>)}</CardContent></Card></div><Card className="mt-5 shadow-none"><CardHeader><CardTitle>Your Current Situation</CardTitle></CardHeader><CardContent><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{[["Education","Eligible"],["Mobility","7 km"],["Training distance","18 km"],["Skill gap","Moderate"],["Confidence","AMBER"]].map(([k,v],i) => <div key={k} className="rounded-xl bg-muted p-4"><div className="text-sm text-muted-foreground">{k}</div><div className={`mt-1 font-extrabold ${i===4 ? "text-[#ad7212]" : ""}`}>{v}</div></div>)}</div></CardContent></Card><div className="mt-8 flex justify-end"><Button size="lg" onClick={() => go("/simulator")}>See What Could Unlock This Path <Zap className="ml-2"/></Button></div></section>;
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return <label className="block"><span className="mb-1.5 block text-sm font-semibold text-[#0f172a]">{label}</span>{children}</label>;
 }
 
-function Simulator({ go }: { go: (x: string) => void }) {
-  const [nearby, setNearby] = useState(false); const [bridge, setBridge] = useState(false); const score = 78 + (nearby ? 8 : 0) + (bridge ? 6 : 0);
-  return <section className="mx-auto max-w-[1160px] px-5 py-10 sm:px-8 sm:py-14"><PageIntro eyebrow="Intervention Simulator" title="What Could Make This Path Possible?" copy="Test support options for Kavitha's selected Solar Technician pathway."/><div className="grid gap-6 lg:grid-cols-[.9fr_1.1fr]"><div className="space-y-4"><Card className="shadow-none"><CardContent className="flex items-center justify-between gap-4 p-6"><div><p className="text-sm text-muted-foreground">Selected pathway</p><h2 className="mt-1 text-2xl font-extrabold">Solar Technician</h2></div><ScoreRing score={score} size={104}/></CardContent></Card><Card className="shadow-none"><CardHeader><CardTitle>Current blockers</CardTitle></CardHeader><CardContent className="space-y-5"><div className="flex items-start gap-4"><div className="grid h-10 w-10 place-items-center rounded-lg bg-[#fff2d8] text-[#ad7212]"><MapPin/></div><div><div className="font-bold">Training Distance</div><div className="text-muted-foreground">18 km · Your mobility: 7 km</div></div></div><div className="flex items-start gap-4"><div className="grid h-10 w-10 place-items-center rounded-lg bg-[#fff2d8] text-[#ad7212]"><GraduationCap/></div><div><div className="font-bold">Skill Gap</div><div className="text-muted-foreground">Basic Electrical Foundation Required</div></div></div></CardContent></Card></div><Card className="overflow-hidden border-0 bg-primary text-white shadow-[0_24px_70px_rgba(23,75,138,.22)]"><CardContent className="p-6 sm:p-8"><p className="text-sm font-bold uppercase tracking-[.15em] text-[#bcd4ef]">Try an intervention</p><div className="mt-5 space-y-4"><label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl bg-white/10 p-5"><div><div className="font-bold">Nearby Training Batch Available</div><div className="mt-1 text-sm text-[#d7e6f7]">Moves training within Kavitha's 7 km mobility range.</div></div><Switch checked={nearby} onCheckedChange={setNearby} aria-label="Nearby training batch available"/></label><label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl bg-white/10 p-5"><div><div className="font-bold">Bridge Training Provided</div><div className="mt-1 text-sm text-[#d7e6f7]">Adds a basic electrical foundation module.</div></div><Switch checked={bridge} onCheckedChange={setBridge} aria-label="Bridge training provided"/></label></div><div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-2xl bg-white p-5 text-foreground"><div><div className="text-xs font-bold text-muted-foreground">BEFORE</div><div className="mt-1 text-3xl font-black">78%</div></div><ArrowRight className="text-primary"/><div className="text-right"><div className="text-xs font-bold text-muted-foreground">AFTER SUPPORT</div><motion.div key={score} initial={{ scale: .8 }} animate={{ scale: 1 }} className="mt-1 text-4xl font-black text-[#2f7d66]">{score}%</motion.div></div></div>{nearby && bridge ? <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} className="mt-5 rounded-xl border border-[#8dc6b3] bg-[#eaf7f2] p-4 text-[#235b4a]">Providing a nearby bridge-training batch removes both skill and mobility barriers.</motion.div> : <p className="mt-5 text-sm text-[#d7e6f7]">Turn on support options to see feasibility change.</p>}</CardContent></Card></div><div className="mt-7 flex flex-col items-start justify-between gap-4 rounded-xl border bg-white p-5 sm:flex-row sm:items-center"><p className="max-w-3xl font-semibold">LEAP AI doesn't only tell beneficiaries what to change. It helps officers understand what intervention could unlock the pathway.</p><Button onClick={() => go("/review")}>Send for review <ArrowRight className="ml-2"/></Button></div></section>;
+function Onboarding({ onCreated }: { onCreated: () => Promise<void> }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState({ name: "", age: "", gender: "", district: "", preferred_language: "Tamil", digital_literacy: "LOW", consent_given: true });
+  const update = (key: string, value: string | boolean) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    setBusy(true);
+    try {
+      await api.createBeneficiary({ ...form, age: form.age ? Number(form.age) : null, state: "Tamil Nadu" });
+      await onCreated();
+      router.push("/interview");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not create your profile.");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <main className="mx-auto max-w-[900px] px-5 py-12 sm:px-7">
+      <SectionLabel>Start here</SectionLabel>
+      <h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#0f172a] sm:text-4xl">A few basics before we talk about work.</h1>
+      <p className="mt-3 max-w-2xl text-base leading-7 text-[#1e293b]">These details help LEAP make recommendations that are relevant to your location and preferred language.</p>
+      <Card className="mt-8 border-[#cbd5e1] shadow-none"><CardContent className="grid gap-5 p-6 sm:grid-cols-2 sm:p-8">
+        <form onSubmit={submit} className="contents">
+          <Field label="Name"><input required value={form.name} onChange={(e) => update("name", e.target.value)} className="field" placeholder="Your name" /></Field>
+          <Field label="Age"><input type="number" min="14" max="100" value={form.age} onChange={(e) => update("age", e.target.value)} className="field" placeholder="Age" /></Field>
+          <Field label="Gender (optional)"><input value={form.gender} onChange={(e) => update("gender", e.target.value)} className="field" placeholder="Optional" /></Field>
+          <Field label="District"><input required value={form.district} onChange={(e) => update("district", e.target.value)} className="field" placeholder="For example: Madurai" /></Field>
+          <Field label="Preferred language"><select value={form.preferred_language} onChange={(e) => update("preferred_language", e.target.value)} className="field"><option>Tamil</option><option>Hindi</option><option>English</option></select></Field>
+          <Field label="Comfort with smartphones"><select value={form.digital_literacy} onChange={(e) => update("digital_literacy", e.target.value)} className="field"><option value="LOW">I need simple guidance</option><option value="MEDIUM">I can use basic apps</option><option value="HIGH">I am comfortable with apps</option></select></Field>
+          <label className="sm:col-span-2 flex items-start gap-3 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] p-4 text-sm leading-6 text-[#1e293b]"><input type="checkbox" checked={form.consent_given} onChange={(e) => update("consent_given", e.target.checked)} className="mt-1" /><span className="font-medium">I agree to let LEAP store my answers so it can build and explain my livelihood profile.</span></label>
+          <div className="sm:col-span-2 flex justify-end"><Button disabled={busy || !form.consent_given} size="lg">{busy && <Loader2 className="mr-2 animate-spin" size={16} />}Continue to assessment <ArrowRight className="ml-2" size={17} /></Button></div>
+        </form>
+      </CardContent></Card>
+    </main>
+  );
 }
 
-function Review() {
-  const [status, setStatus] = useState<"open" | "approved" | "editing" | "requested">("open");
-  const act = (next: typeof status, msg: string) => { setStatus(next); toast.success(msg); };
-  return <section className="mx-auto max-w-[1100px] px-5 py-10 sm:px-8 sm:py-14"><PageIntro eyebrow="Trust Bridge" title="Human Review Required" copy="LEAP AI pauses uncertain recommendations and shows exactly what needs verification."/><div className="grid gap-6 lg:grid-cols-[.72fr_1.28fr]"><Card className="border-[#efb4ae] bg-[#fff7f6] shadow-none"><CardContent className="p-7"><div className="flex items-center justify-between"><div className="grid h-12 w-12 place-items-center rounded-xl bg-[#fde2df] text-[#b42318]"><CircleAlert/></div><ScoreRing score={42}/></div><p className="mt-6 text-sm font-bold uppercase tracking-[.14em] text-[#b42318]">Recommendation Confidence</p><h2 className="mt-1 text-3xl font-black text-[#8f1c13]">RED — 42%</h2><div className="mt-5 space-y-3">{["Education information partially verified", "No verified nearby training centre", "Physical constraint requires clarification", "Two conflicting employment preferences detected"].map(r => <div key={r} className="flex gap-2 text-sm"><CircleAlert size={18} className="mt-0.5 shrink-0 text-[#b42318]"/>{r}</div>)}</div></CardContent></Card><div className="space-y-5"><Card className="shadow-none"><CardHeader><CardTitle>Beneficiary profile summary</CardTitle></CardHeader><CardContent><div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[["Name","Kavitha"],["Skill","Tailoring"],["Aspiration","Solar work"],["Mobility","7 km"]].map(([k,v])=><div key={k} className="rounded-lg bg-muted p-3"><div className="text-xs text-muted-foreground">{k}</div><div className="mt-1 font-bold">{v}</div></div>)}</div></CardContent></Card><Card className="shadow-none"><CardHeader><CardTitle>Questions for Facilitator</CardTitle></CardHeader><CardContent className="space-y-3">{["Confirm education qualification", "Verify mobility limitation", "Confirm wage vs self-employment preference"].map(q=><div key={q} className="flex items-center gap-3"><ClipboardCheck className="text-primary" size={20}/><span>{q}</span></div>)}</CardContent></Card></div></div><div className="mt-6 rounded-xl border-l-4 border-l-[#b42318] bg-white p-5 font-bold">LEAP AI does not make high-risk decisions when evidence is incomplete.</div><div className="mt-6 flex flex-wrap gap-3"><Button onClick={() => act("approved", "Recommendation approved and recorded")}><Check className="mr-2"/> Approve Recommendation</Button><Button variant="outline" onClick={() => act("editing", "Profile opened for correction")}>Edit Details</Button><Button variant="outline" onClick={() => act("requested", "Information request sent to field worker")}>Request More Information</Button></div>{status !== "open" && <div className="mt-4 rounded-lg bg-secondary p-4 font-semibold" role="status">Current action: {status === "approved" ? "Approved" : status === "editing" ? "Editing profile" : "More information requested"}</div>}</section>;
+type SpeechRecognitionLike = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  start: () => void;
+  stop: () => void;
+  onresult: ((event: { results: ArrayLike<{ 0: { transcript: string }; isFinal?: boolean }> }) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+};
+
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: new () => SpeechRecognitionLike;
+  webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+};
+
+function Interview({ beneficiary }: { beneficiary: Beneficiary }) {
+  const router = useRouter();
+  const [index, setIndex] = useState(0);
+  const [answer, setAnswer] = useState("");
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [sessionId, setSessionId] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const question = questions[index];
+  const progress = Math.round(((index + 1) / questions.length) * 100);
+
+  useEffect(() => () => recognitionRef.current?.stop(), []);
+
+  const startListening = () => {
+    const speechWindow = window as SpeechRecognitionWindow;
+    const Recognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
+    if (!Recognition) {
+      toast.info("Voice input is not available in this browser. You can type your answer instead.");
+      return;
+    }
+    const recognition = new Recognition();
+    recognition.lang = beneficiary.preferred_language === "Tamil" ? "ta-IN" : beneficiary.preferred_language === "Hindi" ? "hi-IN" : "en-IN";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.onresult = (event) => {
+      let transcript = "";
+      for (let i = 0; i < event.results.length; i += 1) transcript += event.results[i][0].transcript;
+      setAnswer(transcript.trim());
+    };
+    recognition.onend = () => setListening(false);
+    recognition.onerror = () => { setListening(false); toast.error("Voice input stopped. You can continue by typing."); };
+    recognitionRef.current = recognition;
+    setListening(true);
+    recognition.start();
+  };
+
+  const stopListening = () => {
+    recognitionRef.current?.stop();
+    setListening(false);
+  };
+
+  const saveAnswer = async () => {
+    if (!answer.trim()) { toast.error("Add an answer before continuing."); return; }
+    setBusy(true);
+    try {
+      let activeSession = sessionId;
+      if (!activeSession) {
+        const session = await api.startInterview(beneficiary.id, beneficiary.preferred_language);
+        activeSession = session.id;
+        setSessionId(activeSession);
+      }
+      await api.addInterviewAnswer(activeSession, {
+        question_key: question.key,
+        question_text: question.title,
+        transcript: answer.trim(),
+        language: beneficiary.preferred_language,
+        speech_confidence: listening ? 0.82 : null,
+        extraction_confidence: 0.9,
+      });
+      const nextAnswers = { ...answers, [question.key]: answer.trim() };
+      setAnswers(nextAnswers);
+      setAnswer("");
+      if (index < questions.length - 1) {
+        setIndex((value) => value + 1);
+        return;
+      }
+      await api.completeInterview(activeSession);
+      const skillName = nextAnswers.current_occupation?.trim();
+      const years = Number((nextAnswers.experience_years || "0").match(/[\d.]+/)?.[0] || 0);
+      if (skillName) {
+        try {
+          await api.addSkill(beneficiary.id, {
+            name: skillName,
+            sector: skillName,
+            experience_years: years,
+            proficiency_level: years >= 3 ? "INTERMEDIATE" : "BEGINNER",
+            source: "SELF_REPORTED",
+            formal_certificate: false,
+            verified: false,
+          });
+        } catch (error) {
+          if (!(error instanceof ApiError) || error.status !== 409) throw error;
+        }
+      }
+      await api.generatePathways(beneficiary.id);
+      toast.success("Your livelihood profile is ready.");
+      router.push("/pathways");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save your answer.");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <main className="mx-auto max-w-[1040px] px-5 py-10 sm:px-7 sm:py-14">
+      <div className="flex items-center justify-between gap-4">
+        <div><SectionLabel>Livelihood assessment</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#0f172a]">Tell us about your work, in your own words.</h1></div>
+        <div className="hidden text-right sm:block"><div className="text-sm font-semibold text-[#1e293b]">Question {index + 1} of {questions.length}</div><div className="mt-1 text-xs font-medium text-[#334155]">{progress}% complete</div></div>
+      </div>
+      <Progress value={progress} className="mt-6 h-1.5" />
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
+        <Card className="border-[#cbd5e1] shadow-[0_18px_50px_rgba(26,40,60,.07)]"><CardContent className="p-6 sm:p-9">
+          <div className="text-sm font-semibold text-[#1e3a8a]">LEAP asks</div>
+          <h2 className="mt-2 text-2xl font-semibold leading-9 tracking-[-0.025em] text-[#0f172a] sm:text-3xl">{question.title}</h2>
+          <p className="mt-3 text-sm font-medium leading-6 text-[#1e293b]">{question.hint}</p>
+          <div className="mt-7">
+            <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)} rows={5} placeholder={question.placeholder} className="resize-none rounded-2xl border-[#cbd5e1] bg-white p-4 text-base leading-7 font-medium text-[#0f172a]" />
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <button type="button" onClick={listening ? stopListening : startListening} className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition ${listening ? "border-[#059669] bg-[#ecfdf5] text-[#065f46]" : "border-[#cbd5e1] bg-white text-[#0f172a] hover:bg-[#f8fafc]"}`}>
+                <Mic size={17} /> {listening ? "Listening… tap to stop" : "Answer by voice"}
+              </button>
+              <Button disabled={busy || !answer.trim()} onClick={saveAnswer}>{busy && <Loader2 className="mr-2 animate-spin" size={16} />}{index === questions.length - 1 ? "Build my pathways" : "Save and continue"}<ChevronRight className="ml-1" size={17} /></Button>
+            </div>
+          </div>
+        </CardContent></Card>
+
+        <aside className="space-y-4">
+          <div className="rounded-2xl border border-[#cbd5e1] bg-white p-5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#0f172a]"><ShieldCheck size={17} /> How LEAP uses this</div>
+            <p className="mt-3 text-sm leading-6 text-[#1e293b]">Your answers become profile evidence. The final pathway ranking comes from the rule-based scoring engine, not from a chatbot guessing a career.</p>
+          </div>
+          <div className="rounded-2xl border border-[#cbd5e1] bg-[#f1f5f9] p-5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#0f172a]"><Wifi size={17} /> Voice is optional</div>
+            <p className="mt-3 text-sm leading-6 text-[#1e293b]">If speech input is unavailable, type naturally. The same backend workflow stores and evaluates your answer.</p>
+          </div>
+        </aside>
+      </div>
+    </main>
+  );
 }
 
-function FollowUp() {
-  const [day, setDay] = useState(90); const [work, setWork] = useState("Employed"); const [related, setRelated] = useState("Yes"); const stages = [[0,"Recommendation"],[30,"Training"],[90,"Employment"],[180,"Sustained Livelihood"]] as const;
-  return <section className="mx-auto max-w-[1040px] px-5 py-10 sm:px-8 sm:py-14"><PageIntro eyebrow="Outcome follow-up" title="Did the pathway create a livelihood?" copy="A short check-in turns a recommendation into measurable evidence."/><div className="grid grid-cols-2 gap-3 md:grid-cols-4">{stages.map(([d,label]) => <button key={d} onClick={()=>setDay(d)} className={`rounded-xl border p-4 text-left transition ${day===d ? "border-primary bg-primary text-white" : "bg-white hover:border-primary"}`}><div className="text-sm font-bold">Day {d}</div><div className={`mt-1 ${day===d ? "text-[#d7e6f7]" : "text-muted-foreground"}`}>{label}</div></button>)}</div><Card className="mt-6 shadow-none"><CardContent className="p-6 sm:p-8"><Badge variant="secondary">Day {day} check-in</Badge><h2 className="mt-5 text-2xl font-extrabold">Are you currently employed or self-employed?</h2><div className="mt-4 flex flex-wrap gap-3">{["Employed","Self-employed","Still Searching","Stopped Training"].map(x=><Button key={x} variant={work===x ? "default" : "outline"} onClick={()=>setWork(x)}>{x}</Button>)}</div><h3 className="mt-8 text-lg font-bold">Is this job related to your recommended pathway?</h3><div className="mt-3 flex gap-3">{["Yes","No"].map(x=><Button key={x} variant={related===x ? "default" : "outline"} onClick={()=>setRelated(x)}>{x}</Button>)}</div><div className="mt-8"><label htmlFor="income" className="mb-2 block font-bold">Income Band</label><select id="income" className="w-full max-w-sm rounded-lg border bg-white px-4 py-3" defaultValue="₹10,000 – ₹15,000"><option>Below ₹10,000</option><option>₹10,000 – ₹15,000</option><option>₹15,000 – ₹20,000</option><option>Above ₹20,000</option></select></div>{work==="Employed" && related==="Yes" && <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} className="mt-8 flex items-center gap-3 rounded-xl border border-[#a9d4c5] bg-[#edf8f4] p-5 font-extrabold text-[#276b57]"><BadgeCheck/> Positive {day}-Day Livelihood Outcome Recorded</motion.div>}</CardContent></Card></section>;
+function ProfileScreen({ beneficiary }: { beneficiary: Beneficiary }) {
+  const router = useRouter();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    void Promise.all([api.profile(beneficiary.id), api.skills(beneficiary.id)])
+      .then(([profileData, skillsData]) => { setProfile(profileData); setSkills(skillsData); })
+      .catch((error) => toast.error(error instanceof Error ? error.message : "Could not load your profile."))
+      .finally(() => setLoading(false));
+  }, [beneficiary.id]);
+
+  if (loading) return <PageLoader text="Loading your livelihood profile…" />;
+  if (!profile) return <EmptyState title="Your profile is not ready yet" copy="Complete the assessment first so LEAP can build your livelihood profile." action="Start assessment" onAction={() => router.push("/interview")} />;
+
+  const details = [
+    ["Education", profile.education_level || "Not provided"],
+    ["Current work", profile.current_occupation || "Not provided"],
+    ["Goal", profile.aspiration_text || "Not provided"],
+    ["Work preference", profile.employment_preference || "Not provided"],
+    ["Travel range", profile.mobility_km != null ? `${profile.mobility_km} km` : "Not provided"],
+    ["Available capital", profile.capital_available != null ? `₹${profile.capital_available}` : "Not provided"],
+    ["Family responsibilities", profile.family_responsibilities || "Not provided"],
+    ["Physical constraints", profile.physical_constraints || "None noted"],
+  ];
+
+  return (
+    <main className="mx-auto max-w-[1100px] px-5 py-10 sm:px-7 sm:py-14">
+      <div className="flex flex-wrap items-end justify-between gap-5">
+        <div><SectionLabel>Your livelihood profile</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#0f172a]">What LEAP understood about you</h1><p className="mt-3 text-base text-[#1e293b]">This profile comes from your saved assessment answers.</p></div>
+        <div className="min-w-[220px]"><div className="mb-2 flex justify-between text-sm"><span className="text-[#1e293b] font-medium">Profile completeness</span><span className="font-bold text-[#0f172a]">{Math.round(profile.profile_completion_percentage)}%</span></div><Progress value={profile.profile_completion_percentage} /></div>
+      </div>
+      <div className="mt-8 grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
+        <Card className="border-[#cbd5e1] shadow-none"><CardContent className="p-6 sm:p-7"><div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">{details.map(([label, value]) => <div key={label}><div className="text-xs font-semibold uppercase tracking-[0.08em] text-[#334155]">{label}</div><div className="mt-1.5 text-[15px] font-semibold leading-6 text-[#0f172a]">{value}</div></div>)}</div></CardContent></Card>
+        <Card className="border-[#cbd5e1] shadow-none"><CardContent className="p-6 sm:p-7"><div className="flex items-center gap-2 font-semibold text-[#0f172a]"><BriefcaseBusiness size={18} /> Skills and experience</div><div className="mt-5 space-y-3">{skills.length ? skills.map((skill) => <div key={skill.id} className="rounded-xl border border-[#cbd5e1] bg-[#f8fafc] p-4"><div className="font-semibold text-[#0f172a]">{skill.skill_name || "Skill"}</div><div className="mt-1 text-sm font-medium text-[#334155]">{skill.experience_years} years · {skill.verified ? "Verified evidence" : "Self-reported"}</div></div>) : <p className="text-sm leading-6 text-[#334155]">No skills have been added yet.</p>}</div></CardContent></Card>
+      </div>
+      <div className="mt-6 flex justify-end"><Button onClick={() => router.push("/pathways")}>See my pathways <ArrowRight className="ml-2" size={17} /></Button></div>
+    </main>
+  );
 }
 
-function FieldWorker({ go }: { go: (x: string) => void }) {
-  const [done, setDone] = useState<string[]>([]); const people = [["Kavitha","Follow-up Due"],["Ravi","RPL Verification"],["Meena","Human Review Required"]];
-  return <section className="mx-auto max-w-[1160px] px-5 py-10 sm:px-8 sm:py-14"><div className="flex flex-wrap items-start justify-between gap-4"><PageIntro eyebrow="Today's village visit" title="Field Worker Copilot" copy="A focused worklist for assisted interviews, verification and follow-ups."/><div className="flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-bold text-[#276b57]"><WifiOff size={17}/> Offline Mode Available · Pending Sync: 4</div></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[["18","Beneficiaries Scheduled","blue"],["12","Profiles Completed","green"],["5","Potential RPL Candidates","green"],["3","Human Reviews Required","red"],["7","90-Day Follow-Ups Due","amber"],["4","Offline Records Pending Sync","amber"]].map(([v,l,t])=><Stat key={l} value={v} label={l} tone={t as "blue"|"green"|"amber"|"red"}/>)}</div><Card className="mt-6 shadow-none"><CardHeader><CardTitle>Priority actions</CardTitle></CardHeader><CardContent className="space-y-3">{people.map(([name,task])=><div key={name} className="flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between"><div><div className="font-bold">{name}</div><div className="text-sm text-muted-foreground">{task}</div></div><Button size="sm" variant={done.includes(name)?"secondary":"outline"} onClick={()=>{setDone([...done,name]); toast.success(`${name}: action completed`);}} disabled={done.includes(name)}>{done.includes(name)?"Completed":"Open action"}</Button></div>)}</CardContent></Card><Button size="lg" className="mt-6" onClick={()=>go("/interview")}><Mic className="mr-2"/> Start Assisted Interview</Button></section>;
+function PathwaysScreen({ beneficiary }: { beneficiary: Beneficiary }) {
+  const router = useRouter();
+  const [pathways, setPathways] = useState<Pathway[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [regenerating, setRegenerating] = useState(false);
+
+  const load = async (generate = false) => {
+    try {
+      const data = generate ? await api.generatePathways(beneficiary.id) : await api.pathways(beneficiary.id);
+      if (!data.length && !generate) return load(true);
+      setPathways(data);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not load pathways.");
+    } finally { setLoading(false); setRegenerating(false); }
+  };
+
+  useEffect(() => { void load(false); }, [beneficiary.id]);
+
+  if (loading) return <PageLoader text="Building pathways from your profile…" />;
+  return (
+    <main className="mx-auto max-w-[1120px] px-5 py-10 sm:px-7 sm:py-14">
+      <div className="flex flex-wrap items-end justify-between gap-5">
+        <div><SectionLabel>Your recommendations</SectionLabel><h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#0f172a]">Paths that fit your situation</h1><p className="mt-3 max-w-2xl text-base leading-7 text-[#1e293b]">Scores are calculated from your profile, current skills, eligibility, local training access and practical constraints.</p></div>
+        <Button variant="outline" disabled={regenerating} onClick={() => { setRegenerating(true); void load(true); }}>{regenerating && <Loader2 className="mr-2 animate-spin" size={16} />}Recalculate</Button>
+      </div>
+      {pathways.length === 0 ? <div className="mt-10"><EmptyState title="No valid pathways found yet" copy="Your profile may need more evidence, or the local qualification data may not have a valid match yet." action="Review profile" onAction={() => router.push("/profile")} /></div> : (
+        <div className="mt-8 grid gap-5 lg:grid-cols-3">
+          {pathways.map((pathway, i) => <PathwayCard key={pathway.id} pathway={pathway} rank={i + 1} onOpen={() => router.push(`/pathway?id=${pathway.id}`)} />)}
+        </div>
+      )}
+      <div className="mt-8 rounded-2xl border border-[#cbd5e1] bg-white p-5 text-sm leading-6 text-[#1e293b]"><span className="font-semibold text-[#0f172a]">Why this is different from a chatbot answer:</span> the backend excludes invalid qualifications, checks constraints, applies one scoring model, and sends low-confidence cases for human review.</div>
+    </main>
+  );
 }
 
-const funnel = [{name:"Profiled",value:2418},{name:"Recommended",value:2100},{name:"Enrolled",value:1740},{name:"Completed",value:1460},{name:"Certified",value:1310},{name:"Livelihood @90",value:990},{name:"Active @180",value:860}];
-function Dashboard({ go }: { go: (x: string) => void }) {
-  const [block, setBlock] = useState("All blocks");
-  return <section className="mx-auto max-w-[1380px] px-5 py-8 sm:px-8 sm:py-12"><div className="flex flex-wrap items-start justify-between gap-4"><PageIntro eyebrow="Madurai District" title="Livelihood Intelligence" copy="From beneficiary demand to sustained outcomes." demo/><select value={block} onChange={e=>setBlock(e.target.value)} className="rounded-lg border bg-white px-4 py-3 font-semibold"><option>All blocks</option><option>Madurai East</option><option>Melur</option><option>Thirumangalam</option></select></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5"><Stat value="2,418" label="Beneficiaries Profiled"/><Stat value="31%" label="Potential RPL Candidates" tone="green"/><Stat value="68%" label="90-Day Positive Outcome" tone="green"/><Stat value="59%" label="180-Day Sustained Outcome" tone="amber"/><Stat value="42" label="Human Review Cases" tone="red"/></div><div className="mt-6 grid gap-6 xl:grid-cols-[1.45fr_.55fr]"><Card className="shadow-none"><CardHeader><CardTitle>Livelihood Conversion Funnel</CardTitle></CardHeader><CardContent className="h-[390px]"><ResponsiveContainer width="100%" height="100%"><BarChart data={funnel} layout="vertical" margin={{left:15,right:45}}><CartesianGrid strokeDasharray="3 3" horizontal={false}/><XAxis type="number" hide/><YAxis dataKey="name" type="category" width={104} tick={{fontSize:12}} axisLine={false} tickLine={false}/><Tooltip/><Bar dataKey="value" fill="#174b8a" radius={[0,6,6,0]}><LabelList dataKey="value" position="right"/></Bar></BarChart></ResponsiveContainer></CardContent></Card><Card className="shadow-none"><CardHeader><CardTitle>Top Beneficiary Aspirations</CardTitle></CardHeader><CardContent className="space-y-5">{[["Electrical / Solar",26],["Tailoring",19],["Healthcare",16],["Food Processing",13],["Retail",11]].map(([name,val])=><div key={name as string}><div className="mb-2 flex justify-between text-sm font-bold"><span>{name}</span><span>{val}%</span></div><Progress value={val as number}/></div>)}</CardContent></Card></div><div className="mt-6 flex flex-wrap gap-3"><Button onClick={()=>go("/dashboard/mismatch")}>Open Mismatch Radar <ArrowRight className="ml-2"/></Button><Button variant="outline" onClick={()=>go("/dashboard/outcomes")}>View Outcome Evidence</Button></div></section>;
+function PathwayCard({ pathway, rank, onOpen }: { pathway: Pathway; rank: number; onOpen: () => void }) {
+  const confidenceStyle = pathway.confidence === "GREEN" ? "bg-[#d1fae5] text-[#065f46]" : pathway.confidence === "RED" ? "bg-[#fee2e2] text-[#991b1b]" : "bg-[#fef3c7] text-[#92400e]";
+  return (
+    <Card className="group border-[#cbd5e1] shadow-none transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(30,45,65,.08)]">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between gap-3"><div className="grid h-9 w-9 place-items-center rounded-full bg-[#dbeafe] text-sm font-semibold text-[#1e3a8a]">{rank}</div><Badge className={confidenceStyle}>{pathway.confidence.toLowerCase()} confidence</Badge></div>
+        <div className="mt-5 text-xs font-semibold uppercase tracking-[0.1em] text-[#334155]">{pathway.type.replaceAll("_", " ")}</div>
+        <h2 className="mt-2 text-xl font-semibold leading-7 tracking-[-0.025em] text-[#0f172a]">{pathway.title}</h2>
+        <div className="mt-5 flex items-end gap-2"><span className="text-4xl font-semibold tracking-[-0.04em] text-[#1e3a8a]">{Math.round(pathway.score)}</span><span className="pb-1 text-sm font-medium text-[#334155]">fit score</span></div>
+        <div className="mt-5 flex flex-wrap gap-2"><span className="rounded-full bg-[#e2e8f0] px-3 py-1.5 text-xs font-semibold text-[#0f172a]">{routeLabel(pathway.recommended_route)}</span>{pathway.constraints.slice(0, 1).map((constraint) => <span key={constraint.constraint_type} className="rounded-full bg-[#fef3c7] px-3 py-1.5 text-xs font-semibold text-[#92400e]">{humanize(constraint.constraint_type)}</span>)}</div>
+        <button onClick={onOpen} className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-[#1d4ed8]">See why this fits <ChevronRight size={16} className="transition group-hover:translate-x-0.5" /></button>
+      </CardContent>
+    </Card>
+  );
 }
 
-function Mismatch() {
-  const [sector, setSector] = useState("All sectors"); const rows = [["Electrical",620,180,"71%","Capacity Gap"],["Tailoring",410,390,"68%","Balanced"],["Food Processing",350,290,"73%","Moderate Gap"],["Beauty & Wellness",180,500,"26%","Oversupply"]];
-  const visible = sector === "All sectors" ? rows : rows.filter(r=>r[0]===sector);
-  return <section className="mx-auto max-w-[1280px] px-5 py-8 sm:px-8 sm:py-12"><div className="flex flex-wrap items-start justify-between gap-4"><PageIntro eyebrow="Planning signal" title="Livelihood Mismatch Radar" copy="Where beneficiary demand, training capacity and real outcomes do not align." demo/><select value={sector} onChange={e=>setSector(e.target.value)} className="rounded-lg border bg-white px-4 py-3 font-semibold"><option>All sectors</option>{rows.map(r=><option key={r[0]}>{r[0]}</option>)}</select></div><Card className="overflow-hidden shadow-none"><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Sector</TableHead><TableHead>Viable Demand</TableHead><TableHead>Training Capacity</TableHead><TableHead>90-Day Outcome</TableHead><TableHead>Signal</TableHead></TableRow></TableHeader><TableBody>{visible.map(r=><TableRow key={r[0]}><TableCell className="font-bold">{r[0]}</TableCell><TableCell>{r[1]}</TableCell><TableCell>{r[2]}</TableCell><TableCell>{r[3]}</TableCell><TableCell><Badge className={r[4]==="Balanced"?"bg-[#d9efe7] text-[#276b57] hover:bg-[#d9efe7]":r[4]==="Moderate Gap"?"bg-[#fff2d8] text-[#8b5c10] hover:bg-[#fff2d8]":"bg-[#fde2df] text-[#9a2118] hover:bg-[#fde2df]"}>{r[4]}</Badge></TableCell></TableRow>)}</TableBody></Table></div></Card><div className="mt-6 grid gap-5 md:grid-cols-2"><Card className="border-l-4 border-l-[#b42318] shadow-none"><CardContent className="p-6"><p className="text-sm font-bold uppercase tracking-[.14em] text-[#b42318]">High Opportunity Gap</p><h2 className="mt-2 text-2xl font-extrabold">Electrical</h2><p className="mt-2 text-muted-foreground">Strong beneficiary demand and strong outcomes, but insufficient training capacity.</p><Badge className="mt-4 bg-[#fde2df] text-[#9a2118] hover:bg-[#fde2df]">Action Required</Badge></CardContent></Card><Card className="border-l-4 border-l-[#d08a17] shadow-none"><CardContent className="p-6"><p className="text-sm font-bold uppercase tracking-[.14em] text-[#9a6713]">Low Conversion Warning</p><h2 className="mt-2 text-2xl font-extrabold">Beauty & Wellness</h2><p className="mt-2 text-muted-foreground">High training capacity but poor livelihood conversion.</p><Badge className="mt-4 bg-[#fff2d8] text-[#8b5c10] hover:bg-[#fff2d8]">Monitor</Badge></CardContent></Card></div></section>;
+function PathwayScreen() {
+  const search = useSearchParams();
+  const router = useRouter();
+  const id = Number(search.get("id"));
+  const [pathway, setPathway] = useState<Pathway | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) { setLoading(false); return; }
+    void api.pathway(id).then(setPathway).catch((error) => toast.error(error instanceof Error ? error.message : "Could not load this pathway.")).finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) return <PageLoader text="Loading pathway details…" />;
+  if (!pathway) return <EmptyState title="Pathway not found" copy="Return to your recommendations and choose a pathway again." action="Back to pathways" onAction={() => router.push("/pathways")} />;
+
+  return (
+    <main className="mx-auto max-w-[980px] px-5 py-10 sm:px-7 sm:py-14">
+      <button onClick={() => router.push("/pathways")} className="mb-7 text-sm font-semibold text-[#1e3a8a]">← Back to pathways</button>
+      <div className="grid gap-7 lg:grid-cols-[1fr_300px]">
+        <div>
+          <SectionLabel>{pathway.type.replaceAll("_", " ")}</SectionLabel>
+          <h1 className="text-4xl font-semibold tracking-[-0.04em] text-[#0f172a]">{pathway.title}</h1>
+          <p className="mt-4 text-base leading-7 text-[#1e293b]">{pathway.description}</p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <InfoBlock icon={BadgeCheck} title="Recommended route" value={routeLabel(pathway.recommended_route)} />
+            <InfoBlock icon={ShieldCheck} title="Confidence" value={`${humanize(pathway.confidence)} confidence`} />
+          </div>
+          <div className="mt-8 border-t border-[#cbd5e1] pt-8">
+            <h2 className="text-2xl font-bold tracking-[-0.03em] text-[#0f172a]">Why this pathway fits</h2>
+
+            {/* Subsection 1: What already works in your favour */}
+            <div className="mt-6">
+              <h3 className="text-base font-semibold text-[#0f172a] flex items-center gap-2">
+                <BadgeCheck className="text-[#059669]" size={19} /> What already works in your favour
+              </h3>
+              <div className="mt-3 space-y-3">
+                {pathway.evidence.filter((e) => ["SKILL", "ASPIRATION", "ELIGIBILITY", "OPPORTUNITY"].includes(e.evidence_type)).map((item, index) => (
+                  <div key={`favour-${index}`} className="rounded-xl border border-[#cbd5e1] bg-white p-4">
+                    <div className="font-semibold text-[#0f172a]">{item.label}</div>
+                    <div className="mt-1 text-sm font-medium text-[#1e293b]">{item.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Subsection 2: What you may need */}
+            <div className="mt-7">
+              <h3 className="text-base font-semibold text-[#0f172a] flex items-center gap-2">
+                <BriefcaseBusiness className="text-[#2563eb]" size={19} /> What you may need
+              </h3>
+              <div className="mt-3 space-y-3">
+                {pathway.evidence.filter((e) => e.evidence_type === "RPL").map((item, index) => (
+                  <div key={`need-${index}`} className="rounded-xl border border-[#cbd5e1] bg-[#f8fafc] p-4">
+                    <div className="font-semibold text-[#0f172a]">{item.label}</div>
+                    <div className="mt-1 text-sm font-medium text-[#1e293b]">{item.value}</div>
+                  </div>
+                ))}
+                <div className="rounded-xl border border-[#cbd5e1] bg-white p-4">
+                  <div className="font-semibold text-[#0f172a]">Recommended Route</div>
+                  <div className="mt-1 text-sm font-medium text-[#1e293b]">{routeLabel(pathway.recommended_route)}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Subsection 3: Things to plan around */}
+            <div className="mt-7">
+              <h3 className="text-base font-semibold text-[#0f172a] flex items-center gap-2">
+                <CircleAlert className="text-[#d97706]" size={19} /> Things to plan around
+              </h3>
+              <div className="mt-3 space-y-3">
+                {pathway.evidence.filter((e) => ["CONSTRAINT", "MOBILITY"].includes(e.evidence_type)).map((item, index) => (
+                  <div key={`plan-${index}`} className="flex gap-3 rounded-xl border border-[#fde68a] bg-[#fffbeb] p-4">
+                    <CircleAlert className="mt-0.5 shrink-0 text-[#92400e]" size={18} />
+                    <div>
+                      <div className="font-semibold text-[#78350f]">{item.label}</div>
+                      <div className="mt-1 text-sm font-medium text-[#92400e]">{item.value}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Subsection 4: How this score was calculated */}
+            <div className="mt-7">
+              <h3 className="text-base font-semibold text-[#0f172a] flex items-center gap-2">
+                <Sparkles className="text-[#7c3aed]" size={19} /> How this score was calculated
+              </h3>
+              <div className="mt-3 rounded-xl border border-[#cbd5e1] bg-white p-5 space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-[#334155]">Overall Fit Score</span>
+                  <span className="font-bold text-[#1e3a8a] text-lg">{Math.round(pathway.score)} / 100</span>
+                </div>
+                <div className="text-xs text-[#334155] leading-5">
+                  Calculated deterministically from skill evidence, aspiration alignment, minimum qualification eligibility, local training accessibility, mobility constraints, and historical outcome verification.
+                </div>
+                {pathway.evidence.some((e) => e.evidence_type === "OUTCOME_EVIDENCE") ? (
+                  <div className="rounded-lg bg-[#ecfdf5] p-3 text-xs font-semibold text-[#065f46]">
+                    ✓ Includes verified historical 90-day employment outcome evidence
+                  </div>
+                ) : (
+                  <div className="rounded-lg bg-[#f1f5f9] p-3 text-xs font-medium text-[#334155]">
+                    Note: Outcome evidence component uses neutral baseline score (historical sample size below minimum threshold).
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        <aside>
+          <div className="sticky top-24 rounded-2xl bg-[#1e3a8a] p-6 text-white">
+            <div className="text-sm font-medium text-[#bfdbfe]">Overall fit</div><div className="mt-1 text-5xl font-semibold tracking-[-0.05em]">{Math.round(pathway.score)}</div><div className="mt-6 border-t border-white/20 pt-5 text-sm leading-6 text-[#e0e7ff]">This score is recalculated from stored evidence. It is not a fixed display value.</div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  );
 }
 
-function Outcomes() {
-  const data = [{name:"Recommended",Electrical:148,Beauty:214},{name:"Completed",Electrical:103,Beauty:161},{name:"Positive @90",Electrical:72,Beauty:43},{name:"Active @180",Electrical:64,Beauty:29}];
-  return <section className="mx-auto max-w-[1280px] px-5 py-8 sm:px-8 sm:py-12"><PageIntro eyebrow="Outcome Intelligence" title="Outcome Evidence Engine" copy="Training counts are not success. Sustained livelihood conversion is." demo/><div className="grid gap-5 lg:grid-cols-[.9fr_1.1fr]"><Card className="overflow-hidden border-primary shadow-none"><div className="bg-primary p-6 text-white"><div className="flex items-center justify-between"><div><p className="text-sm font-bold uppercase tracking-[.14em] text-[#bcd4ef]">Sector</p><h2 className="mt-1 text-3xl font-black">Electrical</h2></div><div className="text-right"><div className="text-sm text-[#bcd4ef]">Sustainable conversion</div><div className="text-5xl font-black">62%</div></div></div></div><CardContent className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-3">{[["148","Recommended"],["121","Enrolled"],["103","Completed"],["97","Certified"],["72","Positive Outcome @90d"],["64","Active @180d"]].map(([v,l])=><div key={l} className="rounded-xl bg-muted p-4"><div className="text-2xl font-black">{v}</div><div className="mt-1 text-xs text-muted-foreground">{l}</div></div>)}</CardContent></Card><Card className="shadow-none"><CardHeader><CardTitle>Sector outcome comparison</CardTitle></CardHeader><CardContent className="h-[360px]"><ResponsiveContainer width="100%" height="100%"><BarChart data={data}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="name" tick={{fontSize:11}}/><YAxis/><Tooltip/><Bar dataKey="Electrical" fill="#174b8a" radius={[5,5,0,0]}/><Bar dataKey="Beauty" fill="#d08a17" radius={[5,5,0,0]}/></BarChart></ResponsiveContainer></CardContent></Card></div><Card className="mt-6 border-l-4 border-l-[#b42318] shadow-none"><CardContent className="flex flex-col justify-between gap-5 p-6 sm:flex-row sm:items-center"><div><div className="text-sm font-bold uppercase tracking-[.14em] text-[#b42318]">Beauty & Wellness</div><h2 className="mt-2 text-2xl font-extrabold">High Training Participation — Low Livelihood Conversion</h2><p className="mt-2 text-muted-foreground">214 recommended · 161 completed · 43 positive at 90 days · 29 active at 180 days</p></div><CircleAlert size={44} className="shrink-0 text-[#b42318]"/></CardContent></Card></section>;
+function InfoBlock({ icon: Icon, title, value }: { icon: typeof Sparkles; title: string; value: string }) {
+  return <div className="rounded-2xl border border-[#cbd5e1] bg-white p-5"><div className="flex items-center gap-2 text-sm font-semibold text-[#334155]"><Icon size={17} /> {title}</div><div className="mt-2 font-bold text-[#0f172a]">{value}</div></div>;
 }
 
-function Demo({ go }: { go: (x: string) => void }) {
-  const [step, setStep] = useState<DemoStep>(0); const steps = ["Voice Interview","Livelihood State","Aspiration Guard","Three Pathways","Intervention Simulator","Trust Bridge","90-Day Outcome","District Intelligence"];
-  const panels = [
-    {icon:Mic,title:"Kavitha speaks in her own words",copy:'“Amma tailoring pannuvanga. Naanum naalu varushama help panren.”',stat:"12-question voice assessment"},
-    {icon:UserRoundCheck,title:"Informal experience becomes visible",copy:"4 years of tailoring experience is recognized as evidence — not ignored because it lacks a formal certificate.",stat:"Potential RPL candidate"},
-    {icon:Target,title:"Aspiration is protected",copy:"Solar / electrical work is evaluated independently from Kavitha's family occupation.",stat:"Skill evidence, not destiny"},
-    {icon:Route,title:"Three realistic paths, not one black-box answer",copy:"Fastest: Home Tailoring · Aspirational: Solar Technician · Alternative: Garment Operator",stat:"Best fit: 86%"},
-    {icon:Zap,title:"Support changes what is possible",copy:"A nearby training batch plus electrical bridge training raises Solar Technician feasibility.",stat:"78% → 92%"},
-    {icon:ShieldCheck,title:"Uncertainty triggers human review",copy:"Conflicting or incomplete evidence is surfaced to a facilitator instead of becoming an unsafe automated decision.",stat:"42% confidence · Review required"},
-    {icon:BadgeCheck,title:"Recommendation becomes outcome evidence",copy:"At day 90, Kavitha reports pathway-related employment in the ₹10,000–₹15,000 income band.",stat:"Positive 90-day outcome"},
-    {icon:BarChart3,title:"District planning learns from verified outcomes",copy:"Demand, training capacity and sustained outcomes reveal where capacity should grow — and where oversupply is failing people.",stat:"Electrical capacity gap detected"},
-  ]; const panel=panels[step]; const Icon=panel.icon;
-  return <section className="min-h-[calc(100vh-68px)] bg-[#edf2f8] px-4 py-7 sm:px-8"><div className="mx-auto max-w-[1260px]"><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><div className="flex items-center gap-3"><Badge className="bg-[#fff2d8] text-[#754a00] hover:bg-[#fff2d8]">SIH Judge Mode</Badge><DemoData/></div><h1 className="mt-3 text-3xl font-black tracking-tight">LEAP AI in under 3 minutes</h1></div><div className="text-sm font-bold text-muted-foreground">Kavitha · Madurai District</div></div><div className="grid gap-5 lg:grid-cols-[280px_1fr]"><aside className="rounded-2xl bg-primary p-3 text-white">{steps.map((s,i)=><button key={s} onClick={()=>setStep(i as DemoStep)} className={`mb-1 flex w-full items-center gap-3 rounded-xl p-3 text-left transition ${i===step?"bg-white text-primary":"text-[#d7e6f7] hover:bg-white/10"}`}><span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-black ${i===step?"bg-[#f4a826] text-[#3d2b08]":"bg-white/10"}`}>{i+1}</span><span className="text-sm font-bold">{s}</span></button>)}</aside><Card className="min-h-[570px] overflow-hidden border-0 shadow-[0_20px_60px_rgba(23,47,78,.12)]"><div className="h-2 bg-[#f4a826]"/><CardContent className="flex min-h-[562px] flex-col p-6 sm:p-10"><div className="flex items-center justify-between"><div className="text-sm font-bold uppercase tracking-[.15em] text-primary">Step {step+1} · {steps[step]}</div><div className="font-bold text-muted-foreground">{Math.round(((step+1)/8)*100)}%</div></div><Progress value={((step+1)/8)*100} className="mt-3"/><AnimatePresence mode="wait"><motion.div key={step} initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} className="flex flex-1 flex-col justify-center py-10"><div className="grid h-16 w-16 place-items-center rounded-2xl bg-secondary text-primary"><Icon size={32}/></div><h2 className="mt-6 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">{panel.title}</h2><p className="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">{panel.copy}</p><div className="mt-7 inline-flex w-fit rounded-xl border-l-4 border-l-[#f4a826] bg-[#fff8eb] px-5 py-4 text-xl font-extrabold text-[#694408]">{panel.stat}</div></motion.div></AnimatePresence><div className="flex flex-wrap items-center justify-between gap-3 border-t pt-5">{step>0?<Button variant="outline" onClick={()=>setStep((step-1) as DemoStep)}><ArrowLeft className="mr-2"/> Previous</Button>:<Button variant="outline" onClick={()=>go("/")}><Home className="mr-2"/> Exit demo</Button>}{step<7?<Button size="lg" onClick={()=>setStep((step+1) as DemoStep)}>Next Demo Step <ArrowRight className="ml-2"/></Button>:<Button size="lg" onClick={()=>setStep(0)}><RefreshCcw className="mr-2"/> Restart Demo</Button>}</div></CardContent></Card></div>{step===7 && <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} className="mt-6 rounded-2xl bg-[#102f55] p-7 text-center text-white"><h2 className="text-2xl font-black sm:text-3xl">One conversation helps one beneficiary.</h2><p className="mt-2 text-lg text-[#c9dcf1]">Thousands of verified outcomes help improve tomorrow's livelihood planning.</p><div className="mt-5 flex flex-wrap justify-center gap-3 font-extrabold text-[#f4c76f]"><span>Recognize</span><ArrowRight/><span>Unlock</span><ArrowRight/><span>Measure</span><ArrowRight/><span>Learn</span></div></motion.div>}</div></section>;
+function PageLoader({ text }: { text: string }) {
+  return <main className="mx-auto grid min-h-[60vh] max-w-[900px] place-items-center px-5"><div className="flex items-center gap-3 text-sm font-semibold text-[#0f172a]"><Loader2 size={18} className="animate-spin" /> {text}</div></main>;
+}
+
+function EmptyState({ title, copy, action, onAction }: { title: string; copy: string; action: string; onAction: () => void }) {
+  return <main className="mx-auto grid min-h-[60vh] max-w-[760px] place-items-center px-5"><div className="w-full rounded-2xl border border-[#cbd5e1] bg-white p-8 text-center"><div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-[#dbeafe] text-[#1e3a8a]"><ClipboardList size={20} /></div><h1 className="mt-5 text-2xl font-semibold tracking-[-0.03em] text-[#0f172a]">{title}</h1><p className="mx-auto mt-3 max-w-lg text-sm leading-6 font-medium text-[#1e293b]">{copy}</p><Button className="mt-6" onClick={onAction}>{action}</Button></div></main>;
+}
+
+function humanize(value: string) {
+  return value.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function routeLabel(value: string) {
+  const labels: Record<string, string> = {
+    RPL: "RPL assessment",
+    RPL_OR_BRIDGE: "RPL or bridge training",
+    BRIDGE_TRAINING: "Bridge training",
+    FULL_TRAINING: "Full training",
+    NOT_APPLICABLE: "Direct pathway",
+  };
+  return labels[value] || humanize(value);
 }

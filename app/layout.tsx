@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "LEAP AI — Livelihood Enablement through AI Pathways",
-  description: "A voice-first livelihood decision-support prototype for PM-AJAY beneficiaries.",
+  description: "A voice-first livelihood decision-support platform for PM-AJAY beneficiaries.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

@@ -1,10 +1,11 @@
 import hashlib
 from datetime import datetime, timedelta, timezone
 import jwt
-from pwdlib import PasswordHash
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, InvalidHashError
 from app.config import get_settings
 
-password_hash = PasswordHash.recommended()
+password_hash = PasswordHasher()
 settings = get_settings()
 
 
@@ -13,7 +14,10 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, hashed: str) -> bool:
-    return password_hash.verify(password, hashed)
+    try:
+        return password_hash.verify(hashed, password)
+    except (VerifyMismatchError, InvalidHashError):
+        return False
 
 
 def create_token(subject: int, role: str, token_type: str, expires_delta: timedelta) -> str:

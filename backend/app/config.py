@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "development-jwt-change-me"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
-    frontend_url: str = "http://localhost:3000"
+    frontend_url: str = "http://localhost:3000,http://localhost:5173,http://localhost:8787,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:8787"
     minimum_outcome_samples: int = 20
     scoring_weights: dict[str, float] = Field(default_factory=lambda: {
         "skill_fit": 0.20, "aspiration_fit": 0.20, "opportunity": 0.15,

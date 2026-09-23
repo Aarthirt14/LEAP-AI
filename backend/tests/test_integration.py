@@ -44,3 +44,29 @@ def test_complete_kavitha_decision_journey(client, db):
 def test_insufficient_outcome_sample_does_not_fabricate_score(db):
     from app.services.outcome_evidence_service import qualification_evidence_scores
     assert qualification_evidence_scores(db) == {}
+
+
+def test_beneficiary_can_resolve_own_profile(client):
+    registration = client.post("/api/auth/register", json={"email":"owner@example.com","password":"StrongPassword123!","role":"BENEFICIARY"})
+    headers = {"Authorization": f"Bearer {registration.json()['access_token']}"}
+    missing = client.get("/api/beneficiaries/me", headers=headers)
+    assert missing.status_code == 404
+    created = client.post("/api/beneficiaries", headers=headers, json={"name":"Owner","age":24,"district":"Chennai","state":"Tamil Nadu","preferred_language":"Tamil","digital_literacy":"MEDIUM","consent_given":True})
+    assert created.status_code == 201
+    resolved = client.get("/api/beneficiaries/me", headers=headers)
+    assert resolved.status_code == 200
+    assert resolved.json()["id"] == created.json()["id"]
+
+
+def test_readding_same_skill_updates_instead_of_crashing(client):
+    registration = client.post("/api/auth/register", json={"email":"skill@example.com","password":"StrongPassword123!","role":"BENEFICIARY"})
+    headers = {"Authorization": f"Bearer {registration.json()['access_token']}"}
+    created = client.post("/api/beneficiaries", headers=headers, json={"name":"Skill Owner","age":24,"district":"Chennai","state":"Tamil Nadu","preferred_language":"Tamil","digital_literacy":"MEDIUM","consent_given":True})
+    beneficiary_id = created.json()["id"]
+    first = client.post(f"/api/beneficiaries/{beneficiary_id}/skills", headers=headers, json={"name":"Tailoring","sector":"Tailoring","experience_years":2,"source":"SELF_REPORTED","verified":False})
+    second = client.post(f"/api/beneficiaries/{beneficiary_id}/skills", headers=headers, json={"name":"Tailoring","sector":"Tailoring","experience_years":4,"source":"SELF_REPORTED","verified":False})
+    assert first.status_code == 201
+    assert second.status_code == 201
+    listed = client.get(f"/api/beneficiaries/{beneficiary_id}/skills", headers=headers).json()
+    assert len(listed) == 1
+    assert listed[0]["experience_years"] == 4

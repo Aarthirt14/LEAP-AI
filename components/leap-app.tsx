@@ -864,12 +864,12 @@ function PathwayCard({ pathway, rank, onOpen }: { pathway: Pathway; rank: number
   return (
     <Card className={`group border shadow-none transition hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(30,45,65,.1)] ${rank === 1 ? "border-[#b9d0f0] bg-[#edf4fd] lg:-mt-3" : rank === 2 ? "border-[#d2d2f6] bg-[#f0f0ff]" : "border-[#c5e4d9] bg-[#edf9f3]"}`}>
       <CardContent className="p-6 sm:p-7">
-        <div className="flex items-start justify-between gap-3"><div className="grid h-9 w-9 place-items-center rounded-full bg-[#dbeafe] text-sm font-semibold text-[#1e3a8a]">{rank}</div><Badge className={confidenceStyle}>{pathway.confidence.toLowerCase()} confidence</Badge></div>
+        <div className="flex items-start justify-between gap-3"><div className="grid h-9 w-9 place-items-center rounded-full bg-[#dbeafe] text-sm font-semibold text-[#1e3a8a]">{rank}</div><Badge className={confidenceStyle}>{confidenceLabel(pathway.confidence)}</Badge></div>
         <div className="mt-5 text-xs font-semibold uppercase tracking-[0.1em] text-[#334155]">{pathway.type.replaceAll("_", " ")}</div>
         <h2 className="mt-2 text-xl font-semibold leading-7 tracking-[-0.025em] text-[#0f172a]">{pathway.title}</h2>
-        <div className="mt-5 flex items-center gap-4"><div className="score-ring h-20 w-20" style={{ "--score": pathway.score } as React.CSSProperties}><span className="relative z-10 text-2xl font-bold text-[#163d69]">{Math.round(pathway.score)}</span></div><div><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#41526d]">Fit score</div><div className="mt-1 text-sm font-semibold text-[#163d69]">{humanize(pathway.confidence)} confidence</div></div></div>
+        <div className="mt-5 flex items-center gap-4"><div className="score-ring h-20 w-20" style={{ "--score": pathway.score } as React.CSSProperties}><span className="relative z-10 text-2xl font-bold text-[#163d69]">{Math.round(pathway.score)}%</span></div><div><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#41526d]">Fit score</div><div className="mt-1 text-sm font-semibold text-[#163d69]">{confidenceMessage(pathway)}</div></div></div>
         <div className="mt-5 flex flex-wrap gap-2"><span className="rounded-full bg-[#e2e8f0] px-3 py-1.5 text-xs font-semibold text-[#0f172a]">{routeLabel(pathway.recommended_route)}</span>{pathway.constraints.slice(0, 1).map((constraint) => <span key={constraint.constraint_type} className="rounded-full bg-[#fef3c7] px-3 py-1.5 text-xs font-semibold text-[#92400e]">{humanize(constraint.constraint_type)}</span>)}</div>
-        <button onClick={onOpen} className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-[#1d4ed8]">See why this fits <ChevronRight size={16} className="transition group-hover:translate-x-0.5" /></button>
+        <button onClick={onOpen} className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-[#1d4ed8]">See why this fits <ChevronRight aria-hidden="true" size={16} className="transition group-hover:translate-x-0.5" /></button>
       </CardContent>
     </Card>
   );
@@ -900,7 +900,7 @@ function PathwayScreen({ locale }: { locale: Locale }) {
           <p className="mt-4 text-base leading-7 text-[#1e293b]">{pathway.description}</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <InfoBlock icon={BadgeCheck} title="Recommended route" value={routeLabel(pathway.recommended_route)} />
-            <InfoBlock icon={ShieldCheck} title="Confidence" value={`${humanize(pathway.confidence)} confidence`} />
+            <InfoBlock icon={ShieldCheck} title="Confidence" value={confidenceMessage(pathway)} />
           </div>
           <div className="mt-8 border-t border-[#cbd5e1] pt-8">
             <h2 className="text-2xl font-bold tracking-[-0.03em] text-[#0f172a]">Why this pathway fits</h2>
@@ -964,8 +964,11 @@ function PathwayScreen({ locale }: { locale: Locale }) {
               </h3>
               <div className="mt-3 rounded-xl border border-[#cbd5e1] bg-white p-5 space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-[#334155]">Overall Fit Score</span>
-                  <span className="font-bold text-[#1e3a8a] text-lg">{Math.round(pathway.score)} / 100</span>
+                  <span className="font-medium text-[#334155]">Overall fit</span>
+                  <span className="font-bold text-[#1e3a8a] text-lg">{Math.round(pathway.score)}%</span>
+                </div>
+                <div className="space-y-3 pt-2">
+                  {Object.entries(pathway.score_breakdown).map(([key, value]) => <div key={key}><div className="mb-1 flex justify-between text-xs font-semibold text-[#334155]"><span>{scoreLabel(key)}</span><span>{Math.round(value * 100)}%</span></div><div className="h-2 overflow-hidden rounded-full bg-[#e2e8f0]"><div className="h-full rounded-full bg-[#2f66d0]" style={{ width: `${Math.round(value * 100)}%` }} /></div></div>)}
                 </div>
                 <div className="text-xs text-[#334155] leading-5">
                   Calculated deterministically from skill evidence, aspiration alignment, minimum qualification eligibility, local training accessibility, mobility constraints, and historical outcome verification.
@@ -976,7 +979,7 @@ function PathwayScreen({ locale }: { locale: Locale }) {
                   </div>
                 ) : (
                   <div className="rounded-lg bg-[#f1f5f9] p-3 text-xs font-medium text-[#334155]">
-                    Note: Outcome evidence component uses neutral baseline score (historical sample size below minimum threshold).
+                    Not enough verified outcome data yet. This factor will become more useful as more verified follow-ups are recorded.
                   </div>
                 )}
               </div>
@@ -985,7 +988,7 @@ function PathwayScreen({ locale }: { locale: Locale }) {
         </div>
         <aside>
           <div className="sticky top-24 rounded-2xl bg-[#1e3a8a] p-6 text-white">
-            <div className="text-sm font-medium text-[#bfdbfe]">Overall fit</div><div className="mt-1 text-5xl font-semibold tracking-[-0.05em]">{Math.round(pathway.score)}</div><div className="mt-6 border-t border-white/20 pt-5 text-sm leading-6 text-[#e0e7ff]">This score is recalculated from stored evidence. It is not a fixed display value.</div>
+            <div className="text-sm font-medium text-[#bfdbfe]">Overall fit</div><div className="mt-1 text-5xl font-semibold tracking-[-0.05em]">{Math.round(pathway.score)}%</div><div className="mt-6 border-t border-white/20 pt-5 text-sm leading-6 text-[#e0e7ff]">{confidenceMessage(pathway)}</div>
           </div>
         </aside>
       </div>
@@ -1007,6 +1010,30 @@ function EmptyState({ title, copy, action, onAction }: { title: string; copy: st
 
 function humanize(value: string) {
   return value.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function confidenceLabel(value: string) {
+  return value === "GREEN" ? "Ready to explore" : value === "RED" ? "Needs facilitator review" : "Some details need confirmation";
+}
+
+function confidenceMessage(pathway: Pathway) {
+  if (pathway.confidence === "GREEN") return "Ready to explore";
+  if (pathway.confidence === "RED") return "Needs facilitator review";
+  const hasUnknownAccess = pathway.evidence.some((item) => item.evidence_type === "OPPORTUNITY" && item.verification_status !== "VERIFIED");
+  return hasUnknownAccess ? "Your skill evidence is strong, but training availability is still unverified." : "Some profile evidence still needs confirmation.";
+}
+
+function scoreLabel(value: string) {
+  const labels: Record<string, string> = {
+    skill_fit: "Skill fit",
+    aspiration_fit: "Aspiration fit",
+    eligibility: "Eligibility",
+    opportunity: "Opportunity",
+    mobility: "Mobility",
+    training_burden: "Training burden",
+    outcome_evidence: "Outcome evidence",
+  };
+  return labels[value] || humanize(value);
 }
 
 function routeLabel(value: string) {

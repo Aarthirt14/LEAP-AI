@@ -67,6 +67,15 @@ export type Pathway = {
   constraints: Array<{ constraint_type: string; severity: string; effect: string; penalty: number }>;
   evidence: Array<{ evidence_type: string; label: string; value: string; verification_status: string }>;
   required_interventions: string[];
+  score_breakdown: {
+    skill_fit: number;
+    aspiration_fit: number;
+    eligibility: number;
+    opportunity: number;
+    mobility: number;
+    training_burden: number;
+    outcome_evidence: number;
+  };
 };
 
 export class ApiError extends Error {

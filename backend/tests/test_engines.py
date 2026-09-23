@@ -32,6 +32,53 @@ def test_experienced_electrician_is_potential_rpl():
     assert result.rpl_candidate and result.recommended_route == "RPL"
 
 
+def test_canonical_occupation_aliases_match_related_forms():
+    from app.engines.skill_ontology import occupation_match
+    assert occupation_match("I want to become a tailor", "Tailoring") == 1.0
+    assert occupation_match("I want to become an electrician", "Electrical Technician") == 1.0
+    assert occupation_match("I want to work in solar", "Solar Installation") == 1.0
+    assert occupation_match("I know stitching", "Tailoring") == 1.0
+    assert occupation_match("I repair clothes", "Garment Repair") == 1.0
+
+
+def test_tailoring_experience_maps_to_rpl_competencies():
+    result = evaluate_rpl(
+        [{"name": "Tailoring", "experience_years": 8, "verified": False}],
+        [{"name": "garment measurement", "weight": .3}, {"name": "basic stitching", "weight": .4}, {"name": "garment repair", "weight": .3}],
+        2,
+    )
+    assert result.overlap_score > 0
+    assert result.rpl_candidate
+    assert result.recommended_route == "RPL"
+
+
+def test_aspiration_and_skill_strength_make_tailoring_fastest():
+    rows = rank_pathways(
+        {**profile(), "education_level": "12th Standard", "aspiration_text": "I want to become a tailor", "experience_years": 8},
+        [{"name": "Tailoring", "experience_years": 8, "verified": False}],
+        [{"id": 1, "title": "Tailoring", "sector": "Tailoring", "validity_status": "VALID", "minimum_education": "10th Standard", "minimum_experience_years": 2, "duration_hours": 240, "competencies": [{"name": "garment measurement", "weight": .3}, {"name": "basic stitching", "weight": .4}, {"name": "garment repair", "weight": .3}]}],
+        {},
+        {},
+    )
+    assert rows[0]["score_parts"]["aspiration_fit"] > 0
+    assert rows[0]["score_parts"]["skill_fit"] >= .75
+    assert rows[0]["pathway_type"] == "FASTEST"
+    assert rows[0]["rpl"]["overlap_score"] > 0
+
+
+def test_unknown_training_distance_is_neutral_not_within_range():
+    rows = rank_pathways(
+        {**profile(), "mobility_km": 20},
+        [{"name": "Tailoring", "experience_years": 8, "verified": False}],
+        [qualification(title="Tailoring")],
+        {1: {"distance_km": None, "seats_available": None, "verification_status": "UNVERIFIED"}},
+        {},
+    )
+    assert rows[0]["score_parts"]["mobility"] == .5
+    assert rows[0]["training_location_known"] is False
+    assert "TRAINING_LOCATION_UNVERIFIED" in rows[0]["confidence_reasons"]
+
+
 def test_beginner_not_incorrectly_rpl():
     result = evaluate_rpl([{"name": "painting", "experience_years": 0}], [{"name": "electrical"}], 2)
     assert not result.rpl_candidate

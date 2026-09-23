@@ -13,6 +13,14 @@ from app.utils.errors import AppError
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+DEMO_EMAILS = {
+    "BENEFICIARY": "beneficiary.demo@leapai.local",
+    "FIELD_WORKER": "fieldworker.demo@leapai.local",
+    "FACILITATOR": "facilitator.demo@leapai.local",
+    "DISTRICT_OFFICER": "officer.demo@leapai.local",
+    "ADMIN": "admin.demo@leapai.local",
+}
+
 
 def issue_pair(db: Session, user: User) -> TokenPair:
     access = create_access_token(user.id, user.role.value)
@@ -20,6 +28,14 @@ def issue_pair(db: Session, user: User) -> TokenPair:
     db.add(RefreshToken(user_id=user.id, token_hash=token_digest(refresh), expires_at=datetime.now(timezone.utc) + timedelta(days=get_settings().refresh_token_expire_days)))
     db.commit()
     return TokenPair(access_token=access, refresh_token=refresh)
+
+
+@router.get("/demo-config", description="Return presentation login options only when DEMO_MODE is enabled.")
+def demo_config() -> dict:
+    settings = get_settings()
+    if not settings.demo_mode:
+        return {"enabled": False, "roles": {}}
+    return {"enabled": True, "roles": DEMO_EMAILS, "password": "LeapDemo@2026"}
 
 
 @router.post("/register", response_model=TokenPair, status_code=status.HTTP_201_CREATED, description="Register a beneficiary account. Privileged roles cannot self-register.")

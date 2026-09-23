@@ -1,62 +1,154 @@
-from datetime import date, datetime, timezone
+from datetime import date
+import argparse
+
+from sqlalchemy import delete, select
+
+from app.config import get_settings
 from app.database import SessionLocal
 from app.models import (
-    Beneficiary, BeneficiarySkill, EmploymentStatus, LivelihoodPathway,
-    LivelihoodProfile, OutcomeFollowup, PathwayStatus, PathwayType, Provenance,
-    Qualification, QualificationCompetency, Skill, SourceType, TrainingOpportunity,
-    User, UserRole, ValidityStatus, VerificationStatus,
+    Beneficiary, BeneficiarySkill, EmploymentStatus, HumanReview, LivelihoodProfile,
+    LivelihoodPathway, OutcomeFollowup, PathwayStatus, Qualification,
+    QualificationCompetency, Skill, SourceType, TrainingOpportunity, User, UserRole,
+    ValidityStatus, VerificationStatus, Provenance,
 )
 from app.security.jwt import hash_password
+from app.services.pathway_service import generate_pathways
 
-SECTORS = ["Electrical / Solar", "Tailoring", "Healthcare", "Food Processing", "Retail"]
-ROLES = ["Solar Technician", "Home Tailoring Enterprise", "Healthcare Assistant", "Food Processing Operator", "Retail Associate"]
+DEMO_PASSWORD = "LeapDemo@2026"
+DEMO_EMAILS = {
+    UserRole.BENEFICIARY: "beneficiary.demo@leapai.local",
+    UserRole.FIELD_WORKER: "fieldworker.demo@leapai.local",
+    UserRole.FACILITATOR: "facilitator.demo@leapai.local",
+    UserRole.DISTRICT_OFFICER: "officer.demo@leapai.local",
+    UserRole.ADMIN: "admin.demo@leapai.local",
+}
 
 
-def seed() -> None:
-    db = SessionLocal()
-    if db.query(User).count():
-        print("Seed skipped: database already contains users")
-        return
-    users = {
-        role: User(email=f"{role.value.lower()}@leap.demo", hashed_password=hash_password("DemoPassword123!"), role=role)
-        for role in UserRole
-    }
-    db.add_all(users.values()); db.flush()
-    skills = [Skill(name=name, normalized_name=name.lower(), sector=sector, description="Synthetic demonstration skill") for name, sector in [("Tailoring", "Tailoring"), ("Electrical wiring", "Electrical / Solar"), ("Patient support", "Healthcare")]]
-    db.add_all(skills); db.flush()
-    qualifications = []
-    for i in range(100):
-        sector = SECTORS[i % len(SECTORS)]; title = ROLES[i % len(ROLES)] if i < 5 else f"{sector} Role {i+1}"
-        validity = ValidityStatus.EXPIRED if i in {96, 97} else ValidityStatus.INVALID if i == 98 else ValidityStatus.UNKNOWN if i == 99 else ValidityStatus.VALID
-        q = Qualification(qualification_code=f"SYN-Q-{i+1:03}", qualification_name=f"Synthetic Qualification {i+1}", sector=sector, occupational_role=title, nsqf_level=str(3 + i % 3), minimum_education="8th Standard" if i % 2 else "10th Standard", minimum_experience_years=2 if i % 5 == 0 else 0, duration_hours=200 + (i % 6) * 80, qualification_type="Synthetic Demo", valid_from=date(2026, 1, 1), valid_until=date(2028, 12, 31), validity_status=validity, source_type=SourceType.SYNTHETIC, source_url=None, last_verified_at=None)
-        db.add(q); db.flush(); db.add_all([QualificationCompetency(qualification_id=q.id, competency_name=f"{sector.split()[0]} foundation", weight=0.6), QualificationCompetency(qualification_id=q.id, competency_name="Workplace safety", weight=0.4)]); qualifications.append(q)
-    db.flush()
-    for i, q in enumerate(qualifications[:40]):
-        db.add(TrainingOpportunity(qualification_id=q.id, provider_name=f"Synthetic Training Centre {i+1}", provider_type="DEMO", district="Madurai", state="Tamil Nadu", location_name=f"Demo location {i+1}", distance_km=float(5 + i % 16), seats_available=15 + i % 20, verification_status=VerificationStatus.SYNTHETIC, source_type=SourceType.SYNTHETIC))
-    personas = [
-        ("Kavitha", "10th Standard", "Tailoring", 4, "Tailoring", "Solar / Electrical", 7, 8000, False),
-        ("Ravi", "8th Standard", "Electrical wiring", 6, "Electrical work", "Electrical wage employment", 15, 3000, False),
-        ("Meena", "12th Standard", None, 0, None, "Healthcare", 5, 2000, False),
+def _get_or_create_user(db, role: UserRole) -> User:
+    email = DEMO_EMAILS[role]
+    user = db.scalar(select(User).where(User.email == email))
+    if not user:
+        user = User(email=email, hashed_password=hash_password(DEMO_PASSWORD), role=role)
+        db.add(user); db.flush()
+    else:
+        user.role = role; user.is_active = True
+    return user
+
+
+def _get_or_create_skill(db, name: str, sector: str) -> Skill:
+    normalized = name.lower()
+    skill = db.scalar(select(Skill).where(Skill.normalized_name == normalized))
+    if not skill:
+        skill = Skill(name=name, normalized_name=normalized, sector=sector, description="Synthetic demo reference skill")
+        db.add(skill); db.flush()
+    return skill
+
+
+def _reset_demo_data(db) -> None:
+    demo_users = db.scalars(select(User).where(User.email.in_(list(DEMO_EMAILS.values())))).all()
+    demo_user_ids = [user.id for user in demo_users]
+    beneficiary_ids = list(db.scalars(select(Beneficiary.id).where(Beneficiary.user_id.in_(demo_user_ids))).all()) if demo_user_ids else []
+    beneficiary_ids.extend(db.scalars(select(Beneficiary.id).where(Beneficiary.name.like("Demo %"))).all())
+    beneficiary_ids = list(set(beneficiary_ids))
+    pathway_ids = list(db.scalars(select(LivelihoodPathway.id).where(LivelihoodPathway.beneficiary_id.in_(beneficiary_ids))).all()) if beneficiary_ids else []
+    if pathway_ids:
+        db.execute(delete(OutcomeFollowup).where(OutcomeFollowup.pathway_id.in_(pathway_ids)))
+        db.execute(delete(HumanReview).where(HumanReview.pathway_id.in_(pathway_ids)))
+    if beneficiary_ids:
+        db.execute(delete(BeneficiarySkill).where(BeneficiarySkill.beneficiary_id.in_(beneficiary_ids)))
+        db.execute(delete(LivelihoodProfile).where(LivelihoodProfile.beneficiary_id.in_(beneficiary_ids)))
+        db.execute(delete(LivelihoodPathway).where(LivelihoodPathway.beneficiary_id.in_(beneficiary_ids)))
+        db.execute(delete(Beneficiary).where(Beneficiary.id.in_(beneficiary_ids)))
+    demo_qualification_ids = list(db.scalars(select(Qualification.id).where(Qualification.qualification_code.like("DEMO-%"))).all())
+    if demo_qualification_ids:
+        db.execute(delete(TrainingOpportunity).where(TrainingOpportunity.qualification_id.in_(demo_qualification_ids)))
+        db.execute(delete(QualificationCompetency).where(QualificationCompetency.qualification_id.in_(demo_qualification_ids)))
+        db.execute(delete(Qualification).where(Qualification.id.in_(demo_qualification_ids)))
+    if demo_users:
+        db.execute(delete(User).where(User.id.in_(demo_user_ids)))
+    db.commit()
+
+
+def _create_reference_data(db) -> list[Qualification]:
+    qualifications = [
+        ("DEMO-TAILOR-01", "Home Tailoring Enterprise", "Tailoring", "Tailoring", 2, "10th Standard", 160),
+        ("DEMO-TAILOR-02", "Garment Operator", "Tailoring", "Garment production", 1, "8th Standard", 240),
+        ("DEMO-TAILOR-03", "Advanced Tailoring / Apparel Qualification", "Tailoring", "Advanced apparel", 4, "10th Standard", 360),
+        ("DEMO-SOLAR-01", "Solar Installation Technician", "Electrical / Solar", "Solar installation", 2, "10th Standard", 300),
     ]
-    beneficiaries = []
-    for i in range(30):
-        base = personas[i] if i < 3 else (f"Demo Beneficiary {i+1}", "10th Standard", "Tailoring" if i % 2 else "Electrical wiring", 1 + i % 7, "Informal work", SECTORS[i % 5], 5 + i % 12, 2000 + i * 500, False)
-        user_id = users[UserRole.BENEFICIARY].id if i == 0 else None
-        b = Beneficiary(user_id=user_id, name=base[0], age=22 + i % 25, gender="Female" if i % 2 == 0 else "Male", district="Madurai", state="Tamil Nadu", preferred_language="Tamil", digital_literacy="LOW", consent_given=True, created_by=users[UserRole.FIELD_WORKER].id)
-        db.add(b); db.flush(); db.add(LivelihoodProfile(beneficiary_id=b.id, education_level=base[1], current_occupation=base[2], family_occupation=base[4], employment_preference="EMPLOYMENT", aspiration_text=base[5], mobility_km=base[6], relocation_willingness=base[8], capital_available=base[7], family_responsibilities="Available 10 AM–3 PM" if base[0] == "Meena" else None, profile_completion_percentage=90))
-        if base[2]:
-            skill = next((s for s in skills if s.name == base[2]), skills[0]); db.add(BeneficiarySkill(beneficiary_id=b.id, skill_id=skill.id, experience_years=base[3], proficiency_level="INTERMEDIATE", source=SourceType.FIELD_WORKER, formal_certificate=False, verified=i < 3))
-        beneficiaries.append(b)
+    competency_map = {
+        "DEMO-TAILOR-01": [("garment measurement", .3), ("basic stitching", .3), ("garment repair", .25), ("finishing", .15)],
+        "DEMO-TAILOR-02": [("garment measurement", .25), ("basic stitching", .35), ("garment repair", .15), ("finishing", .25)],
+        "DEMO-TAILOR-03": [("garment measurement", .2), ("basic stitching", .2), ("garment repair", .25), ("finishing", .35)],
+        "DEMO-SOLAR-01": [("electrical safety", .5), ("solar wiring", .5)],
+    }
+    created = []
+    for code, name, sector, role, experience, education, hours in qualifications:
+        row = Qualification(qualification_code=code, qualification_name=name, sector=sector, occupational_role=role, nsqf_level="3", minimum_education=education, minimum_experience_years=experience, duration_hours=hours, qualification_type="Synthetic Demo", valid_from=date(2026, 1, 1), valid_until=date(2028, 12, 31), validity_status=ValidityStatus.VALID, source_type=SourceType.SYNTHETIC)
+        db.add(row); db.flush()
+        db.add_all([QualificationCompetency(qualification_id=row.id, competency_name=competency, weight=weight) for competency, weight in competency_map[code]])
+        distance = 5.0 if code == "DEMO-TAILOR-01" else 12.0 if code == "DEMO-TAILOR-02" else 22.0 if code == "DEMO-TAILOR-03" else 9.0
+        db.add(TrainingOpportunity(qualification_id=row.id, provider_name="Madurai Livelihood Training Centre", provider_type="DEMO", district="Madurai", state="Tamil Nadu", location_name="Madurai", distance_km=distance, seats_available=18, verification_status=VerificationStatus.SYNTHETIC, source_type=SourceType.SYNTHETIC))
+        created.append(row)
     db.flush()
-    positive = [EmploymentStatus.EMPLOYED, EmploymentStatus.SELF_EMPLOYED]
-    for i, beneficiary in enumerate(beneficiaries):
-        q = qualifications[i % 5]
-        p = LivelihoodPathway(beneficiary_id=beneficiary.id, qualification_id=q.id, pathway_type=PathwayType.ASPIRATIONAL if i % 2 else PathwayType.FASTEST, title=q.occupational_role, description="Synthetic seeded pathway", skill_fit_score=.7, aspiration_fit_score=.8, opportunity_score=.7, eligibility_score=1, mobility_score=.8, training_access_score=.7, training_burden_score=.7, outcome_evidence_score=.6, overall_score=72+i%15, confidence_level="AMBER", recommended_route="BRIDGE_TRAINING", status=PathwayStatus.SELECTED)
-        db.add(p); db.flush()
-        for day in (30, 90, 180):
-            employed = i % 4 != 0
-            db.add(OutcomeFollowup(beneficiary_id=beneficiary.id, pathway_id=p.id, followup_day=day, training_started=True, training_completed=day >= 90, certified=day >= 90 and i % 3 != 0, employment_status=positive[i % 2] if employed and day >= 90 else EmploymentStatus.TRAINING, livelihood_related_to_pathway=employed if day >= 90 else None, income_band="₹10,000–₹15,000" if employed and day >= 90 else None, still_active=employed if day == 180 else None, verification_status=Provenance.UNVERIFIED, reported_by=users[UserRole.FIELD_WORKER].id))
-    db.commit(); db.close(); print("Seeded 100 qualifications, 40 opportunities, 30 beneficiaries and 90 outcome records. All domain data is SYNTHETIC/UNVERIFIED.")
+    return created
 
 
-if __name__ == "__main__": seed()
+def _create_beneficiary(db, user: User, field_worker: User, name: str, age: int, occupation: str | None, aspiration: str, pending: bool = False, followup_due: bool = False) -> Beneficiary:
+    beneficiary = Beneficiary(user_id=user.id if name == "Meena" else None, name=name, age=age, gender="Female" if name != "Ravi" else "Male", district="Madurai", state="Tamil Nadu", preferred_language="Tamil", digital_literacy="LOW", consent_given=True, created_by=field_worker.id)
+    db.add(beneficiary); db.flush()
+    if not pending:
+        db.add(LivelihoodProfile(beneficiary_id=beneficiary.id, education_level="10th Standard", current_occupation=occupation, family_occupation="Agriculture", employment_preference="SELF_EMPLOYMENT", aspiration_text=aspiration, mobility_km=8, capital_available=5000, family_responsibilities="Available mainly during daytime after household responsibilities", physical_constraints="None reported", profile_completion_percentage=100))
+    return beneficiary
+
+
+def seed_demo_data(reset: bool = False) -> None:
+    settings = get_settings()
+    if not settings.demo_mode:
+        print("Demo seed skipped: set DEMO_MODE=true in the backend environment first.")
+        return
+    db = SessionLocal()
+    try:
+        if reset:
+            _reset_demo_data(db)
+        users = {role: _get_or_create_user(db, role) for role in UserRole}
+        skills = {name: _get_or_create_skill(db, name, "Tailoring") for name in ["Tailoring", "Measurement", "Garment Repair"]}
+        qualifications = _create_reference_data(db) if not db.scalar(select(Qualification).where(Qualification.qualification_code == "DEMO-TAILOR-01")) else db.scalars(select(Qualification).where(Qualification.qualification_code.like("DEMO-%"))).all()
+        meena = db.scalar(select(Beneficiary).where(Beneficiary.user_id == users[UserRole.BENEFICIARY].id))
+        if not meena:
+            meena = _create_beneficiary(db, users[UserRole.BENEFICIARY], users[UserRole.FIELD_WORKER], "Meena", 34, "Tailoring", "Increase income through tailoring and explore advanced garment work")
+            for name, years in [("Tailoring", 6), ("Measurement", 5), ("Garment Repair", 4)]:
+                db.add(BeneficiarySkill(beneficiary_id=meena.id, skill_id=skills[name].id, experience_years=years, proficiency_level="INTERMEDIATE", source=SourceType.SELF_REPORTED, formal_certificate=False, verified=False))
+        pending = db.scalar(select(Beneficiary).where(Beneficiary.name == "Demo Pending")) or _create_beneficiary(db, users[UserRole.FIELD_WORKER], users[UserRole.FIELD_WORKER], "Demo Pending", 27, None, "Find flexible work", pending=True)
+        followup = db.scalar(select(Beneficiary).where(Beneficiary.name == "Demo Follow-up")) or _create_beneficiary(db, users[UserRole.FIELD_WORKER], users[UserRole.FIELD_WORKER], "Demo Follow-up", 41, "Tailoring", "Grow a home enterprise")
+        db.flush()
+        meena_pathways = list(db.scalars(select(LivelihoodPathway).where(LivelihoodPathway.beneficiary_id == meena.id)).all())
+        if not meena_pathways:
+            meena_pathways = generate_pathways(db, meena.id)
+        followup_pathways = list(db.scalars(select(LivelihoodPathway).where(LivelihoodPathway.beneficiary_id == followup.id)).all())
+        if not followup_pathways:
+            followup_pathways = generate_pathways(db, followup.id)
+        db.flush()
+        if followup_pathways and not db.scalar(select(OutcomeFollowup).where(OutcomeFollowup.beneficiary_id == followup.id, OutcomeFollowup.followup_day == 90)):
+            db.add(OutcomeFollowup(beneficiary_id=followup.id, pathway_id=followup_pathways[0].id, followup_day=90, training_started=True, training_completed=True, employment_status=EmploymentStatus.TRAINING, verification_status=Provenance.USER_REPORTED, reported_by=users[UserRole.FIELD_WORKER].id))
+        red_pathway = next((pathway for pathway in meena_pathways if pathway.confidence_level.value == "RED"), None)
+        if not red_pathway and meena_pathways:
+            red_pathway = meena_pathways[-1]
+            red_pathway.confidence_level = "RED"
+        if red_pathway and not db.scalar(select(HumanReview).where(HumanReview.pathway_id == red_pathway.id, HumanReview.status == "OPEN")):
+            db.add(HumanReview(beneficiary_id=meena.id, pathway_id=red_pathway.id, reason_code="LOW_CONFIDENCE", reason_description="Demo review case: inspect training distance and missing advanced competencies."))
+        db.commit()
+        print("Demo data seeded. Accounts use DEMO_MODE only and the shared password is LeapDemo@2026.")
+    finally:
+        db.close()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Seed deterministic LEAP AI demo data.")
+    parser.add_argument("--reset", action="store_true", help="Delete and recreate only demo records.")
+    args = parser.parse_args()
+    seed_demo_data(reset=args.reset)
+
+
+if __name__ == "__main__":
+    main()

@@ -12,7 +12,13 @@ router = APIRouter(prefix="/field-worker", tags=["Field worker"], dependencies=[
 
 @router.get("/tasks", description="Return the field worker's actionable workload counts.")
 def tasks(db: Session = Depends(get_db)):
-    return {"interviews_due": db.scalar(select(func.count(Beneficiary.id)).where(Beneficiary.consent_given.is_(True))) or 0, "followups_due": db.scalar(select(func.count(OutcomeFollowup.id)).where(OutcomeFollowup.followup_day == 90)) or 0, "human_review_cases": db.scalar(select(func.count(HumanReview.id)).where(HumanReview.status == "OPEN")) or 0, "offline_sync_items": 0, "rpl_verification_cases": db.scalar(select(func.count(Beneficiary.id)).where(Beneficiary.digital_literacy == "RPL_REVIEW")) or 0}
+    return {"interviews_due": db.scalar(select(func.count(Beneficiary.id)).where(Beneficiary.consent_given.is_(True), ~select(InterviewSession.id).where(InterviewSession.beneficiary_id == Beneficiary.id, InterviewSession.status == InterviewStatus.COMPLETED).exists())) or 0, "followups_due": db.scalar(select(func.count(OutcomeFollowup.id)).where(OutcomeFollowup.followup_day == 90, OutcomeFollowup.verification_status == "USER_REPORTED")) or 0, "human_review_cases": db.scalar(select(func.count(HumanReview.id)).where(HumanReview.status == "OPEN")) or 0, "offline_sync_items": 0, "rpl_verification_cases": db.scalar(select(func.count(Beneficiary.id)).where(Beneficiary.digital_literacy == "RPL_REVIEW")) or 0}
+
+
+@router.get("/beneficiaries", description="Return the field worker's presentation-safe beneficiary worklist.")
+def beneficiaries(page: int = Query(1, ge=1), page_size: int = Query(50, ge=1, le=100), db: Session = Depends(get_db)):
+    rows = db.scalars(select(Beneficiary).order_by(Beneficiary.id).offset((page - 1) * page_size).limit(page_size)).all()
+    return [{"id": row.id, "name": row.name, "district": row.district, "preferred_language": row.preferred_language, "consent_given": row.consent_given} for row in rows]
 
 
 @router.get("/followups", description="Return paginated follow-ups due for field verification.")

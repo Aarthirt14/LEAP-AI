@@ -126,3 +126,40 @@ def test_consent_withdrawal_blocks_confirmation(client,db):
 def test_location_not_inferred_from_language():
     from app.schemas import BeneficiaryCreate
     assert BeneficiaryCreate(name='Test',district='Test',preferred_language='Tamil',consent_given=False).state==''
+
+
+def test_empty_correction_does_not_restore_original_fact(client, db):
+    b, h = person(db)
+    client.patch(f'/api/beneficiaries/{b.id}/profile', headers=h, json={'mobility_km': 20, 'current_occupation': 'Tailoring'})
+    sid = client.post('/api/interviews', headers=h, json={'beneficiary_id': b.id}).json()['id']
+    base = f'/api/interviews/{sid}'
+    answer = client.post(base+'/answers', headers=h, json={'question_key': 'current_occupation', 'question_text': 'Work', 'transcript': 'Electrician'}).json()
+    assert client.patch(base+f'/answers/{answer["id"]}', headers=h, json={'corrected_text': ''}).status_code == 200
+    preview = client.get(base+'/preview', headers=h).json()
+    assert preview['answers'][0]['value'] is None
+    assert client.post(base+'/complete', headers=h, json={'confirmed': True, 'preview_token': preview['preview_token']}).status_code == 200
+    profile = client.get(f'/api/beneficiaries/{b.id}/profile', headers=h).json()
+    assert profile['current_occupation'] is None and profile['mobility_km'] == 20
+    cleared = client.patch(f'/api/beneficiaries/{b.id}/profile', headers=h, json={'mobility_km': None}).json()
+    assert cleared['mobility_km'] is None
+
+
+def test_production_validation_error_hides_secret_inputs():
+    with pytest.raises(ValueError) as caught:
+        Settings(environment='production', jwt_secret='private-short-sentinel', secret_key='y'*40)
+    assert 'private-short-sentinel' not in str(caught.value)
+
+
+def test_unknown_multilingual_work_is_marked_for_review_without_skills():
+    q = {'id': 1, 'title': 'Tailoring', 'sector': 'Apparel', 'validity_status': 'VALID', 'competencies': []}
+    result = rank_pathways({'current_occupation': 'தெரியாத தொழில்', 'profile_completion_percentage': 100, 'education_verified': True, 'evidence_count': 3}, [], [q], {}, {})[0]
+    assert result['confidence'] == 'RED'
+    assert 'LANGUAGE_MAPPING_NEEDS_CONFIRMATION' in result['confidence_reasons']
+
+
+def test_description_does_not_invent_aspiration_or_skill():
+    from app.services.pathway_service import _pathway_description
+    for title in ['Solar technician', 'Tailor']:
+        text = _pathway_description(title, None, 0, 0)
+        assert 'does not establish a strong skill or aspiration match' in text
+        assert 'availability needs confirmation' in text

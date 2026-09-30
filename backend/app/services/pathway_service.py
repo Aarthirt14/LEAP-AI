@@ -11,6 +11,7 @@ def _profile_dict(beneficiary: Beneficiary) -> dict:
     skills = beneficiary.skills
     return {
         "education_level": profile.education_level if profile else None,
+        "current_occupation": profile.current_occupation if profile else None,
         "family_occupation": profile.family_occupation if profile else None,
         "aspiration_text": profile.aspiration_text if profile else None,
         "mobility_km": profile.mobility_km if profile else None,
@@ -32,18 +33,13 @@ def _add_evidence(db: Session, pathway_id: int, evidence_type: str, label: str, 
 
 
 def _pathway_description(title: str, sector: str | None, aspiration_fit: float, skill_fit: float) -> str:
-    text = f"{title} {sector or ''}".lower()
-    if "tailor" in text or "apparel" in text:
-        if aspiration_fit >= 0.75 and skill_fit >= 0.6:
-            return "This pathway builds on your existing tailoring experience and matches your goal of working as a tailor."
-        return "This pathway uses your tailoring background but may require additional production-focused training."
-    if "solar" in text:
-        return "This pathway matches your interest in technical work but requires new technical training."
+    if aspiration_fit >= 0.75 and skill_fit >= 0.6:
+        return "This option matches your stated aspiration and recorded skill evidence. Confirm eligibility and practical availability before deciding."
     if aspiration_fit >= 0.75:
-        return f"This pathway matches your stated goal and the evidence currently available in your profile."
+        return "This option matches your stated aspiration. Skills, eligibility and practical requirements still need review."
     if skill_fit >= 0.6:
-        return "This pathway builds on skills and experience already present in your profile."
-    return "This pathway is a possible option based on your current profile and local opportunity data."
+        return "This option builds on your recorded experience. Discuss whether it fits your aspirations and circumstances."
+    return "This is an option for further discussion. The current evidence does not establish a strong skill or aspiration match; practical availability needs confirmation."
 
 
 def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathway]:

@@ -23,7 +23,7 @@ def upsert_profile(db: Session, beneficiary_id: int, data: dict) -> LivelihoodPr
         profile = LivelihoodProfile(beneficiary_id=beneficiary_id)
         db.add(profile)
     for key, value in data.items():
-        if hasattr(profile, key) and value is not None:
+        if hasattr(profile, key):
             setattr(profile, key, value)
     profile.profile_completion_percentage = completion_percentage({field: getattr(profile, field, None) for field in PROFILE_FIELDS})
     db.flush()
@@ -34,11 +34,12 @@ def apply_interview_facts(db: Session, session: InterviewSession) -> LivelihoodP
     supported = set(PROFILE_FIELDS)
     profile_data: dict = {}
     for answer in session.answers:
-        value = answer.corrected_text or answer.transcript
+        value = answer.corrected_text if answer.corrected_text is not None else answer.transcript
         if answer.question_key in supported:
             from app.services.interview_preview import parse_value
             parsed, warning = parse_value(answer.question_key, value)
             if parsed is None:
+                profile_data[answer.question_key] = None
                 continue
             if answer.question_key in {"available_hours_start", "available_hours_end"}:
                 parsed = time.fromisoformat(parsed)

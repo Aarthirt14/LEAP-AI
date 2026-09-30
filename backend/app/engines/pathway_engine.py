@@ -37,7 +37,7 @@ def rank_pathways(profile: dict, skills: list[dict], qualifications: list[dict],
         score = sum(score_parts[k] * settings.scoring_weights[k] for k in settings.scoring_weights)
         score = max(0, score - constraints["total_penalty"])
         confidence = calculate_confidence(profile_completion=float(profile.get("profile_completion_percentage", 0)), extraction_confidences=profile.get("extraction_confidences", []), education_verified=bool(profile.get("education_verified", False)), qualification_validity=q.get("validity_status", "UNKNOWN"), training_verification=training.get("verification_status") if training else None, evidence_count=int(profile.get("evidence_count", 0)), training_location_known=location_known if raw_training else None, training_seats_known=seats_known if raw_training else None)
-        unsupported = any(text and any(ord(ch) > 127 and ch.isalpha() for ch in text) and not canonical_occupations(text) for text in [profile.get("aspiration_text"), *(s.get("name") for s in skills)])
+        unsupported = any(text and any(ord(ch) > 127 and ch.isalpha() for ch in text) and not canonical_occupations(text) for text in [profile.get("current_occupation"), profile.get("aspiration_text"), *(s.get("name") for s in skills)])
         if unsupported:
             confidence["reasons"].append("LANGUAGE_MAPPING_NEEDS_CONFIRMATION")
             confidence["level"] = "RED"

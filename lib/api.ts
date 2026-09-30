@@ -81,7 +81,7 @@ export type Pathway = {
 };
 
 export type InterviewPreview = { preview_token: string; answers: Array<{ id: number; key: string; question: string; transcript: string; text: string; value: string | number | boolean | null; warning: string | null }> };
-export type Outcome = { id: number; followup_day: number; training_started: boolean; training_completed: boolean; certified: boolean; employment_status: string; verification_status: string; created_at: string };
+export type Outcome = { id: number; pathway_id: number; followup_day: number; training_started: boolean; training_completed: boolean; certified: boolean; employment_status: string; verification_status: string; created_at: string };
 
 export class ApiError extends Error {
   status: number;
@@ -124,12 +124,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   try {
     response = await fetch(`${API_URL}${path}`, { ...options, headers, cache: "no-store" });
   } catch {
-    throw new ApiError("LEAP AI could not reach the server. Check that the backend is running.", 0, "NETWORK_ERROR");
+    throw new ApiError("Unable to connect. Your unsent answer is still on this page. Check your connection and try again.", 0, "NETWORK_ERROR");
   }
 
   const body: any = await response.json().catch(() => null);
   if (!response.ok) {
-    const message = body?.error?.message || body?.detail || "Something went wrong.";
+    const detail = body?.error?.message || body?.detail;
+    const message = typeof detail === "string" ? detail : Array.isArray(detail) ? detail.map((item: {loc?: string[]; msg?: string}) => `${item.loc?.slice(1).join(" ") || "Field"}: ${item.msg || "Invalid value"}`).join("; ") : "Something went wrong.";
     const code = body?.error?.code;
     throw new ApiError(message, response.status, code);
   }
@@ -160,6 +161,7 @@ export const api = {
   correctInterviewAnswer: (id: number, answerId: number, text: string) => request(`/api/interviews/${id}/answers/${answerId}`, { method: "PATCH", body: JSON.stringify({ corrected_text: text }) }),
   completeInterview: (sessionId: number, token: string) => request(`/api/interviews/${sessionId}/complete`, { method: "POST", body: JSON.stringify({ confirmed: true, preview_token: token }) }),
   updateProfile: (id: number, payload: Record<string, unknown>) => request<Profile>(`/api/beneficiaries/${id}/profile`, {method: "PATCH", body: JSON.stringify(payload)}),
+  recordOutcome: (payload: Record<string, unknown>) => request<Outcome>("/api/outcomes", {method:"POST",body:JSON.stringify(payload)}),
   outcomes: (id: number) => request<Outcome[]>(`/api/beneficiaries/${id}/outcomes`),
   generatePathways: (beneficiaryId: number) =>
     request<Pathway[]>(`/api/beneficiaries/${beneficiaryId}/generate-pathways`, { method: "POST" }),

@@ -176,6 +176,7 @@ function LeapAppInner() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [sessionError, setSessionError] = useState("");
   const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState<number | null>(null);
   const [state, setState] = useState<AppState>({ loading: true, signedIn: false, beneficiary: null, role: null, locale: "en" });
   const [languageReady, setLanguageReady] = useState<boolean>(() => {
@@ -194,6 +195,7 @@ function LeapAppInner() {
   };
 
   const refreshSession = async () => {
+    setSessionError("");
     if (!getAccessToken()) {
       setState({ loading: false, signedIn: false, beneficiary: null, role: null, locale: getStoredLocale() });
       return;
@@ -211,7 +213,12 @@ function LeapAppInner() {
       const locale = beneficiary?.preferred_language ? normalizeLocale(beneficiary.preferred_language) : getStoredLocale();
       setStoredLocale(locale);
       setState({ loading: false, signedIn: true, beneficiary, role: user.role, locale });
-    } catch {
+    } catch (error) {
+      if (!(error instanceof ApiError) || (error.status !== 401 && error.status !== 403)) {
+        setSessionError(error instanceof Error ? error.message : "Could not reconnect.");
+        setState(prev=>({...prev,loading:false}));
+        return;
+      }
       clearTokens();
       setState({ loading: false, signedIn: false, beneficiary: null, role: null, locale: getStoredLocale() });
     }
@@ -238,6 +245,7 @@ function LeapAppInner() {
     router.push("/");
   };
 
+  if (sessionError) return <main className="mx-auto max-w-2xl px-5 py-20"><PageHeading eyebrow="Connection interrupted" title="Let’s reconnect" description={sessionError}/><Button onClick={()=>void refreshSession()}>Try again</Button></main>;
   if (languageReady && !state.loading) return <LanguageScreen onSelect={(next) => { setLocale(next); }} />;
   if (state.loading) return <LoadingScreen locale={state.locale} />;
 
@@ -381,7 +389,7 @@ function OfficerDashboard({ locale }: { locale: Locale }) {
           </Card>
         ))}
       </div>
-      <div className="mt-8 rounded-2xl border border-[#DDE3E5] bg-[#FAFAF7] p-5 text-sm text-[#41526d]">{t("officer.notEnough", locale)}</div>
+      <div className="mt-8"><Notice tone="warning">These are aggregate recorded counts across the available dataset. They may include self-reported outcomes and pathways awaiting review. They are not verified placement rates or district-filtered statistics.</Notice><Panel className="mt-6"><h2 className="text-xl font-semibold">Recorded training milestones</h2><div className="mt-5 grid gap-6 sm:grid-cols-3">{[["Training started",funnel?.enrolled],["Training completed",funnel?.completed],["Certification reported",funnel?.certified]].map(([label,value])=><div key={String(label)}><p className="text-sm text-slate-600">{label}</p><p className="mt-2 text-3xl font-semibold">{value ?? "—"}</p></div>)}</div><p className="mt-5 text-sm text-slate-600">A missing value means data could not be loaded. A zero means no matching record was returned.</p></Panel></div>
     </main>
   );
 }
@@ -523,8 +531,8 @@ function Onboarding({ onCreated, locale, afterCreated }: { onCreated: () => Prom
           <Field label={t("onboarding.name", locale)}><input required value={form.name} onChange={(e) => update("name", e.target.value)} className="field" placeholder={t("onboarding.name", locale)} /></Field>
           <Field label={t("onboarding.age", locale)}><input type="number" min="14" max="100" value={form.age} onChange={(e) => update("age", e.target.value)} className="field" placeholder={t("onboarding.age", locale)} /></Field>
           <Field label={t("onboarding.gender", locale)}><input value={form.gender} onChange={(e) => update("gender", e.target.value)} className="field" /></Field>
-          <Field label={t("onboarding.district", locale)}><input required value={form.district} onChange={(e) => update("district", e.target.value)} className="field" placeholder="Madurai" /></Field>
-          <Field label="State / Union territory"><input required value={form.state} onChange={(e) => update("state", e.target.value)} className="field" /></Field>
+          <Field label={t("onboarding.district", locale)}><input required value={form.district} onChange={(e) => update("district", e.target.value)} className="field" placeholder={t("onboarding.district", locale)} /></Field>
+          <Field label={words(locale,"State / Union territory","மாநிலம் / யூனியன் பிரதேசம்","राज्य / केंद्र शासित प्रदेश")}><input required value={form.state} onChange={(e) => update("state", e.target.value)} className="field" /></Field>
           <Field label={t("onboarding.language", locale)}><select value={form.preferred_language} onChange={(e) => update("preferred_language", e.target.value)} className="field"><option>Tamil</option><option>Hindi</option><option>English</option></select></Field>
           <Field label={t("onboarding.digital", locale)}><select value={form.digital_literacy} onChange={(e) => update("digital_literacy", e.target.value)} className="field"><option value="LOW">LOW</option><option value="MEDIUM">MEDIUM</option><option value="HIGH">HIGH</option></select></Field>
           <label className="sm:col-span-2 flex items-start gap-3 rounded-xl border border-[#DDE3E5] bg-[#FAFAF7] p-4 text-sm leading-6 text-[#1e293b]"><input type="checkbox" checked={form.consent_given} onChange={(e) => update("consent_given", e.target.checked)} className="mt-1" /><span className="font-medium">{t("onboarding.consent", locale)}</span></label>
@@ -636,9 +644,9 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
       }
       await api.addInterviewAnswer(activeSession, {
         question_key: question.key,
-        question_text: question.title,
+        question_text: localizedQuestionTitles[locale][question.key] || question.title,
         transcript: answer.trim(),
-        language: beneficiary.preferred_language,
+        language: locale === "ta" ? "Tamil" : locale === "hi" ? "Hindi" : "English",
         speech_confidence: null,
         extraction_confidence: null,
       });
@@ -682,15 +690,15 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
   };
   if (readyToReview && !preview) return <main className="mx-auto max-w-3xl px-5 py-12"><PageHeading eyebrow="Assessment" title="Your draft answers are saved" description="Load the extracted values to review them. Your profile has not been finalized."/><Button disabled={busy} onClick={()=>{if(sessionId){setBusy(true);void api.previewInterview(sessionId).then(setPreview).catch(e=>toast.error(e.message)).finally(()=>setBusy(false));}}}>Review my answers</Button></main>;
   if (preview) return <main className="mx-auto max-w-[900px] px-5 py-12">
-    <SectionLabel>Review your answers</SectionLabel><h1 className="text-3xl font-semibold">We understood:</h1>
-    <p className="mt-3 text-base">Confirm or correct these values before they become your livelihood profile. Your confirmation records self-reported information; it does not certify it.</p>
+    <SectionLabel>{words(locale,"Review your answers","உங்கள் பதில்களைச் சரிபார்க்கவும்","अपने उत्तरों की समीक्षा करें")}</SectionLabel><h1 className="text-3xl font-semibold">{words(locale,"We understood:","நாங்கள் புரிந்துகொண்டது:","हमने यह समझा:")}</h1>
+    <p className="mt-3 text-base">{words(locale,"Confirm or correct these values before they become your livelihood profile. Your confirmation records self-reported information; it does not certify it.","உங்கள் வாழ்வாதார சுயவிவரத்தில் சேர்க்கும் முன் இந்த விவரங்களை உறுதிப்படுத்தவும் அல்லது திருத்தவும். இது உங்கள் தகவலைப் பதிவு செய்கிறது; சான்றளிக்காது.","अपनी आजीविका प्रोफ़ाइल में जोड़ने से पहले इन विवरणों की पुष्टि करें या सुधारें। यह आपकी बताई जानकारी दर्ज करता है, प्रमाणित नहीं करता।")}</p>
     <div className="mt-8 space-y-4">{preview.answers.map(a => <Card key={a.id}><CardContent className="p-5">
       <h2 className="font-semibold">{localizedQuestionTitles[locale][a.key] || a.question}</h2>
-      <p className="mt-2 text-sm text-slate-600">Your answer: {a.transcript}</p>
-      {editing[a.id] !== undefined ? <div className="mt-3 flex flex-wrap gap-2"><input className="field" aria-label={a.question} value={editing[a.id]} onChange={e => setEditing({...editing,[a.id]:e.target.value})}/><Button disabled={busy} onClick={() => correct(a.id)}>Save correction</Button></div> : <div className="mt-3 flex items-center justify-between gap-4"><strong>{a.value === null ? "Needs confirmation" : String(a.value)}</strong><Button disabled={busy} variant="outline" onClick={() => setEditing({...editing,[a.id]:a.text})}>Edit</Button></div>}
+      <p className="mt-2 text-sm text-slate-600">{words(locale,"Your answer:","உங்கள் பதில்:","आपका उत्तर:")} {a.transcript}</p>
+      {editing[a.id] !== undefined ? <div className="mt-3 flex flex-wrap gap-2"><input className="field" aria-label={a.question} value={editing[a.id]} onChange={e => setEditing({...editing,[a.id]:e.target.value})}/><Button disabled={busy} onClick={() => correct(a.id)}>{words(locale,"Save correction","திருத்தத்தைச் சேமிக்கவும்","सुधार सहेजें")}</Button></div> : <div className="mt-3 flex items-center justify-between gap-4"><strong>{a.value === null ? words(locale,"Needs confirmation","உறுதிப்படுத்த வேண்டும்","पुष्टि आवश्यक है") : String(a.value)}</strong><Button disabled={busy} variant="outline" onClick={() => setEditing({...editing,[a.id]:a.text})}>{words(locale,"Edit","திருத்து","संपादित करें")}</Button></div>}
       {a.warning && <p className="mt-2 text-sm text-amber-900">{a.warning}</p>}
     </CardContent></Card>)}</div>
-    <Button className="mt-6" disabled={busy || Object.keys(editing).length > 0} onClick={confirm}>{busy ? "Saving…" : "That's right — create my profile"}</Button>
+    <Button className="mt-6" disabled={busy || Object.keys(editing).length > 0} onClick={confirm}>{busy ? words(locale,"Saving…","சேமிக்கிறது…","सहेजा जा रहा है…") : words(locale,"Confirm and create my profile","உறுதிப்படுத்தி சுயவிவரத்தை உருவாக்கவும்","पुष्टि करें और मेरी प्रोफ़ाइल बनाएं")}</Button>
   </main>;
 
   return (
@@ -733,10 +741,13 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
   );
 }
 
-function ProfileScreen({ beneficiary, locale }: { beneficiary: Beneficiary; locale: Locale }) {
+function ProfileScreen({ beneficiary, locale, onAssess, onPathways }: { beneficiary: Beneficiary; locale: Locale; onAssess?:()=>void; onPathways?:()=>void }) {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [skillDraft,setSkillDraft] = useState({name:"",sector:"",years:""});
+  const [skillBusy,setSkillBusy] = useState(false);
+  const saveSkill = async (event: FormEvent) => {event.preventDefault();setSkillBusy(true);try {await api.addSkill(beneficiary.id,{name:skillDraft.name.trim(),sector:skillDraft.sector.trim(),experience_years:Number(skillDraft.years),source:"SELF_REPORTED",verified:false});setSkills(await api.skills(beneficiary.id));setSkillDraft({name:"",sector:"",years:""});toast.success("Experience saved. Recalculate pathways when you are ready.");} catch(e){toast.error(e instanceof Error?e.message:"Could not save skill");}finally{setSkillBusy(false);}};
   const [editProfile,setEditProfile] = useState(false);
   const [saving,setSaving] = useState(false);
   const saveProfile = async () => { if (!profile) return; setSaving(true); try { const {id,beneficiary_id,profile_completion_percentage,...data}=profile; setProfile(await api.updateProfile(beneficiary.id,data)); setEditProfile(false); toast.success("Profile updated"); } catch(e) {toast.error(e instanceof Error?e.message:"Could not save");} finally {setSaving(false);} };
@@ -750,7 +761,7 @@ function ProfileScreen({ beneficiary, locale }: { beneficiary: Beneficiary; loca
   }, [beneficiary.id]);
 
   if (loading) return <PageLoader text="Loading your livelihood profile…" />;
-  if (!profile) return <EmptyState title="Your profile is not ready yet" copy="Complete the assessment first so LEAP can build your livelihood profile." action="Start assessment" onAction={() => router.push("/interview")} />;
+  if (!profile) return <EmptyState title="Your profile is not ready yet" copy="Complete the assessment first so LEAP can build your livelihood profile." action="Start assessment" onAction={onAssess || (() => router.push("/interview"))} />;
 
   if (editProfile) return <main className="mx-auto max-w-[900px] px-5 py-12"><PageHeading eyebrow="Your profile" title="Keep your story up to date"/><Panel><form onSubmit={e=>{e.preventDefault();void saveProfile();}} className="grid gap-5 sm:grid-cols-2">{(["education_level","current_occupation","aspiration_text","employment_preference","family_responsibilities","physical_constraints"] as const).map(key=><Field key={key} label={humanize(key)}><input className="field" value={profile[key] || ""} onChange={e=>setProfile({...profile,[key]:e.target.value})}/></Field>)}<Field label="Travel range (km)"><input className="field" type="number" min="0" step="any" value={profile.mobility_km ?? ""} onChange={e=>setProfile({...profile,mobility_km:e.target.value===""?null:Number(e.target.value)})}/></Field><Field label="Available capital"><input className="field" type="number" min="0" value={profile.capital_available ?? ""} onChange={e=>setProfile({...profile,capital_available:e.target.value===""?null:e.target.value})}/></Field><div className="flex flex-wrap gap-3 sm:col-span-2"><Button disabled={saving}>Save changes</Button><Button type="button" variant="outline" disabled={saving} onClick={()=>{setEditProfile(false);void api.profile(beneficiary.id).then(setProfile);}}>Cancel</Button></div></form></Panel></main>;
 
@@ -776,7 +787,8 @@ function ProfileScreen({ beneficiary, locale }: { beneficiary: Beneficiary; loca
         <div className="space-y-5"><Card className="border-[#E9DBCE] bg-[#FFF1E6] shadow-none"><CardContent className="p-6 sm:p-7"><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#995421]">What you want to become</div><blockquote className="mt-4 text-2xl font-semibold leading-9 tracking-[-0.025em] text-[#713F1E]">“{profile.aspiration_text || "Your next chapter will take shape here."}”</blockquote><div className="mt-4 text-sm font-medium text-[#795E4B]">Your aspiration is considered separately from your current experience.</div></CardContent></Card><Card className="border-[#c5e4d9] bg-[#edf9f3] shadow-none"><CardContent className="p-6 sm:p-7"><div className="flex items-center gap-2 font-semibold text-[#176b58]"><BriefcaseBusiness size={18} /> Skills and experience</div><div className="mt-5 flex flex-wrap gap-2">{skills.length ? skills.map((skill) => <span key={skill.id} className="rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#176b58] shadow-sm">{skill.skill_name || "Skill"} · {skill.experience_years}y{skill.verified ? " · verified" : ""}</span>) : <p className="text-sm leading-6 font-medium text-[#176b58]">Your experience will appear here after assessment.</p>}</div></CardContent></Card></div>
       </div>
       <div className="mt-6 grid gap-4 rounded-2xl border border-[#c5e4d9] bg-[#eaf8f1] p-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center"><div><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#1f8a70]">What you know</div><div className="mt-1 font-semibold text-[#176b58]">Experience, skills and real constraints</div></div><div className="hidden text-2xl text-[#995421] sm:block">↔</div><div><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#995421]">What you want</div><div className="mt-1 font-semibold text-[#713F1E]">Aspiration and possibility</div></div><p className="text-sm font-semibold text-[#071A3D] sm:col-span-3">Your past does not decide your future. Both matter.</p></div>
-      <div className="mt-6 flex flex-wrap justify-end gap-3"><Button variant="outline" onClick={()=>setEditProfile(true)}>Edit my profile</Button><Button onClick={() => router.push("/pathways")}>See my pathways <ArrowRight className="ml-2" size={17} /></Button></div>
+      <Panel className="mt-6"><h2 className="text-xl font-semibold">Add or update your experience</h2><p className="mt-2 text-sm text-slate-600">Informal work counts. These details are recorded as self-reported, and may support an RPL discussion.</p><form onSubmit={saveSkill} className="mt-5 grid items-end gap-4 sm:grid-cols-3"><Field label="Skill or work"><input required className="field" value={skillDraft.name} onChange={e=>setSkillDraft({...skillDraft,name:e.target.value})}/></Field><Field label="Sector"><input required className="field" value={skillDraft.sector} onChange={e=>setSkillDraft({...skillDraft,sector:e.target.value})}/></Field><Field label="Years of experience"><input required type="number" min="0" step="0.1" className="field" value={skillDraft.years} onChange={e=>setSkillDraft({...skillDraft,years:e.target.value})}/></Field><Button disabled={skillBusy || !skillDraft.name.trim() || !skillDraft.sector.trim()}>Save experience</Button></form></Panel>
+      <div className="mt-6 flex flex-wrap justify-end gap-3"><Button variant="outline" onClick={()=>setEditProfile(true)}>Edit my profile</Button><Button onClick={onPathways || (() => router.push("/pathways"))}>See my pathways <ArrowRight className="ml-2" size={17} /></Button></div>
     </main>
   );
 }
@@ -811,7 +823,7 @@ function PathwaysScreen({ beneficiary, locale, onOpen }: { beneficiary: Benefici
           {pathways.map((pathway, i) => <PathwayCard key={pathway.id} pathway={pathway} rank={i + 1} onOpen={() => onOpen ? onOpen(pathway.id) : router.push(`/pathway?id=${pathway.id}`)} />)}
         </div>
       )}
-      <div className="mt-8 rounded-2xl border border-[#DDE3E5] bg-white p-5 text-sm leading-6 text-[#1e293b]"><span className="font-semibold text-[#071A3D]">Why this is different from a chatbot answer:</span> the backend excludes invalid qualifications, checks constraints, applies one scoring model, and sends low-confidence cases for human review.</div>
+      <div className="mt-8 rounded-2xl border border-[#DDE3E5] bg-white p-5 text-sm leading-6 text-[#1e293b]"><span className="font-semibold text-[#071A3D]">How these options are assessed:</span> LEAP compares your experience, aspirations and constraints using consistent rules. Missing information is shown for confirmation, and low-confidence cases need human review.</div>
     </main>
   );
 }
@@ -961,13 +973,21 @@ function PathwayScreen({ locale }: { locale: Locale }) {
 
 function ProgressScreen({ beneficiary, locale }: { beneficiary: Beneficiary; locale: Locale }) {
   const [rows,setRows] = useState<Outcome[] | null>(null);
+  const [pathways,setPathways] = useState<Pathway[]>([]);
   const [error,setError] = useState("");
-  const load = () => { setError(""); void api.outcomes(beneficiary.id).then(setRows).catch(e => setError(e.message)); };
+  const [busy,setBusy] = useState(false);
+  const [recording,setRecording] = useState(false);
+  const [draft,setDraft] = useState({pathway_id:"",followup_day:"30",employment_status:"UNKNOWN",training_started:false,training_completed:false,certified:false,support_required:""});
+  const load = () => {setError("");void Promise.all([api.outcomes(beneficiary.id),api.pathways(beneficiary.id)]).then(([outcomes,options])=>{setRows(outcomes);setPathways(options);}).catch(e=>setError(e.message));};
   useEffect(load,[beneficiary.id]);
-  return <main className="mx-auto max-w-[1100px] px-5 py-12"><SectionLabel>Your livelihood journey</SectionLabel><h1 className="text-4xl font-semibold">Progress and follow-up</h1><p className="mt-3">Recorded updates from your livelihood journey. Unrecorded milestones are not assumed complete.</p>
-    {error ? <div role="alert" className="mt-6"><p>{error}</p><Button onClick={load}>Try again</Button></div> : rows === null ? <PageLoader text="Loading follow-ups…"/> : <>
-    <div className="mt-8 grid gap-4 md:grid-cols-3">{[30,90,180].map(day => <Card key={day}><CardContent className="p-6"><SectionLabel>Day {day}</SectionLabel><h2 className="text-xl font-semibold">{day===30?"Early check-in":day===90?"Livelihood follow-up":"Longer-term outcome"}</h2><div className="mt-4 space-y-3">{rows.filter(r=>r.followup_day===day).length ? rows.filter(r=>r.followup_day===day).map(r => <div key={r.id}><p>{humanize(r.employment_status)}</p><p className="mt-2 text-sm">{humanize(r.verification_status)}</p><p className="text-sm">{new Date(r.created_at).toLocaleDateString()}</p></div>) : <p className="text-sm text-slate-600">No update recorded</p>}</div></CardContent></Card>)}</div>
-    {!rows.length && <p className="mt-6 rounded-xl border p-6">No follow-up data yet. Your recorded updates will appear here.</p>}</>}
+  const eligible = pathways.filter(p=>!p.pending_human_review && (p.confidence!=="RED" || p.review_status==="APPROVED"));
+  const save = async(e:FormEvent)=>{e.preventDefault();setBusy(true);try {await api.recordOutcome({...draft,beneficiary_id:beneficiary.id,pathway_id:Number(draft.pathway_id),followup_day:Number(draft.followup_day),verification_status:"USER_REPORTED"});setRecording(false);load();toast.success("Follow-up recorded as self-reported.");}catch(e){toast.error(e instanceof Error?e.message:"Could not save update");}finally{setBusy(false);}};
+  return <main className="mx-auto max-w-[1100px] px-5 py-12"><PageHeading eyebrow={words(locale,"Your livelihood journey","உங்கள் வாழ்வாதாரப் பயணம்","आपकी आजीविका यात्रा")} title={words(locale,"Progress and follow-up","முன்னேற்றம் மற்றும் தொடர் கண்காணிப்பு","प्रगति और फ़ॉलो-अप")} description="Record what actually happened and the support you need next." action={<Button disabled={!eligible.length || !!error || rows===null} onClick={()=>setRecording(v=>!v)}>{recording?"Close form":"Record an update"}</Button>}/>
+    {error ? <Notice tone="warning">{error}<Button onClick={load}>Try again</Button></Notice> : rows === null ? <PageLoader text="Loading follow-ups…"/> : <>
+    {recording && <Panel className="mb-8"><h2 className="text-xl font-semibold">Tell us how things are going</h2><p className="mt-2 text-sm text-slate-600">Choose the pathway you pursued. Recording an outcome does not certify or verify it.</p><form onSubmit={save} className="mt-6 grid gap-5 sm:grid-cols-2"><Field label="Pathway"><select required className="field" value={draft.pathway_id} onChange={e=>setDraft({...draft,pathway_id:e.target.value})}><option value="">Choose a pathway</option>{eligible.map(p=><option key={p.id} value={p.id}>{p.title}</option>)}</select></Field><Field label="Follow-up point"><select className="field" value={draft.followup_day} onChange={e=>setDraft({...draft,followup_day:e.target.value})}>{[30,90,180].map(day=><option key={day} value={day}>Day {day}</option>)}</select></Field><Field label="Current work situation"><select className="field" value={draft.employment_status} onChange={e=>setDraft({...draft,employment_status:e.target.value})}>{["UNKNOWN","EMPLOYED","SELF_EMPLOYED","SEARCHING","TRAINING","DROPPED_OUT","INACTIVE"].map(v=><option key={v} value={v}>{humanize(v)}</option>)}</select></Field><Field label="What support would help? (optional)"><input className="field" value={draft.support_required} onChange={e=>setDraft({...draft,support_required:e.target.value})}/></Field><div className="flex flex-wrap gap-5 sm:col-span-2">{([['training_started','I started training'],['training_completed','I completed training'],['certified','I received a certificate']] as const).map(([key,label])=><label key={key} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={draft[key]} onChange={e=>setDraft({...draft,[key]:e.target.checked})}/>{label}</label>)}</div><div className="sm:col-span-2"><Button disabled={busy || !draft.pathway_id || rows.some(r=>r.pathway_id===Number(draft.pathway_id)&&r.followup_day===Number(draft.followup_day))}>Save follow-up</Button>{rows.some(r=>r.pathway_id===Number(draft.pathway_id)&&r.followup_day===Number(draft.followup_day))&&<p className="mt-2 text-sm">This follow-up point is already recorded.</p>}</div></form></Panel>}
+    {!eligible.length && <Notice tone="warning">An assessed pathway must be available before you can record progression. Options pending human review cannot be used yet.</Notice>}
+    <div className="mt-8 grid gap-4 md:grid-cols-3">{[30,90,180].map(day => <Panel key={day}><SectionLabel>Day {day}</SectionLabel><h2 className="text-xl font-semibold">{day===30?"Early check-in":day===90?"Livelihood follow-up":"Longer-term outcome"}</h2><div className="mt-4 space-y-5">{rows.filter(r=>r.followup_day===day).length ? rows.filter(r=>r.followup_day===day).map(r => <div key={r.id}><strong>{pathways.find(p=>p.id===r.pathway_id)?.title || `Pathway ${r.pathway_id}`}</strong><p className="mt-2">{humanize(r.employment_status)}</p><p className="mt-2 text-sm text-slate-600">{humanize(r.verification_status)} · {new Date(r.created_at).toLocaleDateString(locale)}</p><p className="mt-2 text-sm text-slate-600">{r.training_completed?"Training completion reported":r.training_started?"Training start reported":"No training milestone reported"}{r.certified?" · Certificate reported":""}</p></div>) : <p className="text-sm text-slate-600">No update recorded</p>}</div></Panel>)}</div>
+    {!rows.length && <p className="mt-6 text-sm text-slate-600">No follow-up data yet. Your recorded updates will appear here.</p>}</>}
   </main>;
 }
 
@@ -1030,5 +1050,5 @@ function FieldWorkerBeneficiaryView({ beneficiaryId, locale }: { beneficiaryId: 
   if(!beneficiary)return <LoadingScreen locale={locale}/>;
   const base=`/field-worker?beneficiary=${beneficiaryId}`;
   return <><div className="mx-auto max-w-[1100px] px-5 pt-7"><Button variant="ghost" onClick={()=>router.push('/field-worker')}>← Worklist</Button><p className="mt-3 font-semibold">{beneficiary.name}</p><div className="mt-3 flex flex-wrap gap-2">{[['profile','Profile'],['interview','Assessment'],['pathways','Pathways'],['progress','Follow-up']].map(([key,label])=><Button key={key} variant={view===key?'default':'outline'} onClick={()=>router.push(`${base}&view=${key}`)}>{label}</Button>)}</div></div>
-  {view==='interview'?<Interview key={beneficiaryId} beneficiary={beneficiary} locale={locale} onFinished={()=>router.push(`${base}&view=pathways`)}/>:view==='pathways'?<PathwaysScreen beneficiary={beneficiary} locale={locale} onOpen={id=>router.push(`${base}&view=pathway&id=${id}`)}/>:view==='pathway'?<PathwayScreen locale={locale}/>:view==='progress'?<ProgressScreen beneficiary={beneficiary} locale={locale}/>:<ProfileScreen beneficiary={beneficiary} locale={locale}/>}</>;
+  {view==='interview'?<Interview key={beneficiaryId} beneficiary={beneficiary} locale={locale} onFinished={()=>router.push(`${base}&view=pathways`)}/>:view==='pathways'?<PathwaysScreen beneficiary={beneficiary} locale={locale} onOpen={id=>router.push(`${base}&view=pathway&id=${id}`)}/>:view==='pathway'?<PathwayScreen locale={locale}/>:view==='progress'?<ProgressScreen beneficiary={beneficiary} locale={locale}/>:<ProfileScreen beneficiary={beneficiary} locale={locale} onAssess={()=>router.push(`${base}&view=interview`)} onPathways={()=>router.push(`${base}&view=pathways`)}/>}</>;
 }

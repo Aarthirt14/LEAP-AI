@@ -228,6 +228,10 @@ button,a[role=button],select {min-height:44px;}
 .hero h1,.landing h2,.eyebrow,.secondary-link {overflow-wrap:anywhere;}
 .hero-copy>.eyebrow span {flex-shrink:0;}
 .hero-actions>* {max-width:100%;}
+.leap-shell h1,.leap-shell h2,.leap-shell h3 {overflow-wrap:anywhere;}
+.leap-shell main,.leap-shell main>*,[data-slot=card],.field {min-width:0;}
+[data-slot=card] {max-width:100%;}
+@media(max-width:1023px){.leap-shell main.grid{grid-template-columns:minmax(0,1fr);}}
 .brand {flex-shrink:0;}
 .brand-icon {flex-shrink:0;}
 .brand strong {white-space:nowrap;}

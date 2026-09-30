@@ -20,7 +20,7 @@ Accounts: `worker.staging@example.com`, `facilitator.staging@example.com`, `offi
 Staging-only Docker Command:
 
 ```sh
-sh -c 'alembic upgrade head && if [ "$LEAP_STAGING_FIXTURES" = enabled ]; then python -m seed.staging_fixtures; fi && uvicorn app.main:app --host 0.0.0.0 --port 8000'
+sh seed/start_staging.sh
 ```
 
 Build the latest redesign branch when activating. This can reset the ephemeral SQLite database, so the earlier disposable beneficiary account may need recreating. Repeated bootstrap with the same credentials is idempotent. It does not create consent, beneficiary records, selected pathways, reviews, or outcomes.
@@ -30,3 +30,5 @@ Four qualifications and synthetic opportunities are labelled TEST ONLY and prese
 Validation: full backend suite 60 passed (including seven bootstrap safety/idempotency cases); TypeScript and production build passed. Cloud activation and staff browser checks remain pending credential entry.
 
 Changed files: `backend/seed/staging_fixtures.py`, `backend/tests/test_staging_fixtures.py`, this document. Run `python -m pytest -q` from backend for the regression gate.
+
+Render rejected shell quoting in the original inline command (exit 127). The staging command now names a shell script directly; it validates the target before migrations. Production Dockerfile is unchanged.

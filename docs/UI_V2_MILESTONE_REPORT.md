@@ -105,7 +105,7 @@ Additional changed files: `app/preview-check/page.tsx`, `components/leap/viewpor
 
 Use a separate non-production service built from `redesign/leap-ui-v2`, using the existing backend implementation and its own test database. Use independent strong secrets and allow only the preview origin in CORS. Override the API URL for this preview branch only; keep production variables, production branches and production database unchanged. Create disposable test accounts/records only in that environment, and run the registration → assessment → confirmation → skills → pathways → review → outcomes journeys for each role. The existing local backend tests remain the API regression gate.
 
-An existing staging service can be used if available; otherwise a new service/database choice is needed, including its cost/lifecycle. No new cloud service or database has been created. No production deployment is needed to test these changes.
+An existing staging service can be used if available; otherwise a new service/database choice is needed, including its cost/lifecycle. At that checkpoint no new cloud service or database had been created. The staging setup below now resolves that infrastructure gate; no production deployment was needed.
 
 ### Final checks for this continuation
 
@@ -117,3 +117,17 @@ An existing staging service can be used if available; otherwise a new service/da
 - Production main, Render/Vercel production branch settings, environment variables and production data remain unchanged.
 
 Screenshots: [desktop](visual-checks/desktop.jpg), [Tamil landing at 320px](visual-checks/tamil-320.jpg), [Tamil sign-in at 320px](visual-checks/tamil-auth-320.jpg).
+
+
+## Continuation: isolated staging deployed (30 September 2026)
+
+- Created `leap-ui-v2-staging` on Render Free ($0/month), Docker root `backend`, branch `redesign/leap-ui-v2`. User generated independent `SECRET_KEY` and `JWT_SECRET` values and submitted deployment. No secret values were read or copied.
+- Render deployed commit `bee724f8abbb0fc88d96fc95f3e76ac92c8803a7` successfully. API: `https://leap-ui-v2-staging.onrender.com`. `/health` returned HTTP 200, healthy, database connected.
+- Database is isolated SQLite (`leap_ui_v2_staging.db`) on ephemeral storage. Data is disposable and can disappear on restart/redeploy. Auto-deploy was disabled for this staging service. Demo mode is disabled; `/api/auth/demo-config` returned no demo roles.
+- CORS allows the exact redesign branch preview origin. Its preflight returned HTTP 200 with the correct allow-origin value.
+- Added a Vercel **Preview / redesign/leap-ui-v2 only** override for `NEXT_PUBLIC_API_URL`. The existing all-environments value was left unchanged. Rebuilt the existing redesign deployment as Preview, deployment `CqZVJCnKbmXEjTfNCRmW41mNrBSq`.
+- The rendered `/preview-check` now displays the staging API URL, confirming the public build-time configuration took effect. Inspected the desktop registration page visually.
+- Vercel production dashboard independently confirms `main` commit `6493e3758674f4b59b81cd8bbcffc7a54c3c673c`. Render production revision is still unconfirmed: the signed-in workspace contains Edu-Guard and the newly created staging service, not the existing LEAP production service.
+- No application source changed in this infrastructure continuation. Previous local gates remain 53 backend tests passed, TypeScript passed, production build passed. Authenticated browser journeys still require a disposable browser account; no fixture data is presented as real availability.
+
+Live staging API smoke: **18 requests passed** using a generated disposable account (credentials never logged): registration, login, identity, beneficiary denied officer dashboard (403), onboarding, consent denial (422), consent update, interview creation, client confidence discarded, no profile before confirmation (404), preview, unconfirmed completion blocked (409), answer correction, stale preview blocked (409), fresh preview, confirmed completion, corrected mobility persisted, and Tamil skill saved as SELF_REPORTED/unverified despite client claims. This is API coverage, not a claim of completed browser E2E or staff-role visual testing.

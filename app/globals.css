@@ -221,3 +221,22 @@ button,a[role=button],select {min-height:44px;}
 .interview-mic{width:86px;height:86px;display:grid;place-items:center;background:var(--soft-green);border:10px solid #f5faf6;border-radius:50%;color:#087647;margin:0 auto 32px;box-shadow:0 0 0 1px #D7E9DC;}
 .interview-mic.active{animation:mic-breathe 1.5s ease-in-out infinite;}
 @keyframes mic-breathe{50%{box-shadow:0 0 0 12px #0fa96812;}}
+
+/* Long translated labels must wrap without widening the phone viewport. */
+[data-slot=button] {height:auto;white-space:normal;overflow-wrap:anywhere;max-width:100%;padding-block:11px;}
+.hero-copy,.story-visual,.hero-inner>* {min-width:0;}
+.hero h1,.landing h2,.eyebrow,.secondary-link {overflow-wrap:anywhere;}
+.hero-copy>.eyebrow span {flex-shrink:0;}
+.hero-actions>* {max-width:100%;}
+.brand {flex-shrink:0;}
+.brand-icon {flex-shrink:0;}
+.brand strong {white-space:nowrap;}
+@media(max-width:700px){.hero-inner{grid-template-columns:minmax(0,1fr);}}
+@media(max-width:420px){
+ .leap-header-inner{padding-inline:12px;gap:8px;}
+ .brand{gap:7px;}.brand strong{font-size:14px;}.brand-icon{width:30px;height:34px;}
+ .language-select{max-width:72px;padding-inline:3px;}
+ .leap-header [data-slot=button]{font-size:12px;padding-inline:9px;}
+ .leap-header [data-slot=button]:not([data-size=icon]){max-width:100px;}
+ .hero h1{font-size:34px;line-height:1.2;}
+}

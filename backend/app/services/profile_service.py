@@ -36,20 +36,12 @@ def apply_interview_facts(db: Session, session: InterviewSession) -> LivelihoodP
     for answer in session.answers:
         value = answer.corrected_text or answer.transcript
         if answer.question_key in supported:
-            parsed = value
-            if answer.question_key in {"mobility_km", "capital_available"}:
-                match = re.search(r"[\d,.]+", value)
-                if not match:
-                    continue
-                number = match.group().replace(",", "")
-                parsed = float(number) if answer.question_key == "mobility_km" else Decimal(number)
-            elif answer.question_key == "relocation_willingness":
-                parsed = value.strip().lower() in {"yes", "true", "willing", "ஆம்"}
-            elif answer.question_key in {"available_hours_start", "available_hours_end"}:
-                match = re.search(r"(\d{1,2})(?::(\d{2}))?", value)
-                if not match:
-                    continue
-                parsed = time(int(match.group(1)) % 24, int(match.group(2) or 0))
+            from app.services.interview_preview import parse_value
+            parsed, warning = parse_value(answer.question_key, value)
+            if parsed is None:
+                continue
+            if answer.question_key in {"available_hours_start", "available_hours_end"}:
+                parsed = time.fromisoformat(parsed)
             profile_data[answer.question_key] = parsed
-            db.add(ExtractedProfileFact(beneficiary_id=session.beneficiary_id, source_answer_id=answer.id, field_name=answer.question_key, field_value=value, confidence=answer.extraction_confidence or 0.5, verified=(answer.extraction_confidence or 0) >= 0.8))
+            db.add(ExtractedProfileFact(beneficiary_id=session.beneficiary_id, source_answer_id=answer.id, field_name=answer.question_key, field_value=value, confidence=0.0, verified=False))
     return upsert_profile(db, session.beneficiary_id, profile_data)

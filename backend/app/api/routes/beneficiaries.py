@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import assert_beneficiary_access, get_current_user, require_roles
-from app.models import Beneficiary, BeneficiarySkill, Skill, User, UserRole
+from app.models import Beneficiary, BeneficiarySkill, Skill, SourceType, User, UserRole
 from app.repositories.audit import record_audit
 from app.schemas import BeneficiaryCreate, BeneficiaryOut, BeneficiaryPatch, ProfileData, ProfileOut, SkillCreate, SkillOut
 from app.services.profile_service import upsert_profile
@@ -73,6 +73,11 @@ def patch_profile(beneficiary_id: int, payload: ProfileData, db: Session = Depen
 
 @router.post("/{beneficiary_id}/skills", response_model=SkillOut, status_code=201, description="Add a skill and its provenance to a beneficiary.")
 def add_skill(beneficiary_id: int, payload: SkillCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    # Verification is a staff assertion, never a beneficiary-controlled flag.
+    if user.role == UserRole.BENEFICIARY:
+        payload = payload.model_copy(update={"verified": False, "source": SourceType.SELF_REPORTED})
+    elif payload.source not in {SourceType.FIELD_WORKER, SourceType.DOCUMENT, SourceType.SELF_REPORTED}:
+        payload = payload.model_copy(update={"source": SourceType.FIELD_WORKER})
     assert_beneficiary_access(db, user, beneficiary_id, True); normalized = payload.name.strip().lower()
     skill = db.scalar(select(Skill).where(Skill.normalized_name == normalized))
     if not skill:

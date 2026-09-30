@@ -63,9 +63,11 @@ export type Pathway = {
   confidence: "GREEN" | "AMBER" | "RED" | string;
   recommended_route: string;
   status: string;
+  review_status?: string | null;
+  pending_human_review?: boolean;
   rpl_status: string;
   constraints: Array<{ constraint_type: string; severity: string; effect: string; penalty: number }>;
-  evidence: Array<{ evidence_type: string; label: string; value: string; verification_status: string }>;
+  evidence: Array<{ evidence_type: string; label: string; value: string; verification_status: string; source_type?: string; source_reference?: string | null }>;
   required_interventions: string[];
   score_breakdown: {
     skill_fit: number;
@@ -77,6 +79,9 @@ export type Pathway = {
     outcome_evidence: number;
   };
 };
+
+export type InterviewPreview = { preview_token: string; answers: Array<{ id: number; key: string; question: string; transcript: string; text: string; value: string | number | boolean | null; warning: string | null }> };
+export type Outcome = { id: number; followup_day: number; training_started: boolean; training_completed: boolean; certified: boolean; employment_status: string; verification_status: string; created_at: string };
 
 export class ApiError extends Error {
   status: number;
@@ -151,16 +156,19 @@ export const api = {
     request<{ id: number }>("/api/interviews", { method: "POST", body: JSON.stringify({ beneficiary_id: beneficiaryId, language }) }),
   addInterviewAnswer: (sessionId: number, payload: Record<string, unknown>) =>
     request(`/api/interviews/${sessionId}/answers`, { method: "POST", body: JSON.stringify(payload) }),
-  completeInterview: (sessionId: number) =>
-    request(`/api/interviews/${sessionId}/complete`, { method: "POST" }),
+  previewInterview: (id: number) => request<InterviewPreview>(`/api/interviews/${id}/preview`),
+  correctInterviewAnswer: (id: number, answerId: number, text: string) => request(`/api/interviews/${id}/answers/${answerId}`, { method: "PATCH", body: JSON.stringify({ corrected_text: text }) }),
+  completeInterview: (sessionId: number, token: string) => request(`/api/interviews/${sessionId}/complete`, { method: "POST", body: JSON.stringify({ confirmed: true, preview_token: token }) }),
+  updateProfile: (id: number, payload: Record<string, unknown>) => request<Profile>(`/api/beneficiaries/${id}/profile`, {method: "PATCH", body: JSON.stringify(payload)}),
+  outcomes: (id: number) => request<Outcome[]>(`/api/beneficiaries/${id}/outcomes`),
   generatePathways: (beneficiaryId: number) =>
     request<Pathway[]>(`/api/beneficiaries/${beneficiaryId}/generate-pathways`, { method: "POST" }),
   pathways: (beneficiaryId: number) => request<Pathway[]>(`/api/beneficiaries/${beneficiaryId}/pathways`),
   pathway: (id: number) => request<Pathway>(`/api/pathways/${id}`),
   fieldWorkerTasks: () => request<{ interviews_due: number; followups_due: number; human_review_cases: number; rpl_verification_cases: number }>("/api/field-worker/tasks"),
-  fieldWorkerBeneficiaries: () => request<Array<{ id: number; name: string; district: string; preferred_language: string }>>("/api/field-worker/beneficiaries"),
+  fieldWorkerBeneficiaries: (page = 1) => request<Array<{ id: number; name: string; district: string; preferred_language: string }>>(`/api/field-worker/beneficiaries?page=${page}`),
   reviewQueue: () => request<{ items: Array<{ id: number; beneficiary_id: number; pathway_id: number | null; reason_code: string; reason_description: string; status: string }>; total: number }>("/api/reviews"),
-  reviewAction: (id: number, action: "approve" | "edit" | "reject" | "resolve") => request(`/api/reviews/${id}/${action}`, { method: "POST", body: JSON.stringify({ notes: "Reviewed during presentation demo.", resolution: action }) }),
+  reviewAction: (id: number, action: "approve" | "edit" | "reject" | "resolve", notes: string) => request(`/api/reviews/${id}/${action}`, { method: "POST", body: JSON.stringify({ notes, resolution: action }) }),
   officerSummary: () => request<Record<string, number>>("/api/dashboard/summary"),
   officerFunnel: () => request<Record<string, number>>("/api/dashboard/funnel"),
   adminDiagnostics: () => request<Record<string, number | string>>("/api/admin/diagnostics"),

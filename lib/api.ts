@@ -169,7 +169,7 @@ export const api = {
   pathway: (id: number) => request<Pathway>(`/api/pathways/${id}`),
   fieldWorkerTasks: () => request<{ interviews_due: number; followups_due: number; human_review_cases: number; rpl_verification_cases: number }>("/api/field-worker/tasks"),
   fieldWorkerBeneficiaries: (page = 1) => request<Array<{ id: number; name: string; district: string; preferred_language: string }>>(`/api/field-worker/beneficiaries?page=${page}`),
-  reviewQueue: () => request<{ items: Array<{ id: number; beneficiary_id: number; pathway_id: number | null; reason_code: string; reason_description: string; status: string }>; total: number }>("/api/reviews"),
+  reviewQueue: (page = 1, status = "") => request<{ items: Array<{ id: number; beneficiary_id: number; pathway_id: number | null; reason_code: string; reason_description: string; status: string; review_notes?: string | null }>; total: number }>(`/api/reviews?page=${page}${status ? `&status=${encodeURIComponent(status)}` : ""}`),
   reviewAction: (id: number, action: "approve" | "edit" | "reject" | "resolve", notes: string) => request(`/api/reviews/${id}/${action}`, { method: "POST", body: JSON.stringify({ notes, resolution: action }) }),
   officerSummary: () => request<Record<string, number>>("/api/dashboard/summary"),
   officerFunnel: () => request<Record<string, number>>("/api/dashboard/funnel"),

@@ -131,3 +131,14 @@ Screenshots: [desktop](visual-checks/desktop.jpg), [Tamil landing at 320px](visu
 - No application source changed in this infrastructure continuation. Previous local gates remain 53 backend tests passed, TypeScript passed, production build passed. Authenticated browser journeys still require a disposable browser account; no fixture data is presented as real availability.
 
 Live staging API smoke: **18 requests passed** using a generated disposable account (credentials never logged): registration, login, identity, beneficiary denied officer dashboard (403), onboarding, consent denial (422), consent update, interview creation, client confidence discarded, no profile before confirmation (404), preview, unconfirmed completion blocked (409), answer correction, stale preview blocked (409), fresh preview, confirmed completion, corrected mobility persisted, and Tamil skill saved as SELF_REPORTED/unverified despite client claims. This is API coverage, not a claim of completed browser E2E or staff-role visual testing.
+
+
+## Continuation: authenticated beneficiary browser checks
+
+Using the user-created disposable staging account, verified onboarding with initially blank location and unchecked consent; the full 10-answer text interview; extraction review; travel correction from 7 km to 5 km with original transcript preserved; explicit confirmation; profile persistence; self-reported skill save; capital edit from 8000 to 7500; and refresh of `/profile` with saved values retained. No production records were touched.
+
+The empty staging catalogue produced an honest no-pathways state. Progress showed no recorded updates and prevented progression without an assessed pathway. Direct beneficiary navigation to `/field-worker`, `/review`, `/officer`, and `/admin` returned to beneficiary home. Desktop profile and 320px profile/progress layouts were visually inspected; mobile navigation opened, navigated, and closed correctly.
+
+Fixed final-answer CTA in English/Tamil/Hindi to say Review my answers, matching the actual confirmation step. Numeric preview values now include km, currency, or years where applicable. Changed files: `components/leap-app.tsx`, `lib/i18n.ts`, this report. Backend tests: 53 passed (one existing dependency warning); TypeScript: passed; build: passed.
+
+Remaining staging gate: this fresh database has no qualification catalogue or privileged staff accounts. Pathway detail/RPL/confidence/review/outcome and staff browser tests cannot be claimed complete. The existing demo seeder uses a public shared password and is not suitable for exposing privileged staging accounts unchanged. A controlled fixture bootstrap with separate credentials or existing staff test accounts is needed before those tests. No authentication bypass or broad authorization change was introduced. Actual microphone and multilingual speech recognition remain unverified.

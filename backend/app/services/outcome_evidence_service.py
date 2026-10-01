@@ -2,7 +2,7 @@ from collections import defaultdict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.config import get_settings
-from app.models import Beneficiary, EmploymentStatus, LivelihoodPathway, OutcomeFollowup, Qualification
+from app.models import Beneficiary, EmploymentStatus, LivelihoodPathway, OutcomeFollowup, Provenance, Qualification
 
 POSITIVE = {EmploymentStatus.EMPLOYED, EmploymentStatus.SELF_EMPLOYED}
 
@@ -21,7 +21,7 @@ def qualification_evidence_scores(db: Session) -> dict[int, float | None]:
     rows = db.execute(select(OutcomeFollowup, LivelihoodPathway.qualification_id).join(LivelihoodPathway, LivelihoodPathway.id == OutcomeFollowup.pathway_id)).all()
     grouped: dict[int, list] = defaultdict(list)
     for outcome, qualification_id in rows:
-        if qualification_id:
+        if qualification_id and outcome.verification_status in {Provenance.FIELD_VERIFIED, Provenance.SYSTEM_VERIFIED}:
             grouped[qualification_id].append(outcome)
     scores: dict[int, float | None] = {}
     for qualification_id, outcomes in grouped.items():

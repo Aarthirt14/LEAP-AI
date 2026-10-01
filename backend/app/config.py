@@ -23,9 +23,14 @@ class Settings(BaseSettings):
         "high_demand_ratio": 1.5, "oversupply_ratio": 1.5,
         "low_outcome_rate": 0.40, "balanced_ratio_delta": 0.20,
     })
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore", hide_input_in_errors=True)
 
     def model_post_init(self, __context: object) -> None:
+        if self.environment.lower() == "production":
+            for field, default in (("jwt_secret", "development-jwt-change-me"), ("secret_key", "development-only-change-me")):
+                value = getattr(self, field)
+                if value == default or len(value.strip()) < 32:
+                    raise ValueError(f"Production requires a non-default {field} of at least 32 characters")
         if abs(sum(self.scoring_weights.values()) - 1.0) > 0.0001:
             raise ValueError("SCORING_WEIGHTS must add up to 1.0")
 

@@ -18,7 +18,7 @@ def test_complete_kavitha_decision_journey(client, db):
     for key, value in answers:
         response = client.post(f"/api/interviews/{session_id}/answers", headers=headers, json={"question_key":key,"question_text":key.replace('_',' '),"transcript":value,"corrected_text":value,"language":"Tamil","speech_confidence":.9,"extraction_confidence":.9})
         assert response.status_code == 201
-    completed = client.post(f"/api/interviews/{session_id}/complete", headers=headers); assert completed.status_code == 200
+    completed = client.post(f"/api/interviews/{session_id}/complete", headers=headers, json={"confirmed": True, "preview_token": client.get(f"/api/interviews/{session_id}/preview", headers=headers).json()["preview_token"]}); assert completed.status_code == 200
     skill = client.post(f"/api/beneficiaries/{beneficiary_id}/skills", headers=headers, json={"name":"Tailoring","sector":"Tailoring","experience_years":4,"source":"FIELD_WORKER","verified":True}); assert skill.status_code == 201
     qualifications = []
     for code, title, sector, minimum in [("Q-SOLAR","Solar Technician","Electrical Solar","10th Standard"),("Q-TAILOR","Home Tailoring Enterprise","Tailoring","8th Standard"),("Q-GARMENT","Garment Operator","Apparel","8th Standard")]:
@@ -35,6 +35,11 @@ def test_complete_kavitha_decision_journey(client, db):
     simulation = client.post(f"/api/pathways/{solar['id']}/simulate", headers=headers, json={"interventions":[{"type":"NEARBY_TRAINING","distance_km":5},{"type":"BRIDGE_TRAINING","enabled":True}]})
     assert simulation.status_code == 200 and simulation.json()["after"] > simulation.json()["before"]
     after_profile = client.get(f"/api/beneficiaries/{beneficiary_id}/profile", headers=headers).json(); assert before_profile == after_profile
+    reviewer = make_user(db, UserRole.FACILITATOR, "reviewer@example.com")
+    from app.models import HumanReview
+    review = db.query(HumanReview).filter_by(pathway_id=solar["id"]).first()
+    if review:
+        assert client.post(f"/api/reviews/{review.id}/approve", headers=auth(reviewer), json={"notes": "Evidence reviewed", "resolution": "Discuss options with beneficiary"}).status_code == 200
     outcome = client.post("/api/outcomes", headers=headers, json={"beneficiary_id":beneficiary_id,"pathway_id":solar["id"],"followup_day":90,"training_started":True,"training_completed":True,"certified":True,"employment_status":"EMPLOYED","livelihood_related_to_pathway":True,"income_band":"₹10,000–₹15,000","verification_status":"USER_REPORTED"})
     assert outcome.status_code == 201
     officer = make_user(db, UserRole.DISTRICT_OFFICER, "district@example.com")

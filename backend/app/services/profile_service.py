@@ -23,7 +23,7 @@ def upsert_profile(db: Session, beneficiary_id: int, data: dict) -> LivelihoodPr
         profile = LivelihoodProfile(beneficiary_id=beneficiary_id)
         db.add(profile)
     for key, value in data.items():
-        if hasattr(profile, key) and value is not None:
+        if hasattr(profile, key):
             setattr(profile, key, value)
     profile.profile_completion_percentage = completion_percentage({field: getattr(profile, field, None) for field in PROFILE_FIELDS})
     db.flush()
@@ -34,22 +34,15 @@ def apply_interview_facts(db: Session, session: InterviewSession) -> LivelihoodP
     supported = set(PROFILE_FIELDS)
     profile_data: dict = {}
     for answer in session.answers:
-        value = answer.corrected_text or answer.transcript
+        value = answer.corrected_text if answer.corrected_text is not None else answer.transcript
         if answer.question_key in supported:
-            parsed = value
-            if answer.question_key in {"mobility_km", "capital_available"}:
-                match = re.search(r"[\d,.]+", value)
-                if not match:
-                    continue
-                number = match.group().replace(",", "")
-                parsed = float(number) if answer.question_key == "mobility_km" else Decimal(number)
-            elif answer.question_key == "relocation_willingness":
-                parsed = value.strip().lower() in {"yes", "true", "willing", "ஆம்"}
-            elif answer.question_key in {"available_hours_start", "available_hours_end"}:
-                match = re.search(r"(\d{1,2})(?::(\d{2}))?", value)
-                if not match:
-                    continue
-                parsed = time(int(match.group(1)) % 24, int(match.group(2) or 0))
+            from app.services.interview_preview import parse_value
+            parsed, warning = parse_value(answer.question_key, value)
+            if parsed is None:
+                profile_data[answer.question_key] = None
+                continue
+            if answer.question_key in {"available_hours_start", "available_hours_end"}:
+                parsed = time.fromisoformat(parsed)
             profile_data[answer.question_key] = parsed
-            db.add(ExtractedProfileFact(beneficiary_id=session.beneficiary_id, source_answer_id=answer.id, field_name=answer.question_key, field_value=value, confidence=answer.extraction_confidence or 0.5, verified=(answer.extraction_confidence or 0) >= 0.8))
+            db.add(ExtractedProfileFact(beneficiary_id=session.beneficiary_id, source_answer_id=answer.id, field_name=answer.question_key, field_value=value, confidence=0.0, verified=False))
     return upsert_profile(db, session.beneficiary_id, profile_data)

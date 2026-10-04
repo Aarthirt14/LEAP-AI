@@ -124,7 +124,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   try {
     response = await fetch(`${API_URL}${path}`, { ...options, headers, cache: "no-store" });
   } catch {
-    throw new ApiError("Unable to connect. Your unsent answer is still on this page. Check your connection and try again.", 0, "NETWORK_ERROR");
+    throw new ApiError("Unable to reach LEAP. The service may be temporarily unavailable. Please wait a moment and try again.", 0, "NETWORK_ERROR");
   }
 
   const body: any = await response.json().catch(() => null);

@@ -2,6 +2,13 @@
 
 ## Latest checkpoint — 4 October 2026
 
+### Reported sign-in connection error
+
+- Investigated the user's "Unable to connect" message. The shared fetch failure message incorrectly mentioned an unsent interview answer even on sign-in. Replaced it with neutral service-unavailable/retry wording; no automatic replay of submissions or authentication changes.
+- On 4 October at approximately 18:06–18:08 UTC, isolated staging `/health` returned HTTP 200 with healthy/connected status. Login preflight returned HTTP 200 and the exact preview origin in `Access-Control-Allow-Origin`. A credential-free empty login request returned the expected HTTP 422 validation error with the same CORS header. This verifies API reachability and the configured preview origin, not a successful staff login or the user's browser connection.
+- The first health request was slow; a startup delay is possible but the original failure's cause is unconfirmed. Browser inspection remained partly blocked by native credential protection after sign-in; no credentials were inspected and no authenticated visual success is claimed.
+- Changed files: `lib/api.ts`, this report. Backend tests: 61 passed, one existing dependency warning. TypeScript and production build passed. Production configuration and backend logic remain unchanged.
+
 ### Worker/officer copy and loading follow-up
 
 - Corrected officer metric labels after checking the actual dashboard queries: `beneficiaries_profiled` and `funnel.profiled` count beneficiary registrations, not completed assessments/profiles. The UI now labels registrations honestly and labels recommended counts as beneficiaries with pathways. Training and certificate counts are explicitly reported milestones.

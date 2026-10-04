@@ -21,6 +21,7 @@ import {
   Wifi,
   X,
 } from "lucide-react";
+import { workspaceCopy } from "@/lib/workspace-copy";
 import { LandingPage } from "@/components/leap/landing";
 import { PageHeading, Panel, Notice, PendingReview, EvidenceRow, words } from "@/components/leap/primitives";
 import { Button } from "@/components/ui/button";
@@ -350,48 +351,82 @@ function BeneficiaryDashboard({ locale, beneficiary }: { locale: Locale; benefic
 }
 
 function FieldWorkerDashboard({ locale }: { locale: Locale }) {
- const router=useRouter();const [tasks,setTasks]=useState<Awaited<ReturnType<typeof api.fieldWorkerTasks>>|null>(null);const [people,setPeople]=useState<Awaited<ReturnType<typeof api.fieldWorkerBeneficiaries>>>([]);const [query,setQuery]=useState("");const [error,setError]=useState("");const [loading,setLoading]=useState(true);const [page,setPage]=useState(1);
- const load=()=>{setError("");setLoading(true);void Promise.all([api.fieldWorkerTasks(),api.fieldWorkerBeneficiaries(page)]).then(([t,p])=>{setTasks(t);setPeople(p);}).catch(e=>setError(e.message)).finally(()=>setLoading(false));};useEffect(load,[page]);
- const visible=people.filter(p=>`${p.name} ${p.district}`.toLowerCase().includes(query.toLowerCase()));
- return <main className="mx-auto max-w-[1200px] px-5 py-12"><PageHeading eyebrow="Field worker workspace" title="Make the next step easier" description="Open a beneficiary record to assess, review or follow up." action={<Button onClick={()=>router.push('/field-worker?new=1')}>Add beneficiary<ArrowRight size={17}/></Button>}/>
- {error&&<Notice tone="warning">{error}<Button variant="outline" onClick={load}>Try again</Button></Notice>}
- <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[['Needs assessment',tasks?.interviews_due],['Needs follow-up',tasks?.followups_due],['Human review',tasks?.human_review_cases],['RPL verification',tasks?.rpl_verification_cases]].map(([label,value])=><Panel key={label}><p className="text-sm text-slate-600">{label}</p><p className="mt-3 text-4xl font-semibold">{value ?? '—'}</p></Panel>)}</div>
- <Panel><div className="flex flex-wrap items-center justify-between gap-4"><h2 className="text-xl font-semibold">Beneficiary worklist</h2><input className="field sm:max-w-xs" aria-label="Search this page by name or district" placeholder="Search name or district" value={query} onChange={e=>setQuery(e.target.value)}/></div>
- {loading?<PageLoader text="Loading records…"/>:!visible.length?<p className="py-8 text-sm text-slate-600">No matching records on this page.</p>:<div className="mt-5 divide-y">{visible.map(p=><button key={p.id} onClick={()=>router.push(`/field-worker?beneficiary=${p.id}`)} className="flex w-full flex-wrap items-center justify-between gap-4 py-5 text-left"><div><strong>{p.name}</strong><p className="mt-1 text-sm text-slate-600">{p.district} · {p.preferred_language}</p></div><span className="text-link">Open record <ArrowRight size={16}/></span></button>)}</div>}
- <div className="mt-5 flex items-center justify-between gap-3"><Button variant="outline" disabled={page===1||loading} onClick={()=>setPage(p=>p-1)}>Previous</Button><span className="text-xs text-slate-600">Page {page}</span><Button variant="outline" disabled={people.length<50||loading} onClick={()=>setPage(p=>p+1)}>Next</Button></div></Panel>
- </main>;
+  const copy = workspaceCopy[locale];
+  const router = useRouter();
+  const [tasks, setTasks] = useState<Awaited<ReturnType<typeof api.fieldWorkerTasks>> | null>(null);
+  const [people, setPeople] = useState<Awaited<ReturnType<typeof api.fieldWorkerBeneficiaries>>>([]);
+  const [query, setQuery] = useState("");
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setError(false); setLoading(true);
+    void Promise.all([api.fieldWorkerTasks(), api.fieldWorkerBeneficiaries(page)])
+      .then(([taskData, records]) => { if (active) { setTasks(taskData); setPeople(records); } })
+      .catch(() => { if (active) setError(true); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [page, attempt]);
+  const visible = people.filter(p => `${p.name} ${p.district}`.toLowerCase().includes(query.toLowerCase()));
+  const metrics = [[copy.assessment, tasks?.interviews_due], [copy.followup, tasks?.followups_due],
+    [copy.review, tasks?.human_review_cases], [copy.rpl, tasks?.rpl_verification_cases]] as const;
+  return <main className="mx-auto max-w-[1200px] px-5 py-12">
+    <PageHeading eyebrow={copy.worker} title={copy.workerTitle} description={copy.workerDescription}
+      action={<Button onClick={() => router.push('/field-worker?new=1')}>{copy.add}<ArrowRight size={17}/></Button>}/>
+    {error ? <Notice tone="warning"><p role="alert">{copy.loadError}</p><Button variant="outline" onClick={() => setAttempt(a => a + 1)}>{copy.retry}</Button></Notice>
+      : loading ? <p role="status" className="py-12 text-sm text-slate-600">{copy.loading}</p> : <>
+    <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{metrics.map(([label, value]) =>
+      <Panel key={label}><p className="text-sm text-slate-600">{label}</p><p className="mt-3 text-4xl font-semibold">{value ?? '—'}</p></Panel>)}</div>
+    <Panel><div className="flex flex-wrap items-center justify-between gap-4"><h2 className="text-xl font-semibold">{copy.worklist}</h2>
+      <input className="field sm:max-w-xs" aria-label={copy.search} placeholder={copy.searchHint} value={query} onChange={e => setQuery(e.target.value)}/></div>
+      {!visible.length ? <p className="py-8 text-sm text-slate-600">{copy.empty}</p> : <div className="mt-5 divide-y">{visible.map(p =>
+        <button key={p.id} onClick={() => router.push(`/field-worker?beneficiary=${p.id}`)} className="flex w-full flex-wrap items-center justify-between gap-4 py-5 text-left">
+          <div><strong>{p.name}</strong><p className="mt-1 text-sm text-slate-600">{p.district} · {p.preferred_language}</p></div><span className="text-link">{copy.open}<ArrowRight size={16}/></span>
+        </button>)}</div>}
+      <nav aria-label={copy.worklist} className="mt-5 flex items-center justify-between gap-3">
+        <Button variant="outline" disabled={page === 1} onClick={() => setPage(p => p - 1)}>{copy.previous}</Button>
+        <span className="text-xs text-slate-600">{copy.page} {page}</span>
+        <Button variant="outline" disabled={people.length < 50} onClick={() => setPage(p => p + 1)}>{copy.next}</Button>
+      </nav>
+    </Panel></>}
+  </main>;
 }
 
 function OfficerDashboard({ locale }: { locale: Locale }) {
+  const copy = workspaceCopy[locale];
   const [summary, setSummary] = useState<Record<string, number> | null>(null);
   const [funnel, setFunnel] = useState<Record<string, number> | null>(null);
-  useEffect(() => { void Promise.all([api.officerSummary(), api.officerFunnel()]).then(([summaryData, funnelData]) => { setSummary(summaryData); setFunnel(funnelData); }).catch((error) => toast.error(error instanceof Error ? error.message : "Could not load this page.")); }, []);
-  return (
-    <main className="mx-auto max-w-[1280px] px-5 py-10 sm:px-7">
-      <div className="rounded-[26px] border border-[#DDE3E5] bg-[#071A3D] p-6 text-white">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#DDE3E5]">DISTRICT OFFICER</div>
-        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">{t("officer.title", locale)}</h1>
-      </div>
-      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {[
-          [t("officer.metrics.assessed", locale), summary?.beneficiaries_profiled ?? "-"],
-          [t("officer.metrics.profiles", locale), funnel?.profiled ?? "-"],
-          [t("officer.metrics.pathways", locale), funnel?.recommended ?? "-"],
-          [t("officer.metrics.training", locale), funnel?.enrolled ?? "-"],
-          [t("officer.metrics.outcomes90", locale), summary?.positive_90_day_count ?? "-"],
-          [t("officer.metrics.active180", locale), summary?.active_180_day_count ?? "-"],
-        ].map(([label, value]) => (
-          <Card key={String(label)} className="border-[#DDE3E5] bg-white">
-            <CardContent className="p-5">
-              <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#41526d]">{String(label)}</div>
-              <div className="mt-3 text-3xl font-semibold text-[#071A3D]">{String(value)}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="mt-8"><Notice tone="warning">These are aggregate recorded counts across the available dataset. They may include self-reported outcomes and pathways awaiting review. They are not verified placement rates or district-filtered statistics.</Notice><Panel className="mt-6"><h2 className="text-xl font-semibold">Recorded training milestones</h2><div className="mt-5 grid gap-6 sm:grid-cols-3">{[["Training started",funnel?.enrolled],["Training completed",funnel?.completed],["Certification reported",funnel?.certified]].map(([label,value])=><div key={String(label)}><p className="text-sm text-slate-600">{label}</p><p className="mt-2 text-3xl font-semibold">{value ?? "—"}</p></div>)}</div><p className="mt-5 text-sm text-slate-600">A missing value means data could not be loaded. A zero means no matching record was returned.</p></Panel></div>
-    </main>
-  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setLoading(true); setError(false);
+    void Promise.all([api.officerSummary(), api.officerFunnel()])
+      .then(([summaryData, funnelData]) => { if (active) { setSummary(summaryData); setFunnel(funnelData); } })
+      .catch(() => { if (active) setError(true); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [attempt]);
+  const metrics = [[copy.registered, summary?.beneficiaries_profiled], [copy.recommended, funnel?.recommended],
+    [copy.started, funnel?.enrolled], [copy.completed, funnel?.completed],
+    [copy.positive90, summary?.positive_90_day_count], [copy.active180, summary?.active_180_day_count]] as const;
+  return <main className="mx-auto max-w-[1200px] px-5 py-12">
+    <PageHeading eyebrow={copy.officer} title={copy.officerTitle} description={copy.officerDescription}/>
+    <Notice tone="warning">{copy.scope}</Notice>
+    {error ? <div className="mt-6"><Notice tone="warning"><p role="alert">{copy.loadError}</p><Button variant="outline" onClick={() => setAttempt(a => a + 1)}>{copy.retry}</Button></Notice></div>
+      : loading ? <p role="status" className="py-12 text-sm text-slate-600">{copy.loading}</p> : <>
+    <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{metrics.map(([label, value]) =>
+      <Panel key={label}><p className="text-sm text-slate-600">{label}</p><p className="mt-3 text-4xl font-semibold">{value ?? '—'}</p></Panel>)}</div>
+    <p className="mt-5 text-sm leading-6 text-slate-600">{copy.counts}</p>
+    <Panel className="mt-6"><h2 className="text-xl font-semibold">{copy.milestones}</h2>
+      <div className="mt-5 grid gap-6 sm:grid-cols-3">{[[copy.started, funnel?.enrolled], [copy.completed, funnel?.completed], [copy.certified, funnel?.certified]].map(([label, value]) =>
+        <div key={String(label)}><p className="text-sm text-slate-600">{label}</p><p className="mt-2 text-3xl font-semibold">{value ?? '—'}</p></div>)}</div>
+      <p className="mt-5 text-sm text-slate-600">{copy.missing}</p>
+    </Panel></>}
+  </main>;
 }
 
 function ReviewDashboard({ locale }: { locale: Locale }) {

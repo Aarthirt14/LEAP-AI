@@ -2,6 +2,14 @@
 
 ## Latest checkpoint — 4 October 2026
 
+### Worker/officer copy and loading follow-up
+
+- Corrected officer metric labels after checking the actual dashboard queries: `beneficiaries_profiled` and `funnel.profiled` count beneficiary registrations, not completed assessments/profiles. The UI now labels registrations honestly and labels recommended counts as beneficiaries with pathways. Training and certificate counts are explicitly reported milestones.
+- Added shared English/Tamil/Hindi copy for the worker worklist and officer dashboard, including dataset scope, missing values, pagination, accessible search labels, empty states and retry messages. User-entered names and backend records are preserved.
+- Added visible loading/error/retry states; failed requests hide stale counts/worklists. Effect cleanup ignores outdated responses after pagination or navigation. The officer page now uses the shared heading/panel components.
+- Changed files: `components/leap-app.tsx`, `lib/workspace-copy.ts`, this report. No backend application changes.
+- Gates: 61 backend tests passed (one existing dependency warning), TypeScript passed, production build passed. Authenticated visual verification is still pending; these pages are not declared finished. Facilitator, profile, progress and backend-generated evidence still have localization gaps.
+
 This section supersedes the earlier infrastructure blockers recorded below. Milestones 2–3 remain incomplete until staff and populated-pathway browser checks finish.
 
 - Render staging successfully deployed `225754403da45058f0a22cc030753c5254b93976` on 1 October, deployment `dep-dav18f97lnhs73aclq20`. The explicit startup script fixed command parsing; logs confirmed three staff accounts, four synthetic qualifications, completed application startup and HTTP 200 health checks. Production was not modified.

@@ -1,5 +1,17 @@
 # LEAP UI v2 — implementation and verification checkpoint
 
+## Latest checkpoint — 4 October 2026
+
+This section supersedes the earlier infrastructure blockers recorded below. Milestones 2–3 remain incomplete until staff and populated-pathway browser checks finish.
+
+- Render staging successfully deployed `225754403da45058f0a22cc030753c5254b93976` on 1 October, deployment `dep-dav18f97lnhs73aclq20`. The explicit startup script fixed command parsing; logs confirmed three staff accounts, four synthetic qualifications, completed application startup and HTTP 200 health checks. Production was not modified.
+- The staff browser sign-in was interrupted. Subsequent browser sessions reset and had no authenticated staff state; no staff visual/E2E completion is claimed.
+- Added a local API journey using the same guarded catalogue/account bootstrap and actual password login for worker, facilitator and officer. It covers assisted beneficiary creation, unsupported Tamil work remaining RED, date-expired qualification exclusion, synthetic availability provenance, review permissions, OPEN filtering, and beneficiary progression blocked after EDITED/RESOLVED/REJECTED until explicit APPROVED. Approval of one option leaves another RED option gated. Outcome recording and officer summary access pass.
+- This verifies the beneficiary progression gate. Existing staff outcome-recording permissions are preserved; the test does not imply staff submissions are gated the same way or implement an assignment policy.
+- Validation: **61 backend tests passed**, one unchanged Starlette/AnyIO deprecation warning; `pnpm exec tsc --noEmit` passed; `pnpm build` passed. The new test initially used an incorrect review enum and assumed the beneficiary-only gate also applied to staff; both test assumptions were corrected against the actual contract. No backend application logic changed.
+- Files changed this continuation: `backend/tests/test_staging_fixtures.py`, `docs/STAGING_FIXTURES.md`, this report. No frontend changes or new visual verification this continuation.
+- Next: complete authenticated field-worker, facilitator and officer browser journeys; inspect populated pathway detail/RPL/confidence/outcomes at desktop/mobile sizes; finish localization and voice checks before advancing to official-data and connectivity work.
+
 Date: 2026-09-30. Branch: `redesign/leap-ui-v2`. Draft PR: https://github.com/Aarthirt14/LEAP-AI/pull/5
 
 ## Milestone 1.5: credibility safeguards

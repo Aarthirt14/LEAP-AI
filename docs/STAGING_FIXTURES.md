@@ -27,8 +27,8 @@ Build the latest redesign branch when activating. This can reset the ephemeral S
 
 Four qualifications and synthetic opportunities are labelled TEST ONLY and preserve SYNTHETIC provenance. One qualification has an expired date despite its VALID enum, to exercise exclusion. Synthetic seats and distances must never appear as verified availability. Do not import these fixtures into production.
 
-Validation: full backend suite 60 passed (including seven bootstrap safety/idempotency cases); TypeScript and production build passed. Cloud activation and staff browser checks remain pending credential entry.
+Validation (4 October): full backend suite 61 passed, including the bootstrap safety/idempotency cases and an API staff/beneficiary review journey; TypeScript and production build passed. Cloud activation succeeded on 1 October at commit `2257544`: startup logs confirmed three staff accounts, four synthetic qualifications and healthy HTTP 200 responses. Staff browser checks remain pending successful sign-in.
 
-Changed files: `backend/seed/staging_fixtures.py`, `backend/tests/test_staging_fixtures.py`, this document. Run `python -m pytest -q` from backend for the regression gate.
+Changed files for fixture setup: `backend/seed/staging_fixtures.py`, `backend/seed/start_staging.sh`, `backend/tests/test_staging_fixtures.py`, this document. Run `python -m pytest -q` from backend for the regression gate.
 
 Render rejected shell quoting in the original inline command (exit 127). The staging command now names a shell script directly; it validates the target before migrations. Production Dockerfile is unchanged.

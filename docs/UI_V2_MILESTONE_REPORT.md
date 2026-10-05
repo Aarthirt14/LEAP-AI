@@ -1,5 +1,15 @@
 # LEAP UI v2 — implementation and verification checkpoint
 
+## Latest checkpoint — 5 October 2026
+
+- Confirmed the reported login connection failure was an origin mismatch: staging rejected the deployment-specific `leap-d53fqi505-…` origin with HTTP 400 `Disallowed CORS origin`; the stable redesign branch alias passes preflight. Use `https://leap-ai-git-redesign-leap-ui-v2-aarthiii333-9025s-projects.vercel.app`. No CORS wildcard or production setting change was made.
+- User confirmed the staging password variable exists and logged in successfully. The cloud browser subsequently authenticated as the staging worker through private user entry. Earlier references to the user having generated those passwords were assumptions and should not be treated as verified provenance.
+- Browser-tested the empty worker dashboard, unchecked consent and blank geographic fields, creation of `TEST ONLY — Worker Journey`, all ten text interview questions, raw-answer-preserving correction of travel distance from 7 km to 5 km, explicit confirmation, automatic skill/pathway creation, populated pathway evidence, and refresh of the nested pathway detail URL.
+- Three synthetic catalogue options appeared, all pending human review. Detail showed unverified training availability/location/capacity, self-reported skills, corrected 5 km travel limit, and an RPL-not-certification caveat. The expired fixture was absent. Follow-up showed real empty milestones and disabled progression while review was pending.
+- Inspected desktop worker/detail pages and the 320 px English/Tamil/Hindi worker dashboard. Tamil pagination overflow was observed (380 px content versus 303 px available viewport); changed it to stack on narrow screens. Interview testing also found every question repeated the education hint; replaced it with per-question English/Tamil/Hindi hints.
+- Files changed: `components/leap-app.tsx`, this report. No backend logic or production changes. Backend regression suite: 61 passed, one existing dependency warning. Frontend checks and post-deploy visual checks recorded below when complete.
+- Remaining: facilitator/officer authenticated browser journeys, populated follow-up after review, microphone testing, remaining localization and end-to-end verification. Milestones 2–3 are not yet complete.
+
 ## Latest checkpoint — 4 October 2026
 
 ### Reported sign-in connection error

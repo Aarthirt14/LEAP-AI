@@ -385,7 +385,7 @@ function FieldWorkerDashboard({ locale }: { locale: Locale }) {
         <button key={p.id} onClick={() => router.push(`/field-worker?beneficiary=${p.id}`)} className="flex w-full flex-wrap items-center justify-between gap-4 py-5 text-left">
           <div><strong>{p.name}</strong><p className="mt-1 text-sm text-slate-600">{p.district} · {p.preferred_language}</p></div><span className="text-link">{copy.open}<ArrowRight size={16}/></span>
         </button>)}</div>}
-      <nav aria-label={copy.worklist} className="mt-5 flex items-center justify-between gap-3">
+      <nav aria-label={copy.worklist} className="mt-5 flex flex-col items-stretch gap-3 text-center sm:flex-row sm:items-center sm:justify-between">
         <Button variant="outline" disabled={page === 1} onClick={() => setPage(p => p - 1)}>{copy.previous}</Button>
         <span className="text-xs text-slate-600">{copy.page} {page}</span>
         <Button variant="outline" disabled={people.length < 50} onClick={() => setPage(p => p + 1)}>{copy.next}</Button>
@@ -625,6 +625,34 @@ const localizedQuestionTitles: Record<Locale, Record<string, string>> = {
   },
 };
 
+const localizedQuestionHints: Record<Locale, Record<string, string>> = {
+  en: Object.fromEntries(questions.map(question => [question.key, question.hint])),
+  ta: {
+    education_level: "பயிற்சிக்கான தகுதியைச் சரிபார்க்க இது உதவுகிறது.",
+    current_occupation: "முறையான சான்றிதழ் இல்லாத அனுபவமும் முக்கியம்.",
+    experience_years: "தோராயமான கால அளவு போதும்.",
+    family_occupation: "இது பின்னணித் தகவல் மட்டுமே; உங்கள் தேர்வுகளைக் கட்டுப்படுத்தாது.",
+    aspiration_text: "தற்போதைய வேலையிலிருந்து வேறுபட்டாலும் உங்கள் விருப்பத்தைச் சொல்லுங்கள்.",
+    employment_preference: "எந்தப் பாதைகள் நடைமுறைக்கு ஏற்றவை என்பதை அறிய இது உதவுகிறது.",
+    mobility_km: "நீங்கள் பயணிக்கக்கூடிய தூரம் கருத்தில் கொள்ளப்படும்.",
+    capital_available: "பூஜ்ஜியம் என்று சொல்லலாம். உங்களால் முதலீடு செய்ய முடியும் என்று நாங்கள் ஊகிக்க மாட்டோம்.",
+    family_responsibilities: "உங்களுக்கு நடைமுறைக்கு ஒவ்வாத பரிந்துரைகளைத் தவிர்க்க இது உதவுகிறது.",
+    physical_constraints: "நீங்கள் பகிர விரும்புவதை மட்டும் சொல்லுங்கள்.",
+  },
+  hi: {
+    education_level: "इससे प्रशिक्षण की पात्रता जाँचने में मदद मिलती है।",
+    current_occupation: "बिना प्रमाणपत्र के सीखा हुआ अनुभव भी मायने रखता है।",
+    experience_years: "लगभग कितने समय से, इतना बताना पर्याप्त है।",
+    family_occupation: "यह पृष्ठभूमि की जानकारी है, आपके विकल्पों की सीमा नहीं।",
+    aspiration_text: "अपनी इच्छा बताएँ, भले ही वह आपके मौजूदा काम से अलग हो।",
+    employment_preference: "इससे समझने में मदद मिलती है कि कौन से रास्ते व्यावहारिक हैं।",
+    mobility_km: "आप जितनी दूर जा सकते हैं, उसे ध्यान में रखा जाएगा।",
+    capital_available: "आप शून्य कह सकते हैं। हम यह नहीं मानते कि आप निवेश कर सकते हैं।",
+    family_responsibilities: "इससे अव्यावहारिक सुझावों से बचने में मदद मिलती है।",
+    physical_constraints: "केवल वही साझा करें जिसे बताने में आप सहज हों।",
+  },
+};
+
 function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficiary; locale: Locale; onFinished?:()=>void }) {
   const router = useRouter();
   const [index, setIndex] = useState(0);
@@ -752,7 +780,7 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
           <div className={`interview-mic ${listening ? "active" : ""}`}><Mic size={32}/></div>
           <div className="text-sm font-semibold text-[#087647]">{t("interview.question", locale)}</div>
           <h2 className="mt-2 text-2xl font-semibold leading-9 tracking-[-0.025em] text-[#071A3D] sm:text-3xl">{localizedQuestionTitles[locale][question.key] || question.title}</h2>
-          <p className="mt-3 text-sm font-medium leading-6 text-[#1e293b]">{t("interview.helper", locale)}</p>
+          <p className="mt-3 text-sm font-medium leading-6 text-[#1e293b]">{localizedQuestionHints[locale][question.key] || question.hint}</p>
           <div className="mt-7">
             <Textarea aria-label={localizedQuestionTitles[locale][question.key]} value={answer} onChange={(e) => setAnswer(e.target.value)} rows={5} placeholder={question.placeholder} className="resize-none rounded-2xl border-[#DDE3E5] bg-white p-4 text-base leading-7 font-medium text-[#071A3D]" />
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

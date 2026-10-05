@@ -84,3 +84,30 @@ def complete_interview(session_id: int, payload: ConfirmPreview = ConfirmPreview
     record_audit(db, user.id, "CONFIRM_INTERVIEW", "InterviewSession", session.id, after={"preview_token": current["preview_token"], "profile_completion_percentage": profile.profile_completion_percentage, "evidence_verification": "SELF_REPORTED"})
     db.commit()
     return get_session(db, session_id)
+
+
+class AssistanceConsent(BaseModel):
+    consent: bool = False
+
+
+@router.get("/assistance/config")
+def assistance_config(user: User = Depends(get_current_user)):
+    from app.services.ai_interview import available
+    return {"enabled": available()}
+
+
+@router.post("/{session_id}/answers/{answer_id}/suggestion")
+def suggest_answer(session_id: int, answer_id: int, payload: AssistanceConsent, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    from app.services.ai_interview import suggest
+    session = get_session(db, session_id)
+    beneficiary = assert_beneficiary_access(db, user, session.beneficiary_id, True)
+    if not beneficiary.consent_given or not payload.consent:
+        raise AppError("CONSENT_REQUIRED", "Permission to send this answer for AI language assistance is required.", 422)
+    if session.status != InterviewStatus.IN_PROGRESS:
+        raise AppError("INTERVIEW_CLOSED", "This interview is closed.", 409)
+    answer = next((a for a in session.answers if a.id == answer_id), None)
+    if not answer:
+        raise AppError("ANSWER_NOT_FOUND", "Interview answer not found.", 404)
+    text = answer.corrected_text if answer.corrected_text is not None else answer.transcript
+    result = suggest(user_id=user.id, key=answer.question_key, text=text, language=session.language)
+    return {**result, "source_text": text}

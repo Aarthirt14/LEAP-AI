@@ -24,6 +24,7 @@ import {
 import { workspaceCopy } from "@/lib/workspace-copy";
 import { journeyCopy, journeyStatus } from "@/lib/journey-copy";
 import { reviewCopy } from "@/lib/review-copy";
+import { AnswerAssistance } from "@/components/leap/answer-assistance";
 import { LandingPage } from "@/components/leap/landing";
 import { PageHeading, Panel, Notice, PendingReview, EvidenceRow, words } from "@/components/leap/primitives";
 import { Button } from "@/components/ui/button";
@@ -734,6 +735,8 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(false);
+  useEffect(() => { let active = true; void api.interviewAssistanceConfig().then(value=>{if(active)setAiEnabled(value.enabled);}).catch(()=>{});return()=>{active=false;}; }, []);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const question = questions[index];
   const progress = Math.round((index / questions.length) * 100);
@@ -832,6 +835,7 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
       <h2 className="font-semibold">{localizedQuestionTitles[locale][a.key] || a.question}</h2>
       <p className="mt-2 text-sm text-slate-600">{words(locale,"Your answer:","உங்கள் பதில்:","आपका उत्तर:")} {a.transcript}</p>
       {editing[a.id] !== undefined ? <div className="mt-3 flex flex-wrap gap-2"><input className="field" aria-label={a.question} value={editing[a.id]} onChange={e => setEditing({...editing,[a.id]:e.target.value})}/><Button disabled={busy} onClick={() => correct(a.id)}>{words(locale,"Save correction","திருத்தத்தைச் சேமிக்கவும்","सुधार सहेजें")}</Button></div> : <div className="mt-3 flex items-center justify-between gap-4"><strong>{a.value === null ? words(locale,"Needs confirmation","உறுதிப்படுத்த வேண்டும்","पुष्टि आवश्यक है") : typeof a.value === "number" && a.key === "capital_available" ? `₹${a.value.toLocaleString("en-IN")}` : typeof a.value === "number" && a.key === "mobility_km" ? `${a.value} km` : typeof a.value === "number" && a.key === "experience_years" ? `${a.value} ${words(locale,"years","ஆண்டுகள்","वर्ष")}` : String(a.value)}</strong><Button disabled={busy} variant="outline" onClick={() => setEditing({...editing,[a.id]:a.text})}>{words(locale,"Edit","திருத்து","संपादित करें")}</Button></div>}
+      {aiEnabled && sessionId && <AnswerAssistance key={`${a.id}:${a.text}`} sessionId={sessionId} answerId={a.id} text={a.text} locale={locale} disabled={busy || editing[a.id] !== undefined} onApply={text=>setEditing(prev=>({...prev,[a.id]:text}))}/>}
       {a.warning && <p className="mt-2 text-sm text-amber-900">{a.warning}</p>}
     </CardContent></Card>)}</div>
     <Button className="mt-6" disabled={busy || Object.keys(editing).length > 0} onClick={confirm}>{busy ? words(locale,"Saving…","சேமிக்கிறது…","सहेजा जा रहा है…") : words(locale,"Confirm and create my profile","உறுதிப்படுத்தி சுயவிவரத்தை உருவாக்கவும்","पुष्टि करें और मेरी प्रोफ़ाइल बनाएं")}</Button>

@@ -26,3 +26,7 @@ Source: user-supplied problem statement, read October 5, 2026. This checks code 
 6. Run consented field usability validation. Do not infer caste, disadvantage or eligibility from appearance, name, occupation, family work or language.
 
 The original instruction to postpone official-data/voice infrastructure until the core redesign is stable remains in force. This document makes the remaining PS work explicit; it does not mark it complete.
+
+## October 5 — language assistance implementation
+
+Added optional OpenAI-assisted answer clarification behind a backend feature flag and per-answer consent. Suggestions require editing and final confirmation; deterministic ranking is unchanged. Provider failures retain the manual path. This is a tested integration implementation, not evidence of live API access, dialect accuracy, spoken question delivery, verified opportunities or phone-channel readiness. See `AI_INTERVIEW_SETUP.md` for activation and limitations.

@@ -157,6 +157,8 @@ export const api = {
     request<{ id: number }>("/api/interviews", { method: "POST", body: JSON.stringify({ beneficiary_id: beneficiaryId, language }) }),
   addInterviewAnswer: (sessionId: number, payload: Record<string, unknown>) =>
     request(`/api/interviews/${sessionId}/answers`, { method: "POST", body: JSON.stringify(payload) }),
+  interviewAssistanceConfig: () => request<{enabled:boolean}>("/api/interviews/assistance/config"),
+  suggestInterviewAnswer: (sessionId: number, answerId: number) => request<{status:"suggestion"|"needs_confirmation"|"unavailable"; normalized_text:string|null; source_text:string}>(`/api/interviews/${sessionId}/answers/${answerId}/suggestion`, {method:"POST", signal:AbortSignal.timeout(20000), body:JSON.stringify({consent:true})}),
   previewInterview: (id: number) => request<InterviewPreview>(`/api/interviews/${id}/preview`),
   correctInterviewAnswer: (id: number, answerId: number, text: string) => request(`/api/interviews/${id}/answers/${answerId}`, { method: "PATCH", body: JSON.stringify({ corrected_text: text }) }),
   completeInterview: (sessionId: number, token: string) => request(`/api/interviews/${sessionId}/complete`, { method: "POST", body: JSON.stringify({ confirmed: true, preview_token: token }) }),

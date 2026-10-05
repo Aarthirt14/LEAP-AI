@@ -1,5 +1,5 @@
 from functools import lru_cache
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     app_name: str = "LEAP AI API"
     environment: str = "development"
     demo_mode: bool = False
+    ai_interview_enabled: bool = False
+    openai_api_key: SecretStr = SecretStr("")
+    openai_interview_model: str = "gpt-6-luna"
     database_url: str = "sqlite:///./leap_ai.db"
     secret_key: str = "development-only-change-me"
     jwt_secret: str = "development-jwt-change-me"

@@ -1,3 +1,12 @@
+## October 5 — optional AI answer assistance
+
+- Added backend feature flag, redacted key configuration and fixed-destination OpenAI Responses adapter. Strict output validation, capped request/response sizes, concurrency/rate bounds, timeouts and no retries; errors keep the manual interview usable. No DB migration or ranking change.
+- Added localized opt-in answer assistance in the confirmation screen. Model wording enters the editor only; raw evidence and final confirmation remain authoritative. Capability failures hide the optional UI for backward compatibility.
+- Files: `backend/app/config.py`, `backend/app/services/ai_interview.py`, `backend/app/api/routes/interviews.py`, `backend/tests/test_ai_interview.py`, `components/leap/answer-assistance.tsx`, `components/leap-app.tsx`, `lib/api.ts`, `docs/AI_INTERVIEW_SETUP.md`, `docs/PS_26097_REQUIREMENTS.md`, this report.
+- Checks: 85 backend tests PASS, TypeScript PASS, production build PASS. Provider tests use synthetic fixtures and mocked transport; no real key or beneficiary content sent.
+- Live provider and authenticated visual tests pending replacement staging key and deliberate backend activation. Feature disabled by default. No staging database reset, production deployment or environment mutation performed.
+- Next: activate safely on staging and evaluate representative multilingual answers, then continue remaining core-workflow and PS acceptance gates. Do not claim full PS compliance.
+
 ## October 5 — PS requirements, people artwork and motion
 
 - User explicitly authorized repository uploads to Aarthirt14/LEAP-AI. Published pending localization to `redesign/leap-ui-v2`; no force push, merge, main changes or backend redeploy.

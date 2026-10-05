@@ -2,6 +2,13 @@
 
 ## Latest checkpoint — 5 October 2026
 
+### Officer login confirmed by user
+
+- At 10:37 IST the user confirmed successful officer sign-in in normal Chrome on the stable preview and supplied the rendered dashboard text. It showed one registered beneficiary, one beneficiary with pathways, and zero recorded training starts/completions/certificates or 90-/180-day positive outcomes, consistent with the synthetic test journey.
+- User-supplied text includes the dataset-scope, self-reported outcome, pending-review, non-district-filtered and missing-versus-zero caveats. This is user-verified functional content, not agent-performed visual or responsive verification.
+- The recurring officer connection error was reported in the Cloud Browser. Independent staging health, login validation and allowed-origin checks passed; the precise cloud sign-in failure remains unresolved. No password, CORS, production configuration or authentication bypass was introduced.
+- Officer responsive layout, interaction, refresh and role-isolation checks remain pending. This documentation-only update required no new code tests; latest code checks remain 61 passing backend tests plus passing TypeScript and production build.
+
 ### Facilitator verification and follow-up fixes
 
 - Authenticated facilitator browser session reached the three synthetic cases. Inspected actual pathway evidence, saved notes (EDITED), explicitly approved Case 1, and closed Case 2 (RESOLVED) without approval. Status changes and note text persisted. Case 3 remains OPEN. These are disposable test decisions, not real evidence verification or beneficiary decisions.
@@ -18,7 +25,7 @@
 - Inspected desktop worker/detail pages and the 320 px English/Tamil/Hindi worker dashboard. Tamil pagination overflow was observed (380 px content versus 303 px available viewport); changed it to stack on narrow screens. Interview testing also found every question repeated the education hint; replaced it with per-question English/Tamil/Hindi hints.
 - Files changed: `components/leap-app.tsx`, this report. No backend logic or production changes. Backend regression suite: 61 passed, one existing dependency warning. TypeScript and production build passed. Vercel deployed `3a57c69`; post-deploy Tamil content width equals viewport width (303 px within the 320 px frame with scrollbar), and screenshot inspection confirms the pagination fits. Tamil/Hindi occupation hints now differ correctly from the education hint. Screenshot upload to GitHub was blocked by automatic approval review; no screenshot was published to the repository.
 - Worker attempts to open `/review` and `/officer` returned to the worker workspace. Confirmed profile retains the 5 km correction and the four-year tailoring skill. One additional unfinalized test interview draft was created while verifying the deployed hints; no real person's data was used. Microphone and actual mobile hardware remain untested.
-- Remaining: facilitator/officer authenticated browser journeys, populated follow-up after review, microphone testing, remaining localization and end-to-end verification. Milestones 2–3 are not yet complete.
+- Remaining: agent-performed officer browser checks, populated follow-up after review, microphone testing, remaining localization and end-to-end verification. Facilitator verification and user-confirmed officer login are recorded above. Milestones 2–3 are not yet complete.
 
 ## Latest checkpoint — 4 October 2026
 

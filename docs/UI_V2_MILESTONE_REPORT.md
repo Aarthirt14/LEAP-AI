@@ -240,3 +240,9 @@ Added Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati and Odia. Each has 
 An original SVG identity combines an L, a person and an ascending path in navy, ivory, saffron and green. Reused in navigation, language selection, landing artwork and favicon. No government emblem or third-party logo copied.
 
 TypeScript/build/localization checks passed. Backend: 92 tests passed, including seven new tests preserving raw answers and escalating unknown work to human review. Production remains unchanged. Demo and README work is deferred per the user's revised priority. Visual verification follows on Preview.
+
+Preview visual verification: Vercel deployed `bc4995814e83bb06a9c418e0dcd455029b05982c` successfully. All seven new languages switched and rendered on the actual landing page. Desktop content width equalled viewport width (1348px) for Kannada, Malayalam, Marathi, Bengali, Gujarati and Odia. Odia survived refresh; at a 320px iframe its body measured 303px client/scroll width (no horizontal overflow). Telugu desktop and Odia/Malayalam mobile screenshots were visually inspected; original logo is visible at both sizes. This does not claim real microphone, native-speaker or authenticated interview visual validation.
+
+Screenshots: [Telugu and logo](visual-checks/telugu-logo-desktop.jpg), [Odia at 320px](visual-checks/odia-logo-320.jpg), [Malayalam at 320px](visual-checks/malayalam-logo-320.jpg).
+
+Files changed in this language/identity milestone: app/globals.css; components/leap-app.tsx; components/leap/landing.tsx; components/leap/primitives.tsx; components/leap/logo.tsx; lib/i18n.ts; lib/locales/extra.ts; lib/journey-copy.ts; lib/review-copy.ts; lib/workspace-copy.ts; public/favicon.svg; public/leap-mark.svg; scripts/check-localization.mjs; backend/tests/test_credibility.py; this report and the three linked screenshots. No backend runtime or ranking model changed.

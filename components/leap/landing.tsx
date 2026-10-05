@@ -21,6 +21,8 @@ export function LandingPage({locale,startHref}:{locale:Locale;startHref:string})
  <div className="hero-points"><span><Check/>{w(locale,"Speak or type","பேசலாம் அல்லது எழுதலாம்","बोलें या लिखें")}</span><span><Check/>{w(locale,"Your choice, always","முடிவு உங்களுடையது","निर्णय हमेशा आपका")}</span></div>
  </div>
  <div className="story-visual" aria-label={w(locale,"How your story becomes a pathway","உங்கள் அனுபவம் பாதையாக மாறும் விதம்","आपकी कहानी से आजीविका के रास्ते तक")}>
+ <div className="livelihood-scene" role="img" aria-label={w(locale,"Illustration of people sewing, learning technical skills and planning together","தையல், தொழில்நுட்பக் கற்றல் மற்றும் இணைந்து திட்டமிடும் மனிதர்களின் விளக்கப்படம்","सिलाई, तकनीकी कौशल सीखते और साथ योजना बनाते लोगों का चित्र")} />
+ <p className="artwork-caption">{w(locale,"Illustrative scene · not actual beneficiaries","விளக்கக் காட்சி · உண்மையான பயனாளிகள் அல்ல","काल्पनिक चित्र · वास्तविक लाभार्थी नहीं")}</p>
  <div className="story-visual-heading"><span className="small-mark"><Route size={18}/></span><span>LEAP AI</span><span className="visual-caption">{w(locale,"A path shaped around you","உங்களுக்கு ஏற்ற பாதை","आपके अनुकूल रास्ता")}</span></div>
  <div className="voice-illustration"><div className="voice-disc"><Mic size={30}/></div><div className="waveform" aria-hidden="true">{[12,22,34,18,45,56,30,44,20,36,52,26,14].map((height,i)=><i key={i} style={{height}}/>)}</div></div>
  <p className="visual-question">{w(locale,"“What kind of work feels right for you?”","“எந்த வேலை உங்களுக்கு ஏற்றதாக இருக்கும்?”","“आपके लिए किस तरह का काम सही रहेगा?”")}</p>

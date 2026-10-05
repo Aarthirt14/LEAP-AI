@@ -1,3 +1,13 @@
+## October 5 — PS requirements, people artwork and motion
+
+- User explicitly authorized repository uploads to Aarthirt14/LEAP-AI. Published pending localization to `redesign/leap-ui-v2`; no force push, merge, main changes or backend redeploy.
+- Compared the attached PS 26097 against code. Added `docs/PS_26097_REQUIREMENTS.md` with primary requirements, implementation evidence and acceptance gates. Dialect-capable speech, official qualification/local-opportunity grounding and low-connectivity/phone channels remain substantive gaps, not completed features.
+- Added original fictional livelihood artwork as a locally served approximately 160 KiB WebP, localized scene description and illustrative-scene disclosure. Added short entrance and hover transitions restricted to no-preference motion settings. Removed the redundant hero microphone graphic after desktop review; preserve all people with a 3:2 image on mobile.
+- Files: `app/globals.css`, `components/leap/landing.tsx`, `public/images/livelihood-community.webp`, `docs/UI_ARTWORK.md`, `docs/PS_26097_REQUIREMENTS.md`, this report. Earlier localization files are listed in the next entry.
+- Checks: TypeScript PASS, production build PASS. Latest backend suite remains 61 PASS (no backend changed). `git diff --check` PASS. Image inspected; deployed desktop and Tamil 320 px landing inspected. Tamil measured scroll width 303 / client width 303. Final compact-hero deployment succeeded; Hindi and Tamil 320 px screenshots inspected after hydration, both 303 / 303 with all three people visible. Final desktop content verified in accessibility tree; screenshot capture then hit the browser native-credential observation restriction.
+- Known limits: authenticated profile/progress localization, microphone hardware, dialect accuracy, durable offline behavior and phone channels are not newly verified by this UI work. Browser remains signed out. Reduced-motion behavior is enforced in CSS; OS preference switching has not been manually tested.
+- Next milestone: finish core UI/workflow verification before official-data and voice/low-connectivity implementation. Do not claim full PS compliance yet.
+
 ## October 5 — Profile and progress localization
 
 - Added a typed English/Tamil/Hindi vocabulary for profile editing, experience entry, progress forms, missing states, success messages, employment statuses and provenance labels.

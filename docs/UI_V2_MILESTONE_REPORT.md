@@ -1,3 +1,12 @@
+## October 5 — Profile and progress localization
+
+- Added a typed English/Tamil/Hindi vocabulary for profile editing, experience entry, progress forms, missing states, success messages, employment statuses and provenance labels.
+- Kept user-entered text and backend evidence unchanged. RED approval gating and self-reported outcome submission remain unchanged; no backend changes.
+- Files: `components/leap-app.tsx`, `lib/journey-copy.ts`, this report.
+- Validation: `pnpm exec tsc --noEmit` PASS; `pnpm build` PASS; backend `pytest -q` 61 PASS, one existing Starlette/AnyIO deprecation warning.
+- Browser recovery reached the public preview landing page, signed out. Authenticated profile/progress visual checks for these translations remain pending; compilation is not visual verification. No repeated credential request made.
+- Next: visually inspect localized profile editing and populated follow-up at mobile widths with a working staging session, then finish remaining Milestone 3 checks. Milestones 2–3 remain incomplete.
+
 # LEAP UI v2 — implementation and verification checkpoint
 
 ## Latest checkpoint — 5 October 2026

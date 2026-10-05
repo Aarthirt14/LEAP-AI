@@ -93,7 +93,9 @@ export class ApiError extends Error {
   }
 }
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
+const API_URL = process.env.NEXT_PUBLIC_STAGING_RELAY === "true"
+  ? "/leap-api"
+  : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
 const ACCESS_KEY = "leap_access_token";
 const REFRESH_KEY = "leap_refresh_token";
 

@@ -224,3 +224,11 @@ The empty staging catalogue produced an honest no-pathways state. Progress showe
 Fixed final-answer CTA in English/Tamil/Hindi to say Review my answers, matching the actual confirmation step. Numeric preview values now include km, currency, or years where applicable. Changed files: `components/leap-app.tsx`, `lib/i18n.ts`, this report. Backend tests: 53 passed (one existing dependency warning); TypeScript: passed; build: passed.
 
 Remaining staging gate: this fresh database has no qualification catalogue or privileged staff accounts. Pathway detail/RPL/confidence/review/outcome and staff browser tests cannot be claimed complete. The existing demo seeder uses a public shared password and is not suitable for exposing privileged staging accounts unchanged. A controlled fixture bootstrap with separate credentials or existing staff test accounts is needed before those tests. No authentication bypass or broad authorization change was introduced. Actual microphone and multilingual speech recognition remain unverified.
+
+## Continuation: preview API transport (5 October 2026)
+
+Repeated browser connection errors persisted despite staging health, exact-origin CORS preflight, and credential-free login validation returning successfully. Browser credential protection prevented access to detailed client diagnostics; the root cause remains unconfirmed.
+
+Added a same-origin Vercel rewrite relay for `/leap-api/api/*` and `/leap-api/health`, using a fixed staging upstream. It activates only when VERCEL_ENV is preview, the branch is redesign/leap-ui-v2, and NEXT_PUBLIC_API_URL matches the staging service. Other branches and production retain their existing direct API transport. The relay is marked no-store and preserves backend authentication; no backend logic, CORS, credentials or environment values changed. The preview diagnostics page now identifies relay mode.
+
+Changed files: next.config.ts, lib/api.ts, app/preview-check/page.tsx, and this report. Checks: TypeScript passed; preview production build passed; four configuration isolation assertions passed (intended preview, production, unrelated branch, unexpected upstream). No visual design changed. Deployed relay checks and successful credential login still require verification; optional AI provider availability is not established by transport checks.

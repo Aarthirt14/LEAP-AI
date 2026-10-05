@@ -153,6 +153,7 @@ button:disabled {cursor:not-allowed;}
 button,a[role=button],select {min-height:44px;}
 :focus-visible {outline:3px solid #087647;outline-offset:4px;}
 .field {border-color:var(--input);border-radius:10px;min-height:50px;background:#fff;}
+textarea.field {min-height:6rem;font-weight:400;resize:vertical;}
 .field:focus {border-color:#087647;box-shadow:0 0 0 3px #0fa96818;transform:none;}
 [data-slot=button] {min-height:46px;border-radius:10px;font-weight:600;padding-inline:20px;box-shadow:none;transition:background .15s,transform .15s;}
 [data-slot=button][data-size=lg] {min-height:52px;padding-inline:24px;}

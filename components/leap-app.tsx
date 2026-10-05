@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { workspaceCopy } from "@/lib/workspace-copy";
+import { reviewCopy } from "@/lib/review-copy";
 import { LandingPage } from "@/components/leap/landing";
 import { PageHeading, Panel, Notice, PendingReview, EvidenceRow, words } from "@/components/leap/primitives";
 import { Button } from "@/components/ui/button";
@@ -430,19 +431,87 @@ function OfficerDashboard({ locale }: { locale: Locale }) {
 }
 
 function ReviewDashboard({ locale }: { locale: Locale }) {
- const [page,setPage]=useState(1);const [total,setTotal]=useState(0);const [filter,setFilter]=useState("OPEN");
- const [reviews,setReviews]=useState<Awaited<ReturnType<typeof api.reviewQueue>>["items"]>([]);
- const [loading,setLoading]=useState(true);const [error,setError]=useState("");const [notes,setNotes]=useState<Record<number,string>>({});const [busy,setBusy]=useState<number|null>(null);const [selected,setSelected]=useState<Pathway|null>(null);
- const load=()=>{setError("");setLoading(true);void api.reviewQueue(page,filter).then(d=>{setReviews(d.items);setTotal(d.total);}).catch(e=>setError(e.message)).finally(()=>setLoading(false));};useEffect(load,[page,filter]);
- const act=async(id:number,action:"approve"|"edit"|"reject"|"resolve")=>{if(!notes[id]?.trim())return;setBusy(id);try{await api.reviewAction(id,action,notes[id]);load();toast.success("Review saved");}catch(e){toast.error(e instanceof Error?e.message:"Could not save review");}finally{setBusy(null);}};
- return <main className="mx-auto max-w-[1120px] px-5 py-12"><PageHeading eyebrow="Facilitator workspace" title="A closer look at uncertain cases" description="Review the evidence, record what you checked, and help the beneficiary make an informed decision."/>
- <div className="mb-6 flex flex-wrap items-end gap-5"><Field label="Case status"><select className="field" value={filter} onChange={e=>{setFilter(e.target.value);setPage(1);setSelected(null);}}><option value="">All cases</option>{["OPEN","IN_REVIEW","APPROVED","EDITED","REJECTED","RESOLVED"].map(status=><option key={status} value={status}>{humanize(status)}</option>)}</select></Field><p className="pb-3 text-sm text-slate-600">{total} matching cases</p></div>
- {error?<Notice tone="warning">{error}<Button onClick={load}>Try again</Button></Notice>:loading?<PageLoader text="Loading review cases…"/>:<div className="space-y-5">{!reviews.length&&<Panel>No cases match this status.</Panel>}{reviews.map(r=><Panel key={r.id}><div className="flex flex-wrap justify-between gap-3"><h2 className="text-xl font-semibold">Case {r.id} · Beneficiary {r.beneficiary_id}</h2><span className="text-sm text-slate-600">{humanize(r.status)}</span></div><p className="mt-4 text-sm leading-7 text-slate-600">{humanize(r.reason_description)}</p>{r.pathway_id&&<Button className="mt-3" variant="outline" onClick={()=>{void api.pathway(r.pathway_id!).then(setSelected).catch(e=>toast.error(e.message));}}>Inspect pathway evidence</Button>}{r.review_notes&&<p className="mt-4 rounded-lg bg-slate-50 p-3 text-sm">Last recorded note: {r.review_notes}</p>}<label className="mt-5 block text-sm font-semibold">Review notes<textarea className="field mt-2 min-h-24 py-3" value={notes[r.id]||""} onChange={e=>setNotes({...notes,[r.id]:e.target.value})} placeholder="What did you verify? What should happen next?"/></label><div className="mt-4 flex flex-wrap gap-3">{([['approve','Approve after review'],['edit','Save review notes'],['reject','Reject'],['resolve','Close case']] as const).map(([action,label])=><Button key={action} disabled={busy===r.id||!notes[r.id]?.trim()} variant={action==='approve'?'default':'outline'} onClick={()=>act(r.id,action)}>{label}</Button>)}</div><p className="mt-3 text-xs text-slate-600">Only approval releases a RED pathway for progression. Closing a case does not approve it.</p></Panel>)}</div>}
- {!error&&<nav aria-label="Review pages" className="mt-6 flex items-center justify-between gap-4"><Button disabled={page===1||loading} variant="outline" onClick={()=>setPage(p=>p-1)}>{t("common.previous",locale)}</Button><span className="text-sm">Page {page} of {Math.max(1,Math.ceil(total/20))}</span><Button disabled={page*20>=total||loading} variant="outline" onClick={()=>setPage(p=>p+1)}>{t("common.next",locale)}</Button></nav>}
- {selected&&<section className="mt-8"><PageHeading eyebrow="Pathway evidence" title={selected.title} action={<Button variant="outline" onClick={()=>setSelected(null)}>Close evidence</Button>}/><Panel>{selected.evidence.map((e,i)=><EvidenceRow key={i} label={e.label} value={e.source_type==='SYNTHETIC'&&e.evidence_type==='OPPORTUNITY'?'Availability not verified':e.value} verified={e.verification_status==='VERIFIED'}/>)}</Panel></section>}
- </main>;
-}
+  const copy = reviewCopy[locale];
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [filter, setFilter] = useState("OPEN");
+  const [attempt, setAttempt] = useState(0);
+  const [reviews, setReviews] = useState<Awaited<ReturnType<typeof api.reviewQueue>>["items"]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [notes, setNotes] = useState<Record<number, string>>({});
+  const [busy, setBusy] = useState<number | null>(null);
+  const [selected, setSelected] = useState<Pathway | null>(null);
+  const [evidenceBusy, setEvidenceBusy] = useState<number | null>(null);
+  const evidenceRequest = useRef(0);
 
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError("");
+    void api.reviewQueue(page, filter).then(data => {
+      if (active) { setReviews(data.items); setTotal(data.total); }
+    }).catch(e => { if (active) setError(e instanceof Error ? e.message : copy.loadError); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [page, filter, attempt, copy.loadError]);
+  useEffect(() => () => { evidenceRequest.current += 1; }, []);
+
+  const clearEvidence = () => {
+    evidenceRequest.current += 1;
+    setSelected(null);
+    setEvidenceBusy(null);
+  };
+  const inspect = async (id: number) => {
+    const requestId = ++evidenceRequest.current;
+    setEvidenceBusy(id);
+    setSelected(null);
+    try {
+      const pathway = await api.pathway(id);
+      if (requestId === evidenceRequest.current) setSelected(pathway);
+    } catch (e) {
+      if (requestId === evidenceRequest.current) toast.error(e instanceof Error ? e.message : copy.loadError);
+    } finally { if (requestId === evidenceRequest.current) setEvidenceBusy(null); }
+  };
+  const act = async (id: number, action: "approve" | "edit" | "reject" | "resolve") => {
+    if (busy !== null || !notes[id]?.trim()) return;
+    setBusy(id);
+    try {
+      await api.reviewAction(id, action, notes[id].trim());
+      setLoading(true);
+      setAttempt(value => value + 1);
+      toast.success(copy.saved);
+    } catch (e) { toast.error(e instanceof Error ? e.message : copy.saveError); }
+    finally { setBusy(null); }
+  };
+  const actions = [["approve", copy.approve], ["edit", copy.saveNotes], ["reject", copy.reject], ["resolve", copy.closeCase]] as const;
+  return <main className="mx-auto max-w-[1120px] px-5 py-12">
+    <PageHeading eyebrow={copy.workspace} title={copy.title} description={copy.description}/>
+    <div className="mb-6 flex flex-wrap items-end gap-5">
+      <Field label={copy.status}><select className="field" value={filter} disabled={busy !== null} onChange={e => {
+        setLoading(true); setFilter(e.target.value); setPage(1); clearEvidence();
+      }}><option value="">{copy.all}</option>{Object.entries(copy.statuses).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
+      {!loading && !error && <p className="pb-3 text-sm text-slate-600">{total} {copy.matching}</p>}
+    </div>
+    {error ? <Notice tone="warning">{error}<Button onClick={() => setAttempt(value => value + 1)}>{copy.retry}</Button></Notice>
+      : loading ? <PageLoader text={copy.loading}/>
+      : <div className="space-y-5">{!reviews.length && <Panel>{copy.empty}</Panel>}{reviews.map(r => <Panel key={r.id}>
+        <div className="flex flex-wrap justify-between gap-3"><h2 className="text-xl font-semibold">{copy.caseLabel} {r.id} · {copy.beneficiary} {r.beneficiary_id}</h2><span className="text-sm text-slate-600">{copy.statuses[r.status as keyof typeof copy.statuses] || humanize(r.status)}</span></div>
+        <p className="mt-4 text-sm leading-7 text-slate-600">{humanize(r.reason_description)}</p>
+        {r.pathway_id && <Button className="mt-3 h-auto whitespace-normal" disabled={evidenceBusy !== null} variant="outline" onClick={() => void inspect(r.pathway_id!)}>{evidenceBusy === r.pathway_id ? copy.loadingEvidence : copy.inspect}</Button>}
+        {r.review_notes && <p className="mt-4 break-words rounded-lg bg-slate-50 p-3 text-sm">{copy.lastNote}: {r.review_notes}</p>}
+        <label className="mt-5 block text-sm font-semibold">{copy.notes}<textarea className="field mt-2 min-h-24 py-3" value={notes[r.id] || ""} disabled={busy !== null} onChange={e => setNotes({...notes, [r.id]: e.target.value})} placeholder={copy.notesHint}/></label>
+        <div className="mt-4 flex flex-wrap gap-3">{actions.map(([action, label]) => <Button key={action} className="h-auto max-w-full whitespace-normal py-2" disabled={busy !== null || !notes[r.id]?.trim()} variant={action === "approve" ? "default" : "outline"} onClick={() => void act(r.id, action)}>{busy === r.id && <Loader2 className="animate-spin" size={16}/>} {label}</Button>)}</div>
+        <p className="mt-3 text-xs text-slate-600">{copy.gate}</p>
+      </Panel>)}</div>}
+    {!error && <nav aria-label={copy.pages} className="mt-6 flex flex-col items-stretch gap-3 text-center sm:flex-row sm:items-center sm:justify-between">
+      <Button disabled={page === 1 || loading || busy !== null} variant="outline" onClick={() => {setLoading(true); setPage(value => value - 1); clearEvidence();}}>{copy.previous}</Button>
+      <span className="text-sm">{copy.page} {page}{!loading && <> {copy.of} {Math.max(1, Math.ceil(total / 20))}</>}</span>
+      <Button disabled={page * 20 >= total || loading || busy !== null} variant="outline" onClick={() => {setLoading(true); setPage(value => value + 1); clearEvidence();}}>{copy.next}</Button>
+    </nav>}
+    {selected && <section className="mt-8"><PageHeading eyebrow={copy.evidence} title={selected.title} action={<Button variant="outline" className="h-auto whitespace-normal" onClick={clearEvidence}>{copy.closeEvidence}</Button>}/><Panel>{selected.evidence.map((e, i) => <EvidenceRow key={i} label={e.label} value={e.source_type === "SYNTHETIC" && e.evidence_type === "OPPORTUNITY" ? copy.unverified : e.value} verified={e.verification_status === "VERIFIED"}/>)}</Panel></section>}
+  </main>;
+}
 
 function AdminDashboard({ locale }: { locale: Locale }) {
   const [diagnostics, setDiagnostics] = useState<Record<string, number | string> | null>(null);

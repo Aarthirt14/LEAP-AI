@@ -2,6 +2,13 @@
 
 ## Latest checkpoint — 5 October 2026
 
+### Facilitator verification and follow-up fixes
+
+- Authenticated facilitator browser session reached the three synthetic cases. Inspected actual pathway evidence, saved notes (EDITED), explicitly approved Case 1, and closed Case 2 (RESOLVED) without approval. Status changes and note text persisted. Case 3 remains OPEN. These are disposable test decisions, not real evidence verification or beneficiary decisions.
+- Found and reproduced a frontend request race: changing a filter before an action-triggered refresh completed could overwrite the new filter with old results. Replaced closure-based reloads with effect cleanup and a reload counter; action completion now reloads the current filter. Status changes are disabled while a save is active; late evidence responses are ignored after filter/page changes.
+- Added typed English/Tamil/Hindi facilitator UI copy, honest 'Closed without approval' / 'Notes updated' labels, narrow-screen pagination and wrapping action buttons. Backend-generated reason/evidence text and user notes remain unchanged and may be English.
+- Changed files: `components/leap-app.tsx`, `lib/review-copy.ts`, this report. No backend API, permissions, assignment policy or ranking changes. Post-deployment browser verification remains required for this follow-up.
+
 - Confirmed the reported login connection failure was an origin mismatch: staging rejected the deployment-specific `leap-d53fqi505-…` origin with HTTP 400 `Disallowed CORS origin`; the stable redesign branch alias passes preflight. Use `https://leap-ai-git-redesign-leap-ui-v2-aarthiii333-9025s-projects.vercel.app`. No CORS wildcard or production setting change was made.
 - User confirmed the staging password variable exists and logged in successfully. The cloud browser subsequently authenticated as the staging worker through private user entry. Earlier references to the user having generated those passwords were assumptions and should not be treated as verified provenance.
 - Browser-tested the empty worker dashboard, unchecked consent and blank geographic fields, creation of `TEST ONLY — Worker Journey`, all ten text interview questions, raw-answer-preserving correction of travel distance from 7 km to 5 km, explicit confirmation, automatic skill/pathway creation, populated pathway evidence, and refresh of the nested pathway detail URL.

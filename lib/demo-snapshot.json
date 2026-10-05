@@ -1,0 +1,1642 @@
+{
+  "notice": "Synthetic read-only scenario. Not live records or verified availability.",
+  "responses": {
+    "/api/field-worker/tasks": {
+      "interviews_due": 3,
+      "followups_due": 1,
+      "human_review_cases": 4,
+      "offline_sync_items": 0,
+      "rpl_verification_cases": 0
+    },
+    "/api/field-worker/beneficiaries?page=1": [
+      {
+        "id": 1,
+        "name": "Meena",
+        "district": "Madurai",
+        "preferred_language": "Tamil",
+        "consent_given": true
+      },
+      {
+        "id": 2,
+        "name": "Demo Pending",
+        "district": "Madurai",
+        "preferred_language": "Tamil",
+        "consent_given": true
+      },
+      {
+        "id": 3,
+        "name": "Demo Follow-up",
+        "district": "Madurai",
+        "preferred_language": "Tamil",
+        "consent_given": true
+      }
+    ],
+    "/api/reviews?page=1": {
+      "items": [
+        {
+          "id": 1,
+          "beneficiary_id": 3,
+          "pathway_id": 4,
+          "reason_code": "LOW_CONFIDENCE",
+          "reason_description": "EDUCATION_UNVERIFIED, TRAINING_UNVERIFIED, TRAINING_LOCATION_UNVERIFIED, TRAINING_CAPACITY_UNVERIFIED, INSUFFICIENT_EVIDENCE",
+          "status": "OPEN",
+          "assigned_to": null,
+          "resolution": null,
+          "review_notes": null,
+          "created_at": "2026-10-05T10:04:37.390167",
+          "reviewed_at": null
+        },
+        {
+          "id": 2,
+          "beneficiary_id": 3,
+          "pathway_id": 5,
+          "reason_code": "LOW_CONFIDENCE",
+          "reason_description": "EDUCATION_UNVERIFIED, TRAINING_UNVERIFIED, TRAINING_LOCATION_UNVERIFIED, TRAINING_CAPACITY_UNVERIFIED, INSUFFICIENT_EVIDENCE",
+          "status": "OPEN",
+          "assigned_to": null,
+          "resolution": null,
+          "review_notes": null,
+          "created_at": "2026-10-05T10:04:37.391566",
+          "reviewed_at": null
+        },
+        {
+          "id": 3,
+          "beneficiary_id": 3,
+          "pathway_id": 6,
+          "reason_code": "LOW_CONFIDENCE",
+          "reason_description": "EDUCATION_UNVERIFIED, TRAINING_UNVERIFIED, TRAINING_LOCATION_UNVERIFIED, TRAINING_CAPACITY_UNVERIFIED, INSUFFICIENT_EVIDENCE",
+          "status": "OPEN",
+          "assigned_to": null,
+          "resolution": null,
+          "review_notes": null,
+          "created_at": "2026-10-05T10:04:37.392630",
+          "reviewed_at": null
+        },
+        {
+          "id": 4,
+          "beneficiary_id": 1,
+          "pathway_id": 3,
+          "reason_code": "LOW_CONFIDENCE",
+          "reason_description": "Demo review case: inspect training distance and missing advanced competencies.",
+          "status": "OPEN",
+          "assigned_to": null,
+          "resolution": null,
+          "review_notes": null,
+          "created_at": "2026-10-05T10:04:37.394868",
+          "reviewed_at": null
+        }
+      ],
+      "page": 1,
+      "page_size": 20,
+      "total": 4
+    },
+    "/api/dashboard/summary": {
+      "filters": {
+        "district": null,
+        "sector": null,
+        "age_group": null,
+        "employment_type": null,
+        "followup_period": null
+      },
+      "beneficiaries_profiled": 3,
+      "potential_rpl_candidates": 1,
+      "positive_90_day_count": 0,
+      "active_180_day_count": 0
+    },
+    "/api/dashboard/funnel": {
+      "profiled": 3,
+      "recommended": 2,
+      "enrolled": 1,
+      "completed": 1,
+      "certified": 0,
+      "livelihood_90": 0,
+      "active_180": 0
+    },
+    "/api/admin/diagnostics": {
+      "database_connection": "OK",
+      "qualification_count": 4,
+      "valid_qualification_count": 4,
+      "expired_count": 0,
+      "training_opportunities": 4,
+      "outcome_records": 1,
+      "open_human_reviews": 4
+    },
+    "/api/beneficiaries/1": {
+      "id": 1,
+      "user_id": 1,
+      "name": "Meena",
+      "age": 34,
+      "gender": "Female",
+      "district": "Madurai",
+      "state": "Tamil Nadu",
+      "preferred_language": "Tamil",
+      "digital_literacy": "LOW",
+      "consent_given": true,
+      "version": 1
+    },
+    "/api/beneficiaries/1/profile": {
+      "education_level": "10th Standard",
+      "current_occupation": "Tailoring",
+      "family_occupation": "Agriculture",
+      "employment_preference": "SELF_EMPLOYMENT",
+      "aspiration_text": "Increase income through tailoring and explore advanced garment work",
+      "mobility_km": 8.0,
+      "relocation_willingness": null,
+      "available_hours_start": null,
+      "available_hours_end": null,
+      "capital_available": "5000.00",
+      "current_income_band": null,
+      "physical_constraints": "None reported",
+      "family_responsibilities": "Available mainly during daytime after household responsibilities",
+      "id": 1,
+      "beneficiary_id": 1,
+      "profile_completion_percentage": 100.0
+    },
+    "/api/beneficiaries/1/skills": [
+      {
+        "id": 1,
+        "skill_id": 1,
+        "experience_years": 6.0,
+        "proficiency_level": "INTERMEDIATE",
+        "source": "SELF_REPORTED",
+        "formal_certificate": false,
+        "verified": false,
+        "skill_name": "Tailoring"
+      },
+      {
+        "id": 2,
+        "skill_id": 2,
+        "experience_years": 5.0,
+        "proficiency_level": "INTERMEDIATE",
+        "source": "SELF_REPORTED",
+        "formal_certificate": false,
+        "verified": false,
+        "skill_name": "Measurement"
+      },
+      {
+        "id": 3,
+        "skill_id": 3,
+        "experience_years": 4.0,
+        "proficiency_level": "INTERMEDIATE",
+        "source": "SELF_REPORTED",
+        "formal_certificate": false,
+        "verified": false,
+        "skill_name": "Garment Repair"
+      }
+    ],
+    "/api/beneficiaries/1/pathways": [
+      {
+        "id": 1,
+        "type": "FASTEST",
+        "title": "Tailoring",
+        "description": "This option matches your stated aspiration and recorded skill evidence. Confirm eligibility and practical availability before deciding.",
+        "score": 81.17,
+        "confidence": "AMBER",
+        "recommended_route": "RPL",
+        "status": "PROPOSED",
+        "review_status": null,
+        "pending_human_review": false,
+        "rpl_status": "NOT_APPLICABLE",
+        "constraints": [],
+        "evidence": [
+          {
+            "evidence_type": "ASPIRATION",
+            "label": "Career aspiration fit",
+            "value": "Strong match — You said: 'Increase income through tailoring and explore advanced garment work'.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.aspiration_text",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "SKILL",
+            "label": "Matched skills and experience",
+            "value": "Strong match — You reported 6 years of tailoring experience. Tailoring (6.0y, Self-reported), Measurement (5.0y, Self-reported), Garment Repair (4.0y, Self-reported)",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "beneficiary_skills",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "ELIGIBILITY",
+            "label": "Educational qualification eligibility",
+            "value": "Needs confirmation — You reported 10th Standard; this pathway requires 10th Standard.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.education_level",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "OPPORTUNITY",
+            "label": "Training availability",
+            "value": "Qualification available; local training availability is not yet verified.",
+            "source_type": "SYNTHETIC",
+            "source_reference": "training_opportunities",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "MOBILITY",
+            "label": "Travel distance compatibility",
+            "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.mobility_km",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "RPL",
+            "label": "Prior learning and competency assessment",
+            "value": "Your existing experience strongly matches this qualification. An RPL assessment may allow formal recognition. | Matched competency overlap: 89% | Matched: garment measurement, basic stitching, garment repair",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "rpl_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONSTRAINT",
+            "label": "Practical constraints check",
+            "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "constraint_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Education unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training location unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training capacity unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          }
+        ],
+        "required_interventions": [],
+        "score_breakdown": {
+          "skill_fit": 1.0,
+          "aspiration_fit": 1.0,
+          "eligibility": 1.0,
+          "opportunity": 0.5,
+          "mobility": 0.5,
+          "training_burden": 0.8666666666666667,
+          "outcome_evidence": 0.5
+        }
+      },
+      {
+        "id": 3,
+        "type": "FASTEST",
+        "title": "Garment production",
+        "description": "This option matches your stated aspiration and recorded skill evidence. Confirm eligibility and practical availability before deciding.",
+        "score": 80.5,
+        "confidence": "RED",
+        "recommended_route": "RPL",
+        "status": "PROPOSED",
+        "review_status": "OPEN",
+        "pending_human_review": true,
+        "rpl_status": "NOT_APPLICABLE",
+        "constraints": [],
+        "evidence": [
+          {
+            "evidence_type": "ASPIRATION",
+            "label": "Career aspiration fit",
+            "value": "Strong match — You said: 'Increase income through tailoring and explore advanced garment work'.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.aspiration_text",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "SKILL",
+            "label": "Matched skills and experience",
+            "value": "Strong match — You reported 6 years of tailoring experience. Tailoring (6.0y, Self-reported), Measurement (5.0y, Self-reported), Garment Repair (4.0y, Self-reported)",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "beneficiary_skills",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "ELIGIBILITY",
+            "label": "Educational qualification eligibility",
+            "value": "Needs confirmation — You reported 10th Standard; this pathway requires 8th Standard.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.education_level",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "OPPORTUNITY",
+            "label": "Training availability",
+            "value": "Qualification available; local training availability is not yet verified.",
+            "source_type": "SYNTHETIC",
+            "source_reference": "training_opportunities",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "MOBILITY",
+            "label": "Travel distance compatibility",
+            "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.mobility_km",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "RPL",
+            "label": "Prior learning and competency assessment",
+            "value": "Your existing experience strongly matches this qualification. An RPL assessment may allow formal recognition. | Matched competency overlap: 87% | Matched: garment measurement, basic stitching, garment repair",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "rpl_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONSTRAINT",
+            "label": "Practical constraints check",
+            "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "constraint_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Education unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training location unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training capacity unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          }
+        ],
+        "required_interventions": [],
+        "score_breakdown": {
+          "skill_fit": 1.0,
+          "aspiration_fit": 1.0,
+          "eligibility": 1.0,
+          "opportunity": 0.5,
+          "mobility": 0.5,
+          "training_burden": 0.8,
+          "outcome_evidence": 0.5
+        }
+      },
+      {
+        "id": 2,
+        "type": "ALTERNATIVE",
+        "title": "Solar installation",
+        "description": "This is an option for further discussion. The current evidence does not establish a strong skill or aspiration match; practical availability needs confirmation.",
+        "score": 40.0,
+        "confidence": "AMBER",
+        "recommended_route": "FULL_TRAINING",
+        "status": "PROPOSED",
+        "review_status": null,
+        "pending_human_review": false,
+        "rpl_status": "NOT_APPLICABLE",
+        "constraints": [],
+        "evidence": [
+          {
+            "evidence_type": "ASPIRATION",
+            "label": "Career aspiration fit",
+            "value": "Not yet matched — You said: 'Increase income through tailoring and explore advanced garment work'.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.aspiration_text",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "SKILL",
+            "label": "Matched skills and experience",
+            "value": "Not yet matched — You reported 6 years of tailoring experience. Tailoring (6.0y, Self-reported), Measurement (5.0y, Self-reported), Garment Repair (4.0y, Self-reported)",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "beneficiary_skills",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "ELIGIBILITY",
+            "label": "Educational qualification eligibility",
+            "value": "Needs confirmation — You reported 10th Standard; this pathway requires 10th Standard.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.education_level",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "OPPORTUNITY",
+            "label": "Training availability",
+            "value": "Qualification available; local training availability is not yet verified.",
+            "source_type": "SYNTHETIC",
+            "source_reference": "training_opportunities",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "MOBILITY",
+            "label": "Travel distance compatibility",
+            "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.mobility_km",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "RPL",
+            "label": "Prior learning and competency assessment",
+            "value": "We could not verify enough matching competencies for RPL yet. | Matched competency overlap: 0% | To learn: electrical safety, solar wiring",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "rpl_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONSTRAINT",
+            "label": "Practical constraints check",
+            "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "constraint_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Education unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training location unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training capacity unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          }
+        ],
+        "required_interventions": [],
+        "score_breakdown": {
+          "skill_fit": 0.0,
+          "aspiration_fit": 0.0,
+          "eligibility": 1.0,
+          "opportunity": 0.5,
+          "mobility": 0.5,
+          "training_burden": 0.75,
+          "outcome_evidence": 0.5
+        }
+      }
+    ],
+    "/api/beneficiaries/1/outcomes": [],
+    "/api/beneficiaries/2": {
+      "id": 2,
+      "user_id": null,
+      "name": "Demo Pending",
+      "age": 27,
+      "gender": "Female",
+      "district": "Madurai",
+      "state": "Tamil Nadu",
+      "preferred_language": "Tamil",
+      "digital_literacy": "LOW",
+      "consent_given": true,
+      "version": 1
+    },
+    "/api/beneficiaries/2/skills": [],
+    "/api/beneficiaries/2/pathways": [],
+    "/api/beneficiaries/2/outcomes": [],
+    "/api/beneficiaries/3": {
+      "id": 3,
+      "user_id": null,
+      "name": "Demo Follow-up",
+      "age": 41,
+      "gender": "Female",
+      "district": "Madurai",
+      "state": "Tamil Nadu",
+      "preferred_language": "Tamil",
+      "digital_literacy": "LOW",
+      "consent_given": true,
+      "version": 1
+    },
+    "/api/beneficiaries/3/profile": {
+      "education_level": "10th Standard",
+      "current_occupation": "Tailoring",
+      "family_occupation": "Agriculture",
+      "employment_preference": "SELF_EMPLOYMENT",
+      "aspiration_text": "Grow a home enterprise",
+      "mobility_km": 8.0,
+      "relocation_willingness": null,
+      "available_hours_start": null,
+      "available_hours_end": null,
+      "capital_available": "5000.00",
+      "current_income_band": null,
+      "physical_constraints": "None reported",
+      "family_responsibilities": "Available mainly during daytime after household responsibilities",
+      "id": 2,
+      "beneficiary_id": 3,
+      "profile_completion_percentage": 100.0
+    },
+    "/api/beneficiaries/3/skills": [],
+    "/api/beneficiaries/3/pathways": [
+      {
+        "id": 4,
+        "type": "ALTERNATIVE",
+        "title": "Tailoring",
+        "description": "This is an option for further discussion. The current evidence does not establish a strong skill or aspiration match; practical availability needs confirmation.",
+        "score": 41.17,
+        "confidence": "RED",
+        "recommended_route": "FULL_TRAINING",
+        "status": "PROPOSED",
+        "review_status": "OPEN",
+        "pending_human_review": true,
+        "rpl_status": "NOT_APPLICABLE",
+        "constraints": [],
+        "evidence": [
+          {
+            "evidence_type": "ASPIRATION",
+            "label": "Career aspiration fit",
+            "value": "Not yet matched — You said: 'Grow a home enterprise'.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.aspiration_text",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "ELIGIBILITY",
+            "label": "Educational qualification eligibility",
+            "value": "Needs confirmation — You reported 10th Standard; this pathway requires 10th Standard.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.education_level",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "OPPORTUNITY",
+            "label": "Training availability",
+            "value": "Qualification available; local training availability is not yet verified.",
+            "source_type": "SYNTHETIC",
+            "source_reference": "training_opportunities",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "MOBILITY",
+            "label": "Travel distance compatibility",
+            "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.mobility_km",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "RPL",
+            "label": "Prior learning and competency assessment",
+            "value": "We could not verify enough matching competencies for RPL yet. | Matched competency overlap: 0% | To learn: garment measurement, basic stitching, garment repair",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "rpl_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONSTRAINT",
+            "label": "Practical constraints check",
+            "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "constraint_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Education unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training location unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training capacity unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Insufficient evidence",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          }
+        ],
+        "required_interventions": [],
+        "score_breakdown": {
+          "skill_fit": 0.0,
+          "aspiration_fit": 0.0,
+          "eligibility": 1.0,
+          "opportunity": 0.5,
+          "mobility": 0.5,
+          "training_burden": 0.8666666666666667,
+          "outcome_evidence": 0.5
+        }
+      },
+      {
+        "id": 5,
+        "type": "ALTERNATIVE",
+        "title": "Garment production",
+        "description": "This is an option for further discussion. The current evidence does not establish a strong skill or aspiration match; practical availability needs confirmation.",
+        "score": 40.5,
+        "confidence": "RED",
+        "recommended_route": "FULL_TRAINING",
+        "status": "PROPOSED",
+        "review_status": "OPEN",
+        "pending_human_review": true,
+        "rpl_status": "NOT_APPLICABLE",
+        "constraints": [],
+        "evidence": [
+          {
+            "evidence_type": "ASPIRATION",
+            "label": "Career aspiration fit",
+            "value": "Not yet matched — You said: 'Grow a home enterprise'.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.aspiration_text",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "ELIGIBILITY",
+            "label": "Educational qualification eligibility",
+            "value": "Needs confirmation — You reported 10th Standard; this pathway requires 8th Standard.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.education_level",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "OPPORTUNITY",
+            "label": "Training availability",
+            "value": "Qualification available; local training availability is not yet verified.",
+            "source_type": "SYNTHETIC",
+            "source_reference": "training_opportunities",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "MOBILITY",
+            "label": "Travel distance compatibility",
+            "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.mobility_km",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "RPL",
+            "label": "Prior learning and competency assessment",
+            "value": "We could not verify enough matching competencies for RPL yet. | Matched competency overlap: 0% | To learn: garment measurement, basic stitching, garment repair",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "rpl_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONSTRAINT",
+            "label": "Practical constraints check",
+            "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "constraint_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Education unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training location unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training capacity unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Insufficient evidence",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          }
+        ],
+        "required_interventions": [],
+        "score_breakdown": {
+          "skill_fit": 0.0,
+          "aspiration_fit": 0.0,
+          "eligibility": 1.0,
+          "opportunity": 0.5,
+          "mobility": 0.5,
+          "training_burden": 0.8,
+          "outcome_evidence": 0.5
+        }
+      },
+      {
+        "id": 6,
+        "type": "ALTERNATIVE",
+        "title": "Solar installation",
+        "description": "This is an option for further discussion. The current evidence does not establish a strong skill or aspiration match; practical availability needs confirmation.",
+        "score": 40.0,
+        "confidence": "RED",
+        "recommended_route": "FULL_TRAINING",
+        "status": "PROPOSED",
+        "review_status": "OPEN",
+        "pending_human_review": true,
+        "rpl_status": "NOT_APPLICABLE",
+        "constraints": [],
+        "evidence": [
+          {
+            "evidence_type": "ASPIRATION",
+            "label": "Career aspiration fit",
+            "value": "Not yet matched — You said: 'Grow a home enterprise'.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.aspiration_text",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "ELIGIBILITY",
+            "label": "Educational qualification eligibility",
+            "value": "Needs confirmation — You reported 10th Standard; this pathway requires 10th Standard.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.education_level",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "OPPORTUNITY",
+            "label": "Training availability",
+            "value": "Qualification available; local training availability is not yet verified.",
+            "source_type": "SYNTHETIC",
+            "source_reference": "training_opportunities",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "MOBILITY",
+            "label": "Travel distance compatibility",
+            "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "livelihood_profile.mobility_km",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "RPL",
+            "label": "Prior learning and competency assessment",
+            "value": "We could not verify enough matching competencies for RPL yet. | Matched competency overlap: 0% | To learn: electrical safety, solar wiring",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "rpl_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONSTRAINT",
+            "label": "Practical constraints check",
+            "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+            "source_type": "SELF_REPORTED",
+            "source_reference": "constraint_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Education unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training location unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Training capacity unverified",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "evidence_type": "CONFIDENCE",
+            "label": "Needs confirmation",
+            "value": "Insufficient evidence",
+            "source_type": "SYSTEM_EXTRACTED",
+            "source_reference": "confidence_engine",
+            "verification_status": "UNVERIFIED"
+          }
+        ],
+        "required_interventions": [],
+        "score_breakdown": {
+          "skill_fit": 0.0,
+          "aspiration_fit": 0.0,
+          "eligibility": 1.0,
+          "opportunity": 0.5,
+          "mobility": 0.5,
+          "training_burden": 0.75,
+          "outcome_evidence": 0.5
+        }
+      }
+    ],
+    "/api/beneficiaries/3/outcomes": [
+      {
+        "beneficiary_id": 3,
+        "pathway_id": 4,
+        "followup_day": 90,
+        "training_started": true,
+        "training_completed": true,
+        "certified": false,
+        "employment_status": "TRAINING",
+        "livelihood_related_to_pathway": null,
+        "income_band": null,
+        "still_active": null,
+        "dropout_reason": null,
+        "support_required": null,
+        "verification_status": "USER_REPORTED",
+        "id": 1,
+        "reported_by": 2,
+        "created_at": "2026-10-05T10:04:37.395922"
+      }
+    ],
+    "/api/pathways/1": {
+      "id": 1,
+      "type": "FASTEST",
+      "title": "Tailoring",
+      "description": "This option matches your stated aspiration and recorded skill evidence. Confirm eligibility and practical availability before deciding.",
+      "score": 81.17,
+      "confidence": "AMBER",
+      "recommended_route": "RPL",
+      "status": "PROPOSED",
+      "review_status": null,
+      "pending_human_review": false,
+      "rpl_status": "NOT_APPLICABLE",
+      "constraints": [],
+      "evidence": [
+        {
+          "evidence_type": "ASPIRATION",
+          "label": "Career aspiration fit",
+          "value": "Strong match — You said: 'Increase income through tailoring and explore advanced garment work'.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.aspiration_text",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "SKILL",
+          "label": "Matched skills and experience",
+          "value": "Strong match — You reported 6 years of tailoring experience. Tailoring (6.0y, Self-reported), Measurement (5.0y, Self-reported), Garment Repair (4.0y, Self-reported)",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "beneficiary_skills",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "ELIGIBILITY",
+          "label": "Educational qualification eligibility",
+          "value": "Needs confirmation — You reported 10th Standard; this pathway requires 10th Standard.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.education_level",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "OPPORTUNITY",
+          "label": "Training availability",
+          "value": "Qualification available; local training availability is not yet verified.",
+          "source_type": "SYNTHETIC",
+          "source_reference": "training_opportunities",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "MOBILITY",
+          "label": "Travel distance compatibility",
+          "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.mobility_km",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "RPL",
+          "label": "Prior learning and competency assessment",
+          "value": "Your existing experience strongly matches this qualification. An RPL assessment may allow formal recognition. | Matched competency overlap: 89% | Matched: garment measurement, basic stitching, garment repair",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "rpl_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONSTRAINT",
+          "label": "Practical constraints check",
+          "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "constraint_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Education unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training location unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training capacity unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        }
+      ],
+      "required_interventions": [],
+      "score_breakdown": {
+        "skill_fit": 1.0,
+        "aspiration_fit": 1.0,
+        "eligibility": 1.0,
+        "opportunity": 0.5,
+        "mobility": 0.5,
+        "training_burden": 0.8666666666666667,
+        "outcome_evidence": 0.5
+      }
+    },
+    "/api/pathways/2": {
+      "id": 2,
+      "type": "ALTERNATIVE",
+      "title": "Solar installation",
+      "description": "This is an option for further discussion. The current evidence does not establish a strong skill or aspiration match; practical availability needs confirmation.",
+      "score": 40.0,
+      "confidence": "AMBER",
+      "recommended_route": "FULL_TRAINING",
+      "status": "PROPOSED",
+      "review_status": null,
+      "pending_human_review": false,
+      "rpl_status": "NOT_APPLICABLE",
+      "constraints": [],
+      "evidence": [
+        {
+          "evidence_type": "ASPIRATION",
+          "label": "Career aspiration fit",
+          "value": "Not yet matched — You said: 'Increase income through tailoring and explore advanced garment work'.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.aspiration_text",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "SKILL",
+          "label": "Matched skills and experience",
+          "value": "Not yet matched — You reported 6 years of tailoring experience. Tailoring (6.0y, Self-reported), Measurement (5.0y, Self-reported), Garment Repair (4.0y, Self-reported)",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "beneficiary_skills",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "ELIGIBILITY",
+          "label": "Educational qualification eligibility",
+          "value": "Needs confirmation — You reported 10th Standard; this pathway requires 10th Standard.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.education_level",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "OPPORTUNITY",
+          "label": "Training availability",
+          "value": "Qualification available; local training availability is not yet verified.",
+          "source_type": "SYNTHETIC",
+          "source_reference": "training_opportunities",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "MOBILITY",
+          "label": "Travel distance compatibility",
+          "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.mobility_km",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "RPL",
+          "label": "Prior learning and competency assessment",
+          "value": "We could not verify enough matching competencies for RPL yet. | Matched competency overlap: 0% | To learn: electrical safety, solar wiring",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "rpl_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONSTRAINT",
+          "label": "Practical constraints check",
+          "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "constraint_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Education unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training location unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training capacity unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        }
+      ],
+      "required_interventions": [],
+      "score_breakdown": {
+        "skill_fit": 0.0,
+        "aspiration_fit": 0.0,
+        "eligibility": 1.0,
+        "opportunity": 0.5,
+        "mobility": 0.5,
+        "training_burden": 0.75,
+        "outcome_evidence": 0.5
+      }
+    },
+    "/api/pathways/3": {
+      "id": 3,
+      "type": "FASTEST",
+      "title": "Garment production",
+      "description": "This option matches your stated aspiration and recorded skill evidence. Confirm eligibility and practical availability before deciding.",
+      "score": 80.5,
+      "confidence": "RED",
+      "recommended_route": "RPL",
+      "status": "PROPOSED",
+      "review_status": "OPEN",
+      "pending_human_review": true,
+      "rpl_status": "NOT_APPLICABLE",
+      "constraints": [],
+      "evidence": [
+        {
+          "evidence_type": "ASPIRATION",
+          "label": "Career aspiration fit",
+          "value": "Strong match — You said: 'Increase income through tailoring and explore advanced garment work'.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.aspiration_text",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "SKILL",
+          "label": "Matched skills and experience",
+          "value": "Strong match — You reported 6 years of tailoring experience. Tailoring (6.0y, Self-reported), Measurement (5.0y, Self-reported), Garment Repair (4.0y, Self-reported)",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "beneficiary_skills",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "ELIGIBILITY",
+          "label": "Educational qualification eligibility",
+          "value": "Needs confirmation — You reported 10th Standard; this pathway requires 8th Standard.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.education_level",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "OPPORTUNITY",
+          "label": "Training availability",
+          "value": "Qualification available; local training availability is not yet verified.",
+          "source_type": "SYNTHETIC",
+          "source_reference": "training_opportunities",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "MOBILITY",
+          "label": "Travel distance compatibility",
+          "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.mobility_km",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "RPL",
+          "label": "Prior learning and competency assessment",
+          "value": "Your existing experience strongly matches this qualification. An RPL assessment may allow formal recognition. | Matched competency overlap: 87% | Matched: garment measurement, basic stitching, garment repair",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "rpl_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONSTRAINT",
+          "label": "Practical constraints check",
+          "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "constraint_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Education unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training location unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training capacity unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        }
+      ],
+      "required_interventions": [],
+      "score_breakdown": {
+        "skill_fit": 1.0,
+        "aspiration_fit": 1.0,
+        "eligibility": 1.0,
+        "opportunity": 0.5,
+        "mobility": 0.5,
+        "training_burden": 0.8,
+        "outcome_evidence": 0.5
+      }
+    },
+    "/api/pathways/4": {
+      "id": 4,
+      "type": "ALTERNATIVE",
+      "title": "Tailoring",
+      "description": "This is an option for further discussion. The current evidence does not establish a strong skill or aspiration match; practical availability needs confirmation.",
+      "score": 41.17,
+      "confidence": "RED",
+      "recommended_route": "FULL_TRAINING",
+      "status": "PROPOSED",
+      "review_status": "OPEN",
+      "pending_human_review": true,
+      "rpl_status": "NOT_APPLICABLE",
+      "constraints": [],
+      "evidence": [
+        {
+          "evidence_type": "ASPIRATION",
+          "label": "Career aspiration fit",
+          "value": "Not yet matched — You said: 'Grow a home enterprise'.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.aspiration_text",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "ELIGIBILITY",
+          "label": "Educational qualification eligibility",
+          "value": "Needs confirmation — You reported 10th Standard; this pathway requires 10th Standard.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.education_level",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "OPPORTUNITY",
+          "label": "Training availability",
+          "value": "Qualification available; local training availability is not yet verified.",
+          "source_type": "SYNTHETIC",
+          "source_reference": "training_opportunities",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "MOBILITY",
+          "label": "Travel distance compatibility",
+          "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.mobility_km",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "RPL",
+          "label": "Prior learning and competency assessment",
+          "value": "We could not verify enough matching competencies for RPL yet. | Matched competency overlap: 0% | To learn: garment measurement, basic stitching, garment repair",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "rpl_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONSTRAINT",
+          "label": "Practical constraints check",
+          "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "constraint_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Education unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training location unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training capacity unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Insufficient evidence",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        }
+      ],
+      "required_interventions": [],
+      "score_breakdown": {
+        "skill_fit": 0.0,
+        "aspiration_fit": 0.0,
+        "eligibility": 1.0,
+        "opportunity": 0.5,
+        "mobility": 0.5,
+        "training_burden": 0.8666666666666667,
+        "outcome_evidence": 0.5
+      }
+    },
+    "/api/pathways/5": {
+      "id": 5,
+      "type": "ALTERNATIVE",
+      "title": "Garment production",
+      "description": "This is an option for further discussion. The current evidence does not establish a strong skill or aspiration match; practical availability needs confirmation.",
+      "score": 40.5,
+      "confidence": "RED",
+      "recommended_route": "FULL_TRAINING",
+      "status": "PROPOSED",
+      "review_status": "OPEN",
+      "pending_human_review": true,
+      "rpl_status": "NOT_APPLICABLE",
+      "constraints": [],
+      "evidence": [
+        {
+          "evidence_type": "ASPIRATION",
+          "label": "Career aspiration fit",
+          "value": "Not yet matched — You said: 'Grow a home enterprise'.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.aspiration_text",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "ELIGIBILITY",
+          "label": "Educational qualification eligibility",
+          "value": "Needs confirmation — You reported 10th Standard; this pathway requires 8th Standard.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.education_level",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "OPPORTUNITY",
+          "label": "Training availability",
+          "value": "Qualification available; local training availability is not yet verified.",
+          "source_type": "SYNTHETIC",
+          "source_reference": "training_opportunities",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "MOBILITY",
+          "label": "Travel distance compatibility",
+          "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.mobility_km",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "RPL",
+          "label": "Prior learning and competency assessment",
+          "value": "We could not verify enough matching competencies for RPL yet. | Matched competency overlap: 0% | To learn: garment measurement, basic stitching, garment repair",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "rpl_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONSTRAINT",
+          "label": "Practical constraints check",
+          "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "constraint_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Education unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training location unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training capacity unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Insufficient evidence",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        }
+      ],
+      "required_interventions": [],
+      "score_breakdown": {
+        "skill_fit": 0.0,
+        "aspiration_fit": 0.0,
+        "eligibility": 1.0,
+        "opportunity": 0.5,
+        "mobility": 0.5,
+        "training_burden": 0.8,
+        "outcome_evidence": 0.5
+      }
+    },
+    "/api/pathways/6": {
+      "id": 6,
+      "type": "ALTERNATIVE",
+      "title": "Solar installation",
+      "description": "This is an option for further discussion. The current evidence does not establish a strong skill or aspiration match; practical availability needs confirmation.",
+      "score": 40.0,
+      "confidence": "RED",
+      "recommended_route": "FULL_TRAINING",
+      "status": "PROPOSED",
+      "review_status": "OPEN",
+      "pending_human_review": true,
+      "rpl_status": "NOT_APPLICABLE",
+      "constraints": [],
+      "evidence": [
+        {
+          "evidence_type": "ASPIRATION",
+          "label": "Career aspiration fit",
+          "value": "Not yet matched — You said: 'Grow a home enterprise'.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.aspiration_text",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "ELIGIBILITY",
+          "label": "Educational qualification eligibility",
+          "value": "Needs confirmation — You reported 10th Standard; this pathway requires 10th Standard.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.education_level",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "OPPORTUNITY",
+          "label": "Training availability",
+          "value": "Qualification available; local training availability is not yet verified.",
+          "source_type": "SYNTHETIC",
+          "source_reference": "training_opportunities",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "MOBILITY",
+          "label": "Travel distance compatibility",
+          "value": "Your range: 8.0 km | Centre distance: Training location not yet verified (Unable to confirm travel fit)",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "livelihood_profile.mobility_km",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "RPL",
+          "label": "Prior learning and competency assessment",
+          "value": "We could not verify enough matching competencies for RPL yet. | Matched competency overlap: 0% | To learn: electrical safety, solar wiring",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "rpl_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONSTRAINT",
+          "label": "Practical constraints check",
+          "value": "No conflicts detected in the available checks. Missing information still needs confirmation.",
+          "source_type": "SELF_REPORTED",
+          "source_reference": "constraint_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Education unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training location unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Training capacity unverified",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        },
+        {
+          "evidence_type": "CONFIDENCE",
+          "label": "Needs confirmation",
+          "value": "Insufficient evidence",
+          "source_type": "SYSTEM_EXTRACTED",
+          "source_reference": "confidence_engine",
+          "verification_status": "UNVERIFIED"
+        }
+      ],
+      "required_interventions": [],
+      "score_breakdown": {
+        "skill_fit": 0.0,
+        "aspiration_fit": 0.0,
+        "eligibility": 1.0,
+        "opportunity": 0.5,
+        "mobility": 0.5,
+        "training_burden": 0.75,
+        "outcome_evidence": 0.5
+      }
+    },
+    "/api/beneficiaries/me": {
+      "id": 1,
+      "user_id": 1,
+      "name": "Meena",
+      "age": 34,
+      "gender": "Female",
+      "district": "Madurai",
+      "state": "Tamil Nadu",
+      "preferred_language": "Tamil",
+      "digital_literacy": "LOW",
+      "consent_given": true,
+      "version": 1
+    }
+  }
+}

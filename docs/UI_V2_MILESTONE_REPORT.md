@@ -246,3 +246,11 @@ Preview visual verification: Vercel deployed `bc4995814e83bb06a9c418e0dcd455029b
 Screenshots: [Telugu and logo](visual-checks/telugu-logo-desktop.jpg), [Odia at 320px](visual-checks/odia-logo-320.jpg), [Malayalam at 320px](visual-checks/malayalam-logo-320.jpg).
 
 Files changed in this language/identity milestone: app/globals.css; components/leap-app.tsx; components/leap/landing.tsx; components/leap/primitives.tsx; components/leap/logo.tsx; lib/i18n.ts; lib/locales/extra.ts; lib/journey-copy.ts; lib/review-copy.ts; lib/workspace-copy.ts; public/favicon.svg; public/leap-mark.svg; scripts/check-localization.mjs; backend/tests/test_credibility.py; this report and the three linked screenshots. No backend runtime or ranking model changed.
+
+## Continuation: credential-free role demos (5 October 2026)
+
+Added /demo for all five roles using the real app screens and a clearly labelled synthetic, read-only snapshot. Replaced the auth page's shared-password autofill with a link to the safe demo chooser; added a landing-page demo link. Demo sessions create no credentials and never reach the live API, even on errors, missing records or mutations. An existing real login is preserved. The public chooser does not depend on backend availability or a stale real token. No production environment or backend authentication logic changed.
+
+Snapshot export runs the existing seed and deterministic engine against a newly created temporary database. It exports selected GET responses only; no JWTs or password hashes. RED gating and unverified availability remain visible. Interview submission, saving, review decisions and outcome writes are intentionally unavailable in the public tour. Exit demo to use a real account.
+
+Checks: five-role demo isolation test passed (including writes, missing routes, scope, filters, pagination and real login preservation); ten-language checks passed; TypeScript passed; build passed. Previous backend suite: 92 passed. Visual review follows after Preview deployment. Files: app/demo/page.tsx; components/leap/demo-chooser.tsx; components/leap-app.tsx; components/leap/landing.tsx; lib/api.ts; lib/demo-session.ts; lib/demo-snapshot.json; backend/seed/export_public_demo.py; scripts/check-demo.mjs; docs/LANGUAGES_AND_DEMOS.md; this report.

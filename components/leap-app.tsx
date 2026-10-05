@@ -22,6 +22,8 @@ import {
   X,
 } from "lucide-react";
 import { extendLocales, extraLocales, translateExtra } from "@/lib/locales/extra";
+import { demoRole, startDemo, endDemo, demoHome, type DemoRole } from "@/lib/demo-session";
+import { DemoChooser } from "@/components/leap/demo-chooser";
 import { LeapLogo, LeapMark } from "@/components/leap/logo";
 import { workspaceCopy } from "@/lib/workspace-copy";
 import { journeyCopy, journeyStatus } from "@/lib/journey-copy";
@@ -169,6 +171,7 @@ function Shell({ state, onLogout, onSelectLocale, children }: { state: AppState;
         )}
       </header>
       {extraLocales.some(value=>value===locale) && <aside className="mx-auto max-w-[1200px] px-5 pt-4 text-sm leading-relaxed text-[#41526d]">{translateExtra(locale, "Language preview: key screens and interview prompts are translated. Some guidance remains in English. Voice availability depends on your browser; unfamiliar answers need confirmation.")}</aside>}
+      {demoRole() && <aside className="border-b border-[#e7d3bc] bg-[#FFF1E6] px-5 py-3 text-sm text-[#071A3D]"><div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-3"><span><strong>Read-only demo · {demoRole()?.replaceAll("_", " ")}</strong> — Fictional records. No changes are saved.</span><div className="flex gap-4"><button className="underline underline-offset-4" onClick={()=>go("/demo")}>Switch role</button><button className="underline underline-offset-4" onClick={onLogout}>Exit demo</button></div></div></aside>}
       <div id="main-content" tabIndex={-1}>{children}</div>
       <Toaster richColors position="top-right" />
     </div>
@@ -201,7 +204,7 @@ function LeapAppInner() {
 
   const refreshSession = async () => {
     setSessionError("");
-    if (!getAccessToken()) {
+    if ((!getAccessToken() || pathname === "/demo") && !demoRole()) {
       setState({ loading: false, signedIn: false, beneficiary: null, role: null, locale: getStoredLocale() });
       return;
     }
@@ -245,17 +248,25 @@ function LeapAppInner() {
   }, [pathname, searchParams]);
 
   const logout = () => {
-    clearTokens();
+    if (demoRole()) endDemo(); else clearTokens();
     setState({ loading: false, signedIn: false, beneficiary: null, role: null, locale: getStoredLocale() });
     router.push("/");
   };
 
+  const openDemo = async (role: DemoRole) => {
+    startDemo(role);
+    setLanguageReady(false);
+    await refreshSession();
+    router.push(demoHome[role]);
+  };
+
   if (sessionError) return <main className="mx-auto max-w-2xl px-5 py-20"><PageHeading eyebrow="Connection interrupted" title="Let’s reconnect" description={sessionError}/><Button onClick={()=>void refreshSession()}>Try again</Button></main>;
-  if (languageReady && !state.loading) return <LanguageScreen onSelect={(next) => { setLocale(next); }} />;
+  if (languageReady && !state.loading && pathname !== "/demo") return <LanguageScreen onSelect={(next) => { setLocale(next); }} />;
   if (state.loading) return <LoadingScreen locale={state.locale} />;
 
   let content: ReactNode;
-  if (pathname === "/auth") content = <AuthScreen onReady={refreshSession} locale={state.locale} />;
+  if (pathname === "/demo") content = <DemoChooser onSelect={role=>void openDemo(role)} locale={state.locale}/>;
+  else if (pathname === "/auth") content = <AuthScreen onReady={refreshSession} locale={state.locale} />;
   else if (pathname === "/onboarding") content = <RequireRole role="BENEFICIARY" state={state}><Onboarding onCreated={refreshSession} locale={state.locale} /></RequireRole>;
   else if (pathname === "/interview") content = <RequireBeneficiary state={state}><Interview beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
   else if (pathname === "/profile") content = <RequireBeneficiary state={state}><ProfileScreen beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
@@ -534,18 +545,6 @@ function AuthScreen({ onReady, locale }: { onReady: () => Promise<void>; locale:
   const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
-  const [demoConfig, setDemoConfig] = useState<{ enabled: boolean; roles: Record<string, string>; password?: string }>({ enabled: false, roles: {} });
-
-  useEffect(() => {
-    void api.demoConfig().then(setDemoConfig).catch(() => setDemoConfig({ enabled: false, roles: {} }));
-  }, []);
-
-  const applyDemo = (role: string) => {
-    setMode("login");
-    setEmail(demoConfig.roles[role] || "");
-    setPassword(demoConfig.password || "");
-  };
-
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setBusy(true);
@@ -590,19 +589,7 @@ function AuthScreen({ onReady, locale }: { onReady: () => Promise<void>; locale:
             <button type="button" className="text-link" aria-pressed={showPassword} onClick={()=>setShowPassword(!showPassword)}>{showPassword ? words(locale,"Hide password","கடவுச்சொல்லை மறை","पासवर्ड छिपाएँ") : words(locale,"Show password","கடவுச்சொல்லைக் காட்டு","पासवर्ड दिखाएँ")}</button>
             <Button disabled={busy} className="h-11 w-full">{busy && <Loader2 className="mr-2 animate-spin" size={16} />}{mode === "login" ? t("auth.signIn", locale) : t("auth.create", locale)}</Button>
           </form>
-          {demoConfig.enabled && mode === "login" && (
-            <div className="mt-7 border-t border-[#DDE3E5] pt-5">
-              <div className="text-sm font-semibold text-[#071A3D]">Explore LEAP AI</div>
-              <p className="mt-1 text-xs leading-5 text-[#536175]">Local presentation accounts only. Select a role to fill the login form.</p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {["BENEFICIARY", "FIELD_WORKER", "FACILITATOR", "DISTRICT_OFFICER", "ADMIN"].map((role) => (
-                  <button key={role} type="button" onClick={() => applyDemo(role)} className="rounded-xl border border-[#DDE3E5] bg-[#FAFAF7] px-3 py-2.5 text-left text-xs font-semibold text-[#071A3D] hover:border-[#087647] hover:bg-[#EEF3FA]">
-                    Try as {role === "FIELD_WORKER" ? "Field Worker" : role === "DISTRICT_OFFICER" ? "District Officer" : role[0] + role.slice(1).toLowerCase()}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="mt-7 border-t border-[#DDE3E5] pt-5"><p className="text-sm leading-6 text-[#536175]">Explore five roles with fictional records. No account needed.</p><Button type="button" variant="outline" className="mt-3 w-full" onClick={()=>router.push("/demo")}>Explore role demos <ArrowRight size={16}/></Button></div>
         </CardContent>
       </Card>
     </main>

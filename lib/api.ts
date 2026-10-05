@@ -1,3 +1,4 @@
+import { demoRole, demoResponse, DemoRequestError } from "./demo-session";
 export type TokenPair = {
   access_token: string;
   refresh_token: string;
@@ -117,6 +118,11 @@ export function clearTokens() {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const role = demoRole();
+  if (role) {
+    try { return demoResponse(role, path, options.method) as T; }
+    catch (error) { if (error instanceof DemoRequestError) throw new ApiError(error.message, error.status, "DEMO_READ_ONLY"); throw error; }
+  }
   const token = getAccessToken();
   const headers = new Headers(options.headers);
   if (!headers.has("Content-Type") && options.body) headers.set("Content-Type", "application/json");

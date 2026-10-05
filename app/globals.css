@@ -261,4 +261,6 @@ textarea.field {min-height:6rem;font-weight:400;resize:vertical;}
  .step-card:hover,.factor-grid article:hover {transform:translateY(-4px);box-shadow:0 12px 24px #071a3d0a;}
  .human-roles>div:hover {transform:translateX(3px);}
 }
-@media(max-width:700px){.livelihood-scene{height:210px;}.artwork-caption{font-size:11px;}}
+@media(max-width:700px){.livelihood-scene{height:auto;aspect-ratio:3/2;}.artwork-caption{font-size:11px;}}
+
+.story-visual-heading + .visual-question {margin-top:22px;}

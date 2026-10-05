@@ -1,10 +1,11 @@
 "use client";
+import { translateExtra } from "@/lib/locales/extra";
 import { type ReactNode } from "react";
 import { AlertCircle, ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { type Pathway } from "@/lib/api";
 import { type Locale } from "@/lib/i18n";
 
-export function words(locale: Locale, en: string, ta: string, hi: string) { return locale === "ta" ? ta : locale === "hi" ? hi : en; }
+export function words(locale: Locale, en: string, ta: string, hi: string) { return locale === "ta" ? ta : locale === "hi" ? hi : translateExtra(locale, en); }
 export function PageHeading({eyebrow,title,description,action}:{eyebrow:string;title:string;description?:string;action?:ReactNode}) {
  return <div className="page-heading"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1>{description && <p className="page-description">{description}</p>}</div>{action}</div>;
 }

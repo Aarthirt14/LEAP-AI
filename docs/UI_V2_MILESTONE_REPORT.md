@@ -232,3 +232,11 @@ Repeated browser connection errors persisted despite staging health, exact-origi
 Added a same-origin Vercel rewrite relay for `/leap-api/api/*` and `/leap-api/health`, using a fixed staging upstream. It activates only when VERCEL_ENV is preview, the branch is redesign/leap-ui-v2, and NEXT_PUBLIC_API_URL matches the staging service. Other branches and production retain their existing direct API transport. The relay is marked no-store and preserves backend authentication; no backend logic, CORS, credentials or environment values changed. The preview diagnostics page now identifies relay mode.
 
 Changed files: next.config.ts, lib/api.ts, app/preview-check/page.tsx, and this report. Checks: TypeScript passed; preview production build passed; four configuration isolation assertions passed (intended preview, production, unrelated branch, unexpected upstream). No visual design changed. Deployed relay checks and successful credential login still require verification; optional AI provider availability is not established by transport checks.
+
+## Continuation: seven language previews and original logo (5 October 2026)
+
+Added Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati and Odia. Each has 129 translated messages covering core navigation/authentication/onboarding/consent, ten interview questions and hints, and key evidence warnings. Longer guidance and staff copy still fall back to English; a translated notice discloses this. This is partial UI localization, not dialect or semantic coverage. Native-speaker review is outstanding. Language names and BCP-47 tags restore correctly; selection is preserved and never implies geographic state.
+
+An original SVG identity combines an L, a person and an ascending path in navy, ivory, saffron and green. Reused in navigation, language selection, landing artwork and favicon. No government emblem or third-party logo copied.
+
+TypeScript/build/localization checks passed. Backend: 92 tests passed, including seven new tests preserving raw answers and escalating unknown work to human review. Production remains unchanged. Demo and README work is deferred per the user's revised priority. Visual verification follows on Preview.

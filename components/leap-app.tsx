@@ -21,6 +21,8 @@ import {
   Wifi,
   X,
 } from "lucide-react";
+import { extendLocales, extraLocales, translateExtra } from "@/lib/locales/extra";
+import { LeapLogo, LeapMark } from "@/components/leap/logo";
 import { workspaceCopy } from "@/lib/workspace-copy";
 import { journeyCopy, journeyStatus } from "@/lib/journey-copy";
 import { reviewCopy } from "@/lib/review-copy";
@@ -85,9 +87,7 @@ const questions: InterviewQuestion[] = [
   { key: "physical_constraints", title: "Is there anything that could make work or training difficult?", hint: "Only share what you are comfortable sharing.", placeholder: "For example: cannot stand for long hours" },
 ];
 
-function Logo() {
- return <div className="brand"><span className="brand-icon"><Route size={23}/></span><div><strong>LEAP AI</strong><small>Livelihood pathways</small></div></div>;
-}
+function Logo() { return <LeapLogo />; }
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return <div className="eyebrow">{children}</div>;
@@ -168,6 +168,7 @@ function Shell({ state, onLogout, onSelectLocale, children }: { state: AppState;
           </div>
         )}
       </header>
+      {extraLocales.some(value=>value===locale) && <aside className="mx-auto max-w-[1200px] px-5 pt-4 text-sm leading-relaxed text-[#41526d]">{translateExtra(locale, "Language preview: key screens and interview prompts are translated. Some guidance remains in English. Voice availability depends on your browser; unfamiliar answers need confirmation.")}</aside>}
       <div id="main-content" tabIndex={-1}>{children}</div>
       <Toaster richColors position="top-right" />
     </div>
@@ -214,7 +215,7 @@ function LeapAppInner() {
           if (!(error instanceof ApiError) || error.status !== 404) throw error;
         }
       }
-      const locale = beneficiary?.preferred_language ? normalizeLocale(beneficiary.preferred_language) : getStoredLocale();
+      const locale = window.localStorage.getItem(LANGUAGE_STORAGE_KEY) ? getStoredLocale() : normalizeLocale(beneficiary?.preferred_language);
       setStoredLocale(locale);
       setState({ loading: false, signedIn: true, beneficiary, role: user.role, locale });
     } catch (error) {
@@ -295,12 +296,12 @@ function LanguageScreen({ onSelect }: { onSelect: (value: Locale) => void }) {
     <main className="mx-auto grid min-h-screen max-w-[760px] place-items-center px-5 py-12 sm:px-7">
       <div className="w-full rounded-[28px] border border-[#DDE3E5] bg-white p-6 shadow-[0_20px_60px_rgba(22,61,105,.08)] sm:p-8">
         <div className="mb-5 text-center">
-          <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-[#EEF3FA] text-[#071A3D]"><Route size={22} /></div>
+          <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-[#EEF3FA] text-[#071A3D]"><LeapMark className="h-12 w-12" /></div>
           <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#41526d]">LEAP AI</div>
           <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[#071A3D]">{t("language.choose", "en")}</h1>
           <p className="mt-3 text-sm leading-6 text-[#41526d]">{t("language.subtitle", "en")}</p>
         </div>
-        <div className="grid gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {languageOptions.map((option) => (
             <button
               key={option.value}
@@ -308,7 +309,7 @@ function LanguageScreen({ onSelect }: { onSelect: (value: Locale) => void }) {
               onClick={() => onSelect(option.value)}
               className="flex items-center justify-between rounded-2xl border border-[#DDE3E5] bg-[#FAFAF7] px-5 py-4 text-left text-lg font-semibold text-[#071A3D] transition hover:border-[#087647] hover:bg-[#edf3ff]"
             >
-              <span>{option.label}</span>
+              <span lang={option.value}>{option.label}<small className="ml-2 text-xs font-normal text-[#536175]">{option.name}</small></span>
               <ArrowRight size={18} />
             </button>
           ))}
@@ -615,7 +616,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 function Onboarding({ onCreated, locale, afterCreated }: { onCreated: () => Promise<void>; locale: Locale; afterCreated?: (id:number)=>void }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ name: "", age: "", gender: "", district: "", state: "", preferred_language: locale === "ta" ? "Tamil" : locale === "hi" ? "Hindi" : "English", digital_literacy: "LOW", consent_given: false });
+  const [form, setForm] = useState({ name: "", age: "", gender: "", district: "", state: "", preferred_language: languageOptions.find(option=>option.value===locale)!.name, digital_literacy: "LOW", consent_given: false });
   const update = (key: string, value: string | boolean) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const submit = async (event: FormEvent) => {
@@ -642,7 +643,7 @@ function Onboarding({ onCreated, locale, afterCreated }: { onCreated: () => Prom
           <Field label={t("onboarding.gender", locale)}><input value={form.gender} onChange={(e) => update("gender", e.target.value)} className="field" /></Field>
           <Field label={t("onboarding.district", locale)}><input required value={form.district} onChange={(e) => update("district", e.target.value)} className="field" placeholder={t("onboarding.district", locale)} /></Field>
           <Field label={words(locale,"State / Union territory","மாநிலம் / யூனியன் பிரதேசம்","राज्य / केंद्र शासित प्रदेश")}><input required value={form.state} onChange={(e) => update("state", e.target.value)} className="field" /></Field>
-          <Field label={t("onboarding.language", locale)}><select value={form.preferred_language} onChange={(e) => update("preferred_language", e.target.value)} className="field"><option>Tamil</option><option>Hindi</option><option>English</option></select></Field>
+          <Field label={t("onboarding.language", locale)}><select value={form.preferred_language} onChange={(e) => update("preferred_language", e.target.value)} className="field">{languageOptions.map(option=><option key={option.value} value={option.name}>{option.label}</option>)}</select></Field>
           <Field label={t("onboarding.digital", locale)}><select value={form.digital_literacy} onChange={(e) => update("digital_literacy", e.target.value)} className="field"><option value="LOW">{words(locale,"I need help","உதவி தேவை","मुझे मदद चाहिए")}</option><option value="MEDIUM">{words(locale,"Some experience","ஓரளவு அனுபவம்","थोड़ा अनुभव है")}</option><option value="HIGH">{words(locale,"Comfortable on my own","தனியாகப் பயன்படுத்துவேன்","खुद उपयोग कर सकता/सकती हूँ")}</option></select></Field>
           <label className="sm:col-span-2 flex items-start gap-3 rounded-xl border border-[#DDE3E5] bg-[#FAFAF7] p-4 text-sm leading-6 text-[#1e293b]"><input type="checkbox" checked={form.consent_given} onChange={(e) => update("consent_given", e.target.checked)} className="mt-1" /><span className="font-medium">{t("onboarding.consent", locale)}</span></label>
           <div className="sm:col-span-2 flex justify-end"><Button disabled={busy || !form.consent_given} size="lg">{busy && <Loader2 className="mr-2 animate-spin" size={16} />}{t("onboarding.button", locale)} <ArrowRight className="ml-2" size={17} /></Button></div>
@@ -668,7 +669,7 @@ type SpeechRecognitionWindow = Window & {
   webkitSpeechRecognition?: new () => SpeechRecognitionLike;
 };
 
-const localizedQuestionTitles: Record<Locale, Record<string, string>> = {
+const localizedQuestionTitles: Record<Locale, Record<string, string>> = extendLocales({
   en: Object.fromEntries(questions.map((question) => [question.key, question.title])),
   ta: {
     education_level: "நீங்கள் முடித்த அதிகபட்ச வகுப்பு அல்லது தகுதி என்ன?",
@@ -694,9 +695,9 @@ const localizedQuestionTitles: Record<Locale, Record<string, string>> = {
     family_responsibilities: "कौन से समय या जिम्मेदारियों को ध्यान में रखना चाहिए?",
     physical_constraints: "क्या कोई चीज काम या प्रशिक्षण को कठिन बना सकती है?",
   },
-};
+});
 
-const localizedQuestionHints: Record<Locale, Record<string, string>> = {
+const localizedQuestionHints: Record<Locale, Record<string, string>> = extendLocales({
   en: Object.fromEntries(questions.map(question => [question.key, question.hint])),
   ta: {
     education_level: "பயிற்சிக்கான தகுதியைச் சரிபார்க்க இது உதவுகிறது.",
@@ -722,7 +723,7 @@ const localizedQuestionHints: Record<Locale, Record<string, string>> = {
     family_responsibilities: "इससे अव्यावहारिक सुझावों से बचने में मदद मिलती है।",
     physical_constraints: "केवल वही साझा करें जिसे बताने में आप सहज हों।",
   },
-};
+});
 
 function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficiary; locale: Locale; onFinished?:()=>void }) {
   const router = useRouter();
@@ -785,7 +786,7 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
         question_key: question.key,
         question_text: localizedQuestionTitles[locale][question.key] || question.title,
         transcript: answer.trim(),
-        language: locale === "ta" ? "Tamil" : locale === "hi" ? "Hindi" : "English",
+        language: languageOptions.find(option=>option.value===locale)!.name,
         speech_confidence: null,
         extraction_confidence: null,
       });
@@ -856,7 +857,7 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
           <h2 className="mt-2 text-2xl font-semibold leading-9 tracking-[-0.025em] text-[#071A3D] sm:text-3xl">{localizedQuestionTitles[locale][question.key] || question.title}</h2>
           <p className="mt-3 text-sm font-medium leading-6 text-[#1e293b]">{localizedQuestionHints[locale][question.key] || question.hint}</p>
           <div className="mt-7">
-            <Textarea aria-label={localizedQuestionTitles[locale][question.key]} value={answer} onChange={(e) => setAnswer(e.target.value)} rows={5} placeholder={question.placeholder} className="resize-none rounded-2xl border-[#DDE3E5] bg-white p-4 text-base leading-7 font-medium text-[#071A3D]" />
+            <Textarea aria-label={localizedQuestionTitles[locale][question.key]} value={answer} onChange={(e) => setAnswer(e.target.value)} rows={5} placeholder={extraLocales.some(value=>value===locale) ? t("common.typeInstead", locale) : question.placeholder} className="resize-none rounded-2xl border-[#DDE3E5] bg-white p-4 text-base leading-7 font-medium text-[#071A3D]" />
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <button type="button" disabled={busy} aria-pressed={listening} onClick={listening ? stopListening : startListening} className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition ${listening ? "border-[#059669] bg-[#ecfdf5] text-[#065f46]" : "border-[#DDE3E5] bg-white text-[#071A3D] hover:bg-[#FAFAF7]"}`}>
                 <Mic size={17} /> {listening ? t("common.listening", locale) : t("interview.voice", locale)}

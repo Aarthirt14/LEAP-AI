@@ -264,3 +264,9 @@ textarea.field {min-height:6rem;font-weight:400;resize:vertical;}
 @media(max-width:700px){.livelihood-scene{height:auto;aspect-ratio:3/2;}.artwork-caption{font-size:11px;}}
 
 .story-visual-heading + .visual-question {margin-top:22px;}
+
+/* The original monogram remains legible at compact navigation sizes. */
+.brand-icon {background:transparent;box-shadow:none;border-radius:0;aspect-ratio:1;}
+.brand-icon img {display:block;object-fit:contain;}
+:lang(te), :lang(kn), :lang(ml), :lang(bn), :lang(gu), :lang(or) {letter-spacing:normal;}
+.leap-shell button, .leap-shell h1, .leap-shell h2 {overflow-wrap:anywhere;}

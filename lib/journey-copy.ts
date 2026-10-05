@@ -1,3 +1,4 @@
+import { extendLocales } from "./locales/extra";
 import type { Locale } from "./i18n";
 
 const en = {
@@ -61,7 +62,7 @@ const en = {
   "verified": "verified"
 };
 type JourneyCopy = Record<keyof typeof en, string>;
-export const journeyCopy: Record<Locale, JourneyCopy> = {
+export const journeyCopy: Record<Locale, JourneyCopy> = extendLocales({
   en,
   ta: {
   "savedExperience": "அனுபவம் சேமிக்கப்பட்டது. தயாரானதும் பாதைகளை மீண்டும் கணக்கிடுங்கள்.",
@@ -183,9 +184,9 @@ export const journeyCopy: Record<Locale, JourneyCopy> = {
   "yearUnit": "वर्ष",
   "verified": "सत्यापित"
 },
-};
+});
 
-const statuses: Record<Locale, Record<string, string>> = {
+const statuses: Record<Locale, Record<string, string>> = extendLocales({
   "en": {
     "UNKNOWN": "Not known",
     "EMPLOYED": "Employed",
@@ -231,7 +232,7 @@ const statuses: Record<Locale, Record<string, string>> = {
     "SYSTEM_VERIFIED": "सिस्टम द्वारा सत्यापित",
     "UNVERIFIED": "सत्यापित नहीं"
   }
-};
+});
 
 export function journeyStatus(value: string, locale: Locale) {
   return statuses[locale][value] ?? value;

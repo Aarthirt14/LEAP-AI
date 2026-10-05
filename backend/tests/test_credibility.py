@@ -163,3 +163,28 @@ def test_description_does_not_invent_aspiration_or_skill():
         text = _pathway_description(title, None, 0, 0)
         assert 'does not establish a strong skill or aspiration match' in text
         assert 'availability needs confirmation' in text
+
+
+@pytest.mark.parametrize('language,text', [
+    ('Telugu', 'తెలియని వృత్తి'), ('Kannada', 'ಅಪರಿಚಿತ ವೃತ್ತಿ'),
+    ('Malayalam', 'അറിയാത്ത തൊഴിൽ'), ('Marathi', 'अज्ञात व्यवसाय'),
+    ('Bengali', 'অজানা পেশা'), ('Gujarati', 'અજાણ્યો વ્યવસાય'),
+    ('Odia', 'ଅଜଣା ବୃତ୍ତି'),
+])
+def test_additional_language_preserves_answers_and_escalates_unknown_work(client, db, language, text):
+    b, headers = person(db)
+    response = client.post('/api/interviews', headers=headers, json={'beneficiary_id': b.id, 'language': language})
+    assert response.status_code == 201
+    sid = response.json()['id']
+    answer = client.post(f'/api/interviews/{sid}/answers', headers=headers, json={
+        'question_key': 'current_occupation', 'question_text': 'Work?', 'transcript': text,
+    })
+    assert answer.status_code == 201
+    preview = client.get(f'/api/interviews/{sid}/preview', headers=headers).json()
+    assert preview['answers'][0]['transcript'] == text
+    assert preview['answers'][0]['value'] == text
+    assert normalize_text(text)
+    q = {'id': 1, 'title': 'Tailoring', 'sector': 'Apparel', 'validity_status': 'VALID', 'competencies': []}
+    result = rank_pathways({'current_occupation': text, 'profile_completion_percentage': 100, 'education_verified': True, 'evidence_count': 3}, [], [q], {}, {})[0]
+    assert result['confidence'] == 'RED'
+    assert 'LANGUAGE_MAPPING_NEEDS_CONFIRMATION' in result['confidence_reasons']

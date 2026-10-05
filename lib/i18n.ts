@@ -1,9 +1,10 @@
-export const LOCALES = ["en", "ta", "hi"] as const;
+import { extendLocales, extraLanguageOptions } from "./locales/extra";
+export const LOCALES = ["en", "ta", "hi", "te", "kn", "ml", "mr", "bn", "gu", "or"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const LANGUAGE_STORAGE_KEY = "leap_language";
 
-export const translations = {
+export const translations = extendLocales({
   en: {
     language: {
       choose: "Choose your language",
@@ -256,12 +257,11 @@ export const translations = {
     worker: { title: "फील्ड वर्कर वर्कस्पेस", summaryAssigned: "निर्धारित लाभार्थी", assessmentsPending: "बकाया मूल्यांकन", followUpsDue: "अवधि खत्म होने वाले फॉलो-अप", reviewsNeeded: "समीक्षा आवश्यक", addBeneficiary: "+ लाभार्थी जोड़ें", startAssessment: "सहायक मूल्यांकन शुरू करें", reviewProfile: "प्रोफ़ाइल देखें", viewPathways: "रास्ते देखें", recordFollowup: "फॉलो-अप दर्ज करें", filters: "फ़िल्टर", all: "सभी", pending: "मूल्यांकन लंबित", ready: "रास्ता तैयार", due: "फॉलो-अप देय", tabs: "अवलोकन", overview: "अवलोकन", assessmentTab: "मूल्यांकन", profileTab: "प्रोफ़ाइल", skillsTab: "कौशल", pathwaysTab: "रास्ते", progressTab: "प्रगति", languageQuestion: "लाभार्थी को कौन सी भाषा सबसे अधिक सहज है?", beneficiaryLanguage: "लाभार्थी भाषा" },
     officer: { title: "जिला आजीविका अवलोकन", metrics: { assessed: "मूल्यांकित लाभार्थी", profiles: "पूर्ण प्रोफ़ाइल", pathways: "बनाए गए रास्ते", training: "शुरू किया गया प्रशिक्षण", outcomes90: "सकारात्मक 90-दिवसीय परिणाम", active180: "सक्रिय 180-दिवसीय परिणाम" }, notEnough: "अभी पर्याप्त प्रमाण नहीं हैं", coverage: "लाभार्थी कवरेज", aspirations: "शीर्ष आकांक्षाएँ", skills: "मौजूदा कौशल आधार", demand: "प्रशिक्षण मांग", capacity: "प्रशिक्षण क्षमता बनाम मांग", mismatch: "आजीविका मिसमैच रडार", outcomeTracking: "परिणाम ट्रैकिंग", humanReview: "मानवीय समीक्षा सारांश", status: { capacityGap: "क्षमता अंतर", balanced: "संतुलित", lowConversion: "कम रूपांतरण", oversupply: "अति आपूर्ति" } },
   },
-} as const;
+});
 
 export function normalizeLocale(value?: string | null): Locale {
-  if (value === "ta" || value === "தமிழ்") return "ta";
-  if (value === "hi" || value === "हिन्दी") return "hi";
-  return "en";
+  const normalized = value?.trim().toLowerCase().replaceAll("_", "-");
+  return languageOptions.find(option => [option.value, option.label.toLowerCase(), option.name.toLowerCase(), `${option.value}-in`].includes(normalized || ""))?.value || "en";
 }
 
 export function getStoredLocale(): Locale {
@@ -276,7 +276,7 @@ export function setStoredLocale(locale: Locale) {
 }
 
 export function getVoiceLocale(locale: Locale): string {
-  return locale === "ta" ? "ta-IN" : locale === "hi" ? "hi-IN" : "en-IN";
+  return `${locale}-IN`;
 }
 
 export function t(key: string, locale: Locale = "en"): string {
@@ -299,7 +299,8 @@ export function t(key: string, locale: Locale = "en"): string {
 }
 
 export const languageOptions = [
-  { value: "en", label: "English" },
-  { value: "ta", label: "தமிழ்" },
-  { value: "hi", label: "हिन्दी" },
+  { value: "en", label: "English", name: "English" },
+  { value: "ta", label: "தமிழ்", name: "Tamil" },
+  { value: "hi", label: "हिन्दी", name: "Hindi" },
+  ...extraLanguageOptions,
 ] as const;

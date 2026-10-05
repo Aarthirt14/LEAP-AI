@@ -1,3 +1,4 @@
+import { extendLocales } from "./locales/extra";
 import type { Locale } from "./i18n";
 
 const en = {
@@ -15,7 +16,7 @@ const en = {
 };
 type ReviewCopy = { [Key in keyof typeof en]: Key extends "statuses" ? Record<keyof typeof en.statuses, string> : string };
 
-export const reviewCopy: Record<Locale, ReviewCopy> = {
+export const reviewCopy: Record<Locale, ReviewCopy> = extendLocales({
   en,
   ta: {
     workspace: "வழிகாட்டுநர் பணித்தளம்", title: "தெளிவற்ற பதிவுகளை விரிவாகப் பாருங்கள்",
@@ -43,4 +44,4 @@ export const reviewCopy: Record<Locale, ReviewCopy> = {
     saved: "समीक्षा सहेजी गई", saveError: "समीक्षा सहेजी नहीं जा सकी", pages: "समीक्षा पृष्ठ", previous: "पिछला", next: "अगला", page: "पृष्ठ", of: "/",
     evidence: "रास्ते के प्रमाण", closeEvidence: "प्रमाण बंद करें", unverified: "उपलब्धता सत्यापित नहीं है",
   },
-};
+});

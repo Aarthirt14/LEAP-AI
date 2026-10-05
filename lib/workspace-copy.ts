@@ -1,3 +1,4 @@
+import { extendLocales } from "./locales/extra";
 import type { Locale } from "./i18n";
 
 const en = {
@@ -38,7 +39,7 @@ const en = {
 
 type WorkspaceCopy = { [Key in keyof typeof en]: string };
 
-export const workspaceCopy: Record<Locale, WorkspaceCopy> = {
+export const workspaceCopy: Record<Locale, WorkspaceCopy> = extendLocales({
   en,
   ta: {
     worker: "களப்பணியாளர் பணித்தளம்",
@@ -110,4 +111,4 @@ export const workspaceCopy: Record<Locale, WorkspaceCopy> = {
     missing: "खाली मान का अर्थ है कि डेटा लोड नहीं हो सका। शून्य का अर्थ है कि कोई संबंधित रिकॉर्ड नहीं मिला।",
     counts: "हर माप लाभार्थियों की संख्या है, फ़ॉलो-अप प्रविष्टियों की नहीं। पंजीकरण का अर्थ यह नहीं कि मूल्यांकन या प्रोफ़ाइल पूरी है।",
   },
-};
+});

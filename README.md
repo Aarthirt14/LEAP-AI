@@ -1,295 +1,203 @@
-# LEAP AI
+<p align="center"><img src="public/leap-mark.svg" width="88" alt="LEAP AI logo"></p>
 
+# LEAP AI
 ### Livelihood Enablement through AI Pathways
 
-LEAP AI is a voice-first livelihood decision-support platform for helping people discover practical education, training, and income pathways that fit their real circumstances.
+**Understand the person’s full situation before suggesting a livelihood pathway.**
 
-The platform combines lived experience, existing skills, aspirations, qualification data, local training access, mobility, family responsibilities, and outcome evidence into recommendations that are explainable, auditable, and reviewable by people.
+LEAP AI is a decision-support prototype for **PM-AJAY, PS 26097**. It connects informal work experience, skills, aspirations, education, mobility, family responsibilities and practical constraints to explainable livelihood options. A person’s current occupation does not define their future.
 
-> **Core principle:** AI may assist with conversation and explanation, but it never makes the final livelihood decision. Pathway ranking is produced by deterministic backend engines using stored evidence and explicit rules.
+LEAP goes beyond matching a voice answer to a course: it shows the evidence behind each pathway, possible Recognition of Prior Learning (RPL), missing competencies, confidence reasons and where a human must review the case. The beneficiary and their human support team retain the final decision.
 
-## Why LEAP AI
+## Open the application
 
-Many livelihood systems treat informal experience and personal constraints as secondary details. LEAP AI treats them as decision-critical evidence.
+| Link | What to expect |
+| --- | --- |
+| [Production website](https://leap-ai-khaki.vercel.app/) | Current stable release. The redesign below is awaiting a coordinated frontend/backend release. |
+| [Redesign and role demos](https://leap-ai-git-redesign-leap-ui-v2-aarthiii333-9025s-projects.vercel.app/demo) | Latest redesign on `redesign/leap-ui-v2`. Vercel Preview protection may require project access. |
+| [Release pull request](https://github.com/Aarthirt14/LEAP-AI/pull/5) | Review the changes before merging to production `main`. |
 
-- **Voice-first assessment** with text fallback for accessible beneficiary interviews
-- **Multilingual entry experience** with English, Tamil, and Hindi support
-- **Transparent recommendations** with evidence, scores, constraints, and confidence reasons
-- **Recognition of Prior Learning** analysis based on matched and missing competencies
-- **What-if simulation** for interventions such as nearby training or bridge courses
-- **Human review workflow** for RED-confidence or uncertain recommendations
-- **Role-specific workspaces** for beneficiaries, field workers, facilitators, district officers, and administrators
-- **Aggregate district intelligence** for demand, training capacity, mismatch, and outcomes
+**Demo access:** open the redesign link and choose Beneficiary, Field worker, Facilitator, District officer or Administrator. No LEAP email/password is needed. All demo records are fictional, marked read-only, and stored in a frontend snapshot. Public demo sessions confer no backend permissions. Saving, interview submission, approval and outcome reporting require a real account; these actions never mutate live data in a demo.
 
-## Product Flow
+## The problem LEAP addresses
 
-```text
-Language selection
-        |
-        v
-Beneficiary profile and voice assessment
-        |
-        v
-Skills, constraints, aspirations, and RPL evidence
-        |
-        v
-Deterministic pathway ranking
-        |
-        +--> Explainability and what-if simulation
-        +--> Human review for low-confidence cases
-        +--> Training, follow-up, and outcome tracking
+A useful livelihood suggestion needs more than a qualification and a list of courses. Someone may have years of informal tailoring experience, want to grow a home enterprise, have limited travel options and need to work around caregiving. Ignoring any one of those details can make a technically eligible option impractical.
+
+LEAP asks about the person’s situation first, separates confirmed answers from verified evidence, and identifies the uncertainties that still need a field worker, facilitator or training provider.
+
+## How the solution works
+
+1. **Listen and capture:** a structured interview accepts text and browser-supported speech. Informal experience, aspirations, family work, work preference, mobility, investment and constraints are recorded.
+2. **Review and confirm:** extracted facts remain drafts until the beneficiary reviews or corrects them and confirms the current preview. Original transcripts are preserved. Confirmation does not make a fact independently verified.
+3. **Compare practical pathways:** deterministic engines apply qualification validity, eligibility, aspiration, skills, constraints and available evidence. Synthetic availability does not receive verified opportunity credit.
+4. **Explain uncertainty:** pathway details show score components, evidence provenance, potential RPL and interventions. RED-confidence options remain pending human review; closing a case alone does not approve it.
+5. **Support the next step:** field workers assist assessments and follow-ups; facilitators review uncertain cases; officers view aggregate recorded activity. Reported outcomes are not advertised as verified placements.
+
+```mermaid
+flowchart TD
+    A[Experience, aspirations and constraints] --> B[Review and confirm facts]
+    B --> C[Deterministic pathway and RPL engines]
+    C --> D[Evidence, confidence and human review]
+    D --> E[Beneficiary choice and outcome follow-up]
 ```
 
-## Role Workspaces
+## Screenshots
 
-| Role | Route | Purpose |
+These are captures of the running redesign, not mockups. Role screenshots show **synthetic read-only data**. The landing artwork depicts fictional people, not actual beneficiaries.
+
+### Landing page and original LEAP identity
+
+![Telugu landing page with original LEAP logo](docs/visual-checks/telugu-logo-desktop.jpg)
+
+### Explore all five roles
+
+![Role demo chooser](docs/visual-checks/demo-roles.jpg)
+
+### Beneficiary profile and pathway evidence
+
+![Beneficiary profile using synthetic records](docs/visual-checks/demo-profile.jpg)
+
+![Pathway evidence and pending human review](docs/visual-checks/demo-pathway.jpg)
+
+### Field support and human review
+
+![Field worker sample worklist](docs/visual-checks/demo-field-worker.jpg)
+
+![Facilitator review workspace](docs/visual-checks/demo-review.jpg)
+
+### Aggregate recorded activity
+
+![District officer demo dashboard](docs/visual-checks/demo-officer.jpg)
+
+## Role workspaces
+
+| Role | Screens | Purpose |
 | --- | --- | --- |
-| Beneficiary | `/` | Complete an assessment, review skills, explore pathways, and understand recommendations |
-| Field worker | `/field-worker` | Manage beneficiary worklists, assisted assessments, profiles, and follow-ups |
-| Facilitator | `/review` | Inspect and resolve low-confidence human-review cases |
-| District officer | `/officer` | View calculated district aggregates, demand, mismatch, and outcomes |
-| Admin | `/admin` | Access system diagnostics and authorized operational views |
+| Beneficiary | `/`, `/onboarding`, `/interview`, `/profile`, `/pathways`, `/pathway`, `/progress` | Confirm their story, inspect options and record follow-up. |
+| Field worker | `/field-worker` | Assisted assessments, profiles, pathways and follow-up. |
+| Facilitator | `/review` | Inspect evidence and record review decisions. |
+| District officer | `/officer` | Aggregate recorded counts with explicit scope/verification limitations. |
+| Administrator | `/admin` | Catalogue and review diagnostics. |
 
-## Architecture
+Public registration creates beneficiary accounts only. Real staff roles require authorized provisioning. The public administrator demo is only a sample screen, not administrative access.
 
-```text
-Next.js / React frontend
-        |
-        v
-FastAPI REST API + JWT authentication + role permissions
-        |
-        v
-SQLAlchemy models and services
-        |
-        +--> RPL engine
-        +--> constraint engine
-        +--> aspiration guard
-        +--> deterministic pathway engine
-        +--> confidence engine
-        +--> outcome evidence and mismatch services
-        |
-        v
-SQLite for local development / PostgreSQL for deployment
-```
+### Sample administrator diagnostics
 
-### Decision safety boundary
+![Read-only sample administrator diagnostics](docs/visual-checks/demo-admin.jpg)
 
-The backend keeps conversational assistance separate from decision logic:
+## Languages and accessibility
 
-- The **RPL engine** estimates competency overlap and labels potential candidates. It does not grant official certification.
-- The **constraint engine** identifies hard failures and explainable soft penalties.
-- The **pathway engine** applies one configured scoring model and returns up to three valid routes.
-- The **confidence engine** produces GREEN, AMBER, or RED confidence with explicit reasons.
-- The **outcome evidence service** refuses to fabricate historical evidence below the configured sample threshold.
-- The **intervention service** runs non-persistent what-if simulations without modifying the beneficiary profile.
+- English, Tamil and Hindi interfaces; **seven additional language previews:** Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati and Odia.
+- Each new language has 129 translated messages covering key controls, consent, and all ten interview questions and hints. Longer guidance and some staff copy remain English; this is disclosed in the app. Native-speaker review is outstanding.
+- Browser speech recognition receives the chosen language tag. Actual availability depends on the browser/provider and device. Dialect coverage has not been validated; typing remains available.
+- Raw Unicode answers are preserved. Unknown work descriptions require confirmation/human review, rather than invented skill matches. Language selection never sets geographic state.
+- Responsive layouts, keyboard focus, accessible labels and reduced-motion support. Actual screen-reader and field usability validation remain outstanding.
 
-## Technology Stack
+See [language and demo implementation notes](docs/LANGUAGES_AND_DEMOS.md).
 
-### Frontend
+## AI assistance and the decision boundary
 
-- Next.js 16 and React 19
-- TypeScript 5.9
-- Tailwind CSS 4
-- Lucide icons
-- Sonner notifications
+The optional OpenAI integration clarifies one answer only after explicit consent. It is disabled by default, uses `store: false`, keeps the original answer, and returns a suggestion that still needs review and confirmation. Timeouts or provider errors preserve the manual workflow.
 
-### Backend
+**An LLM does not rank pathways, certify skills, verify evidence or decide someone’s livelihood.** Ranking remains deterministic and inspectable. Optional AI provider access and multilingual semantic accuracy need separate live validation. See [AI setup and limitations](docs/AI_INTERVIEW_SETUP.md).
 
-- Python 3.12+
-- FastAPI
-- SQLAlchemy 2
-- Pydantic 2
-- Alembic
-- SQLite for local development and tests
-- PostgreSQL support for deployment
-- JWT authentication with Argon2 password hashing
+## What is implemented—and what is not
 
-### Testing
+| Area | Current status |
+| --- | --- |
+| Interview confirmation, provenance, date-based qualification validity, RED review gating | Implemented with backend regression tests. |
+| RPL | Competency comparison and potential routes; **not official certification**. |
+| Local opportunities and training | Provenance-aware records; **no verified live district-wide availability feed**. Synthetic centres, seats and distances need confirmation. |
+| Official NQR / NSQF / QP / NOS grounding | Import/normalization foundations; current authoritative catalogue validation is still needed. No claim of a live official integration. |
+| Outcomes | Recorded follow-ups and aggregates; not independently verified placement rates. |
+| Low connectivity | Text fallback and current-page unsent-answer retention; **no complete offline/PWA sync**. |
+| WhatsApp / IVR | Future integration work, not working adapters. |
+| Staff authorization | Existing role controls. Explicit worker assignment policy and comprehensive district scoping remain separate backend tasks. |
 
-- Pytest
-- FastAPI `TestClient`
-- TypeScript compiler
-- Next.js production build
+The [PS acceptance checklist](docs/PS_26097_REQUIREMENTS.md) records requirement gaps. This prototype does **not** yet satisfy every PS requirement or constitute a field-validated production service.
 
-## Repository Layout
+## Technology
 
-```text
-LEAP-AI/
-├── app/                  # Next.js App Router pages
-├── components/           # Shared frontend shell and UI components
-├── lib/                  # API client and translations
-├── public/               # Static frontend assets
-├── backend/
-│   ├── app/              # FastAPI routes, engines, services, models
-│   ├── alembic/          # Database migrations
-│   ├── seed/             # Demo and reference-data seed commands
-│   └── tests/             # Backend regression and integration tests
-├── scripts/              # Local build and framework helpers
-└── package.json          # Frontend scripts and dependencies
-```
+- **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS, Lucide.
+- **Backend:** Python, FastAPI, SQLAlchemy, Pydantic, Alembic.
+- **Data:** SQLite for local/demo use; PostgreSQL driver support. Database choice alone does not provide persistence or operational readiness.
+- **Authentication:** JWT access/refresh tokens, Argon2 password hashing and server-side role checks.
+- **Engines:** constraints, qualification validity, aspiration matching, RPL, deterministic ranking, confidence and outcome evidence.
 
-## Quick Start
+## Run locally
 
-### Prerequisites
+Prerequisites: Node.js >=22.13, pnpm 11+, Python 3.12+.
 
-- Node.js `>=22.13`
-- Python `3.12+`
-- pnpm `11+` or the repository's existing installed dependencies
-
-### 1. Start the backend
-
-Windows PowerShell:
-
-```powershell
-cd backend
-py -3.12 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-Copy-Item .env.example .env
-python -m alembic upgrade head
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
-
-Linux/macOS:
+Backend, from the repository root:
 
 ```bash
 cd backend
-python3.12 -m venv .venv
-source .venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env
+cp .env.example .env      # PowerShell: Copy-Item .env.example .env
 python -m alembic upgrade head
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Backend endpoints:
-
-- Health: http://127.0.0.1:8000/health
-- Swagger UI: http://127.0.0.1:8000/docs
-- OpenAPI JSON: http://127.0.0.1:8000/openapi.json
-
-### 2. Start the frontend
-
-From the repository root:
+Frontend, in a second terminal at the repository root:
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Open http://localhost:3000.
+Open `http://localhost:3000`. `/demo` works without the backend. Real workflows use `NEXT_PUBLIC_API_URL`, defaulting to `http://localhost:8000`. API documentation is at `http://127.0.0.1:8000/docs`.
 
-The frontend uses `NEXT_PUBLIC_API_URL` when provided and otherwise defaults to `http://localhost:8000`.
-
-### 3. Run checks
-
-Frontend:
+## Verify changes
 
 ```bash
+node scripts/check-localization.mjs
+node scripts/check-demo.mjs
 pnpm exec tsc --noEmit
 pnpm build
-```
-
-Backend:
-
-```bash
 cd backend
 python -m pytest -q
 ```
 
-## Local Demo Mode
+Latest backend run: **92 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
 
-Demo accounts and synthetic presentation data are disabled by default. Enable them only in a local or controlled demo environment:
+Regenerate the public synthetic snapshot locally:
 
-```powershell
+```bash
 cd backend
-$env:DEMO_MODE="true"
-python -m alembic upgrade head
-python -m seed.seed_data
+python -m seed.export_public_demo
 ```
 
-To reset only demo records and recreate them deterministically:
+This command creates a temporary database, runs the existing synthetic seed and deterministic engine, and exports selected GET responses to `lib/demo-snapshot.json`. It never exports passwords, password hashes or tokens. Do not replace this fixture with real beneficiary records.
 
-```powershell
-python -m seed.seed_data --reset
-```
+## Deployment and configuration
 
-### Demo accounts
+Both production services follow `main`:
 
-All demo accounts use the password `LeapDemo@2026`.
+- Frontend: `https://leap-ai-khaki.vercel.app`
+- Backend: `https://leap-ai-l6n2.onrender.com`
 
-| Role | Email |
+Development and Preview use `redesign/leap-ui-v2`. A merge can deploy **both** services. Coordinate migrations, persistent database storage, server secrets, frontend API configuration and CORS before releasing. The redesigned interview requires its matching backend endpoints.
+
+| Setting | Purpose |
 | --- | --- |
-| Beneficiary | `beneficiary.demo@demo.leapai.dev` |
-| Field worker | `fieldworker.demo@demo.leapai.dev` |
-| Facilitator | `facilitator.demo@demo.leapai.dev` |
-| District officer | `officer.demo@demo.leapai.dev` |
-| Admin | `admin.demo@demo.leapai.dev` |
+| `NEXT_PUBLIC_API_URL` | Frontend API base URL; public configuration, never a secret. |
+| `DATABASE_URL` | Backend database connection. |
+| `JWT_SECRET`, `SECRET_KEY` | Server-only, non-default secrets. Production startup rejects defaults/short values. |
+| `FRONTEND_URL` | Explicit allowed frontend origins. |
+| `DEMO_MODE` | Keep **false** on live services. Public read-only tours do not need it. |
+| `AI_INTERVIEW_ENABLED`, `OPENAI_API_KEY`, `OPENAI_INTERVIEW_MODEL` | Optional server-only answer assistance; see setup document. Never put the API key in client variables. |
 
-When `DEMO_MODE=true`, `/auth` displays transparent role buttons that auto-fill the appropriate local demo credentials. The frontend does not show these controls when demo mode is disabled.
+The redesign Preview has an isolated same-origin relay to its staging backend. The relay does not change production routing or authentication. Staging SQLite records are disposable and may disappear on restart; they are not production data.
 
-### Seeded presentation scenario
+## Documentation
 
-The demo seed creates:
-
-- Meena, a 34-year-old Tamil-speaking beneficiary from Madurai
-- Tailoring, measurement, and garment-repair experience
-- Tailoring qualification competencies for RPL evidence
-- Local training opportunities with realistic distance barriers
-- Engine-generated pathways and explainability evidence
-- A low-confidence review case for facilitator inspection
-- Field-worker worklist, pending assessment, and follow-up records
-- Outcome records used by district aggregate dashboards
-
-All scores are generated by backend logic. Seed data is synthetic and must not be presented as official PM-AJAY, NQR, or employment evidence.
-
-## Configuration
-
-Backend settings are read from environment variables or `backend/.env`.
-
-Important settings:
-
-| Variable | Default | Description |
-| --- | --- | --- |
-| `DATABASE_URL` | `sqlite:///./leap_ai.db` | Database connection string |
-| `JWT_SECRET` | development value | Secret used to sign JWTs; replace outside local development |
-| `SECRET_KEY` | development value | Application secret; replace outside local development |
-| `FRONTEND_URL` | localhost origins | Comma-separated CORS origins |
-| `DEMO_MODE` | `false` | Enables local demo seed and demo login controls |
-| `MINIMUM_OUTCOME_SAMPLES` | `20` | Minimum sample size for historical outcome evidence |
-
-Never enable `DEMO_MODE` in production unless the environment is explicitly isolated for a controlled presentation.
-
-## Testing Scope
-
-The backend suite covers:
-
-- Deterministic ranking and confidence escalation
-- RPL and aspiration safeguards
-- Invalid and expired qualification handling
-- Constraint and mobility behavior
-- Immutable what-if simulations
-- Outcome aggregation and evidence thresholds
-- Beneficiary consent and access isolation
-- Field-worker, facilitator, officer, and admin permissions
-- Aggregate-only district officer access
-- Integration journey from assessment to pathway and outcome
-
-## Security and Data Principles
-
-- Passwords are hashed with Argon2 and are never stored in plaintext.
-- Public registration can create beneficiary accounts only.
-- Privileged roles are provisioned administratively or through controlled demo seeding.
-- Beneficiary access is restricted to authorized records.
-- District officer endpoints return aggregates rather than sensitive beneficiary details.
-- Original interview transcripts remain preserved when corrections are added.
-- Synthetic records are marked as synthetic or unverified.
-- Demo reset is CLI-only; no public destructive reset API is exposed.
-
-## Project Status
-
-This repository contains a functional prototype suitable for local evaluation and presentation. Production deployment still requires environment-specific secrets, infrastructure configuration, operational monitoring, data governance review, and validated real-world reference data.
-
-## License
+- [Production release prerequisites](docs/PRODUCTION_RELEASE.md)
+- [Milestone report and visual checks](docs/UI_V2_MILESTONE_REPORT.md)
+- [Credibility safeguards](docs/MILESTONE_1_5.md)
+- [Problem-statement acceptance checklist](docs/PS_26097_REQUIREMENTS.md)
+- [AI interview setup](docs/AI_INTERVIEW_SETUP.md)
+- [Language previews and public demos](docs/LANGUAGES_AND_DEMOS.md)
 
 No license is currently declared in this repository.

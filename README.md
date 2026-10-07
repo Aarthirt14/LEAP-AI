@@ -184,6 +184,14 @@ python -m seed.export_public_demo
 
 This command creates a temporary database, runs the existing synthetic seed and deterministic engine, and exports selected GET responses to `lib/demo-snapshot.json`. It never exports passwords, password hashes or tokens. Do not replace this fixture with real beneficiary records.
 
+## Alternative qualification entry routes
+
+The profile accepts optional **qualification-specific** prior NSQF levels, relevant experience and NTC/NAC/CITS certificates. LEAP evaluates alternative routes from two reviewed NQR records using OR between routes and AND within each route. A two-year NTC also counts as an NTC; an unspecified NTC does not establish a two-year qualification.
+
+Blank means unknown; zero experience and an explicitly empty certificate list mean none reported. Experience for one qualification cannot establish eligibility for another. These are self-reported facts, never verified admission decisions. Save details in **My profile**, then recalculate pathways. Provider confirmation and human review remain required; local batches, seats and fees are unverified.
+
+Release requires database migrations and an authorized NQR catalogue import. See [eligibility release checks](docs/ELIGIBILITY_RELEASE.md). This implementation is tracked in [PR #6](https://github.com/Aarthirt14/LEAP-AI/pull/6); it is not yet verified on production.
+
 ## Deployment and configuration
 
 The public application is consolidated at **https://leap-ai-khaki.vercel.app**. Production code lives on `main`; branch previews are for development only.

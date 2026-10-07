@@ -25,7 +25,14 @@ export type Beneficiary = {
   version: number;
 };
 
+export type QualificationEligibilityFacts = {
+  previous_nsqf_level: number | null;
+  relevant_experience_years: number | null;
+  certificates: ("NTC" | "NAC" | "CITS" | "NTC_2_YEAR")[] | null;
+};
+
 export type Profile = {
+  eligibility_facts?: Record<string, QualificationEligibilityFacts> | null;
   id: number;
   beneficiary_id: number;
   education_level: string | null;

@@ -10,6 +10,7 @@ def _profile_dict(beneficiary: Beneficiary) -> dict:
     profile = beneficiary.profile
     skills = beneficiary.skills
     return {
+        "eligibility_facts": profile.eligibility_facts if profile else None,
         "education_level": profile.education_level if profile else None,
         "current_occupation": profile.current_occupation if profile else None,
         "family_occupation": profile.family_occupation if profile else None,
@@ -47,7 +48,7 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
     qualifications = db.execute(select(Qualification).options(selectinload(Qualification.competencies))).scalars().all()
     trainings = db.execute(select(TrainingOpportunity).where(TrainingOpportunity.district == beneficiary.district)).scalars().all()
     training_map = {t.qualification_id: {"distance_km": t.distance_km, "seats_available": t.seats_available, "verification_status": t.verification_status.value, "source_type": t.source_type.value, "provider_name": t.provider_name} for t in trainings}
-    q_data = [{"source_metadata": q.source_metadata, "source_type": q.source_type.value, "id": q.id, "title": q.occupational_role, "sector": q.sector, "validity_status": q.validity_status.value, "valid_from": q.valid_from, "valid_until": q.valid_until, "minimum_education": q.minimum_education, "minimum_experience_years": q.minimum_experience_years, "duration_hours": q.duration_hours, "competencies": [{"name": c.competency_name, "weight": c.weight} for c in q.competencies]} for q in qualifications]
+    q_data = [{"qualification_code": q.qualification_code, "source_metadata": q.source_metadata, "source_type": q.source_type.value, "id": q.id, "title": q.occupational_role, "sector": q.sector, "validity_status": q.validity_status.value, "valid_from": q.valid_from, "valid_until": q.valid_until, "minimum_education": q.minimum_education, "minimum_experience_years": q.minimum_experience_years, "duration_hours": q.duration_hours, "competencies": [{"name": c.competency_name, "weight": c.weight} for c in q.competencies]} for q in qualifications]
     skill_data = [{"name": s.skill.name, "experience_years": s.experience_years, "verified": s.verified} for s in beneficiary.skills]
     ranked = rank_pathways(_profile_dict(beneficiary), skill_data, q_data, training_map, qualification_evidence_scores(db), gender=beneficiary.gender)
     db.execute(delete(LivelihoodPathway).where(LivelihoodPathway.beneficiary_id == beneficiary_id, LivelihoodPathway.status == PathwayStatus.PROPOSED))

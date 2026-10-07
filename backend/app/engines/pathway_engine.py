@@ -18,7 +18,11 @@ def rank_pathways(profile: dict, skills: list[dict], qualifications: list[dict],
     for q in valid:
         metadata = q.get("source_metadata") or {}
         official = q.get("source_type") == "NQR"
-        eligibility_result = evaluate_eligibility(profile, metadata.get("eligibility_rules")) if official or metadata.get("eligibility_rules") is not None else None
+        scoped_facts = (profile.get("eligibility_facts") or {}).get(q.get("qualification_code"), {})
+        eligibility_profile = {"education_level": profile.get("education_level"), **scoped_facts}
+        if "NTC_2_YEAR" in (eligibility_profile.get("certificates") or []):
+            eligibility_profile["certificates"] = [*eligibility_profile["certificates"], "NTC"]
+        eligibility_result = evaluate_eligibility(eligibility_profile, metadata.get("eligibility_rules")) if official or metadata.get("eligibility_rules") is not None else None
         if eligibility_result and eligibility_result["status"] == "NOT_ELIGIBLE":
             continue
         if official:

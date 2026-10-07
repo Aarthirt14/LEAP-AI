@@ -53,7 +53,9 @@ def delete_beneficiary(beneficiary_id: int, db: Session = Depends(get_db), user:
 
 @router.post("/{beneficiary_id}/profile", response_model=ProfileOut, description="Create the beneficiary's one active livelihood profile.")
 def create_profile(beneficiary_id: int, payload: ProfileData, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    assert_beneficiary_access(db, user, beneficiary_id, True)
+    beneficiary = assert_beneficiary_access(db, user, beneficiary_id, True)
+    if payload.eligibility_facts and not beneficiary.consent_given:
+        raise AppError("CONSENT_REQUIRED", "Consent is required to record eligibility details.", 422)
     if db.execute(select(Beneficiary).where(Beneficiary.id == beneficiary_id)).scalar_one().profile:
         raise AppError("PROFILE_EXISTS", "This beneficiary already has an active profile.", 409)
     row = upsert_profile(db, beneficiary_id, payload.model_dump()); record_audit(db, user.id, "CREATE", "LivelihoodProfile", row.id, after=payload.model_dump(mode="json")); db.commit(); db.refresh(row); return row
@@ -68,7 +70,10 @@ def get_profile(beneficiary_id: int, db: Session = Depends(get_db), user: User =
 
 @router.patch("/{beneficiary_id}/profile", response_model=ProfileOut, description="Patch profile evidence without changing original interview transcripts.")
 def patch_profile(beneficiary_id: int, payload: ProfileData, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    assert_beneficiary_access(db, user, beneficiary_id, True); row = upsert_profile(db, beneficiary_id, payload.model_dump(exclude_unset=True)); record_audit(db, user.id, "UPDATE", "LivelihoodProfile", row.id, after=payload.model_dump(exclude_unset=True, mode="json")); db.commit(); db.refresh(row); return row
+    beneficiary = assert_beneficiary_access(db, user, beneficiary_id, True)
+    if payload.eligibility_facts and not beneficiary.consent_given:
+        raise AppError("CONSENT_REQUIRED", "Consent is required to record eligibility details.", 422)
+    row = upsert_profile(db, beneficiary_id, payload.model_dump(exclude_unset=True)); record_audit(db, user.id, "UPDATE", "LivelihoodProfile", row.id, after=payload.model_dump(exclude_unset=True, mode="json")); db.commit(); db.refresh(row); return row
 
 
 @router.post("/{beneficiary_id}/skills", response_model=SkillOut, status_code=201, description="Add a skill and its provenance to a beneficiary.")

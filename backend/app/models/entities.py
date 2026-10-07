@@ -54,6 +54,7 @@ class LivelihoodProfile(TimestampMixin, Base):
     __tablename__ = "livelihood_profiles"
     id: Mapped[int] = mapped_column(primary_key=True)
     beneficiary_id: Mapped[int] = mapped_column(ForeignKey("beneficiaries.id", ondelete="CASCADE"), unique=True)
+    eligibility_facts: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     education_level: Mapped[str | None] = mapped_column(String(100))
     current_occupation: Mapped[str | None] = mapped_column(String(160))
     family_occupation: Mapped[str | None] = mapped_column(String(160))

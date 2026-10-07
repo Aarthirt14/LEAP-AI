@@ -1,6 +1,6 @@
 from datetime import datetime, time
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from app.models.enums import (
     ConfidenceLevel, EmploymentStatus, InterventionType, PathwayStatus,
@@ -87,7 +87,25 @@ class BeneficiaryOut(ORMModel):
     version: int
 
 
+class QualificationEligibilityFacts(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    previous_nsqf_level: float | None = Field(default=None, ge=0, le=8, multiple_of=0.5, allow_inf_nan=False)
+    relevant_experience_years: float | None = Field(default=None, ge=0, le=80, allow_inf_nan=False)
+    certificates: list[Literal["NTC", "NAC", "CITS", "NTC_2_YEAR"]] | None = Field(default=None, max_length=4)
+
+
 class ProfileData(BaseModel):
+    # Each record describes experience/certificates relevant to that qualification only.
+    eligibility_facts: dict[str, QualificationEligibilityFacts] | None = Field(default=None, max_length=100)
+
+    @field_validator("eligibility_facts")
+    @classmethod
+    def validate_qualification_keys(cls, value):
+        import re
+        if value and any(not re.fullmatch(r"NQR:[0-9]{1,12}", key) for key in value):
+            raise ValueError("Eligibility facts must use NQR registry keys, for example NQR:11689")
+        return value
+
     education_level: str | None = None
     current_occupation: str | None = None
     family_occupation: str | None = None

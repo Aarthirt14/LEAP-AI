@@ -19,6 +19,12 @@ LEAP goes beyond matching a voice answer to a course: it shows the evidence behi
 
 **Demo access:** open the role-demo link and choose Beneficiary, Field worker, Facilitator, District officer or Administrator. No LEAP email/password is needed. All demo records are fictional, marked read-only, and stored in a frontend snapshot. Public demo sessions confer no backend permissions. Saving, interview submission, approval and outcome reporting require a real account; these actions never mutate live data in a demo.
 
+## Official qualification reference catalogue
+
+The `/qualifications` page contains two real NQR references reviewed on 7 October 2026: Solar PV Installer–Electrical and Electric Vehicle Service Technician. Each preserves alternative entry routes, duration, NSQF level, source link and published validity. It marks expired or overdue-for-review records. This is a manually maintained reference snapshot, not a live government feed or a list of available batches. A dry-run-first database importer connects these references to ranking after an explicit import. Structured rules preserve alternative entry routes and distinguish matching reported facts, missing evidence and failed conditions. Uncollected prior qualifications, certificates and relevant experience stay unknown. Production import is pending.
+
+See [source and import notes](docs/NQR_REFERENCE_CATALOGUE.md).
+
 ## The problem LEAP addresses
 
 A useful livelihood suggestion needs more than a qualification and a list of courses. Someone may have years of informal tailoring experience, want to grow a home enterprise, have limited travel options and need to work around caregiving. Ignoring any one of those details can make a technically eligible option impractical.
@@ -96,6 +102,7 @@ Public registration creates beneficiary accounts only. Real staff roles require 
 - English, Tamil and Hindi interfaces; **seven additional language previews:** Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati and Odia.
 - Each new language has 129 translated messages covering key controls, consent, and all ten interview questions and hints. Longer guidance and some staff copy remain English; this is disclosed in the app. Native-speaker review is outstanding.
 - Browser speech recognition receives the chosen language tag. Actual availability depends on the browser/provider and device. Dialect coverage has not been validated; typing remains available.
+- Interview questions and hints can be read aloud on request when the device has a matching language voice; missing voices are disclosed. Speech quality still requires device and speaker testing.
 - Raw Unicode answers are preserved. Unknown work descriptions require confirmation/human review, rather than invented skill matches. Language selection never sets geographic state.
 - Responsive layouts, keyboard focus, accessible labels and reduced-motion support. Actual screen-reader and field usability validation remain outstanding.
 
@@ -116,7 +123,7 @@ The optional OpenAI integration clarifies one answer only after explicit consent
 | Local opportunities and training | Provenance-aware records; **no verified live district-wide availability feed**. Synthetic centres, seats and distances need confirmation. |
 | Official NQR / NSQF / QP / NOS grounding | Import/normalization foundations; current authoritative catalogue validation is still needed. No claim of a live official integration. |
 | Outcomes | Recorded follow-ups and aggregates; not independently verified placement rates. |
-| Low connectivity | Text fallback and current-page unsent-answer retention; **no complete offline/PWA sync**. |
+| Low connectivity | Saved interviews resume after refresh; repeated identical answer submissions reuse the saved record. Unsent answers remain current-page only; **no complete offline/PWA sync**. |
 | WhatsApp / IVR | Future integration work, not working adapters. |
 | Staff authorization | Existing role controls. Explicit worker assignment policy and comprehensive district scoping remain separate backend tasks. |
 
@@ -166,7 +173,7 @@ cd backend
 python -m pytest -q
 ```
 
-Latest backend run: **96 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
+Latest backend run: **117 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
 
 Regenerate the public synthetic snapshot locally:
 
@@ -176,6 +183,14 @@ python -m seed.export_public_demo
 ```
 
 This command creates a temporary database, runs the existing synthetic seed and deterministic engine, and exports selected GET responses to `lib/demo-snapshot.json`. It never exports passwords, password hashes or tokens. Do not replace this fixture with real beneficiary records.
+
+## Alternative qualification entry routes
+
+The profile accepts optional **qualification-specific** prior NSQF levels, relevant experience and NTC/NAC/CITS certificates. LEAP evaluates alternative routes from two reviewed NQR records using OR between routes and AND within each route. A two-year NTC also counts as an NTC; an unspecified NTC does not establish a two-year qualification.
+
+Blank means unknown; zero experience and an explicitly empty certificate list mean none reported. Experience for one qualification cannot establish eligibility for another. These are self-reported facts, never verified admission decisions. Save details in **My profile**, then recalculate pathways. Provider confirmation and human review remain required; local batches, seats and fees are unverified.
+
+Release requires database migrations and an authorized NQR catalogue import. See [eligibility release checks](docs/ELIGIBILITY_RELEASE.md). This implementation is tracked in [PR #6](https://github.com/Aarthirt14/LEAP-AI/pull/6); it is not yet verified on production.
 
 ## Deployment and configuration
 
@@ -203,6 +218,7 @@ Vercel proxies API requests through `/leap-api` on the app domain to the environ
 
 ## Documentation
 
+- [Voice, recovery and import validation milestone](docs/VOICE_DATA_IMPROVEMENT.md)
 - [Production release and operations](docs/PRODUCTION_RELEASE.md)
 - [Milestone report and visual checks](docs/UI_V2_MILESTONE_REPORT.md)
 - [Credibility safeguards](docs/MILESTONE_1_5.md)

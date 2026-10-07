@@ -54,6 +54,7 @@ class LivelihoodProfile(TimestampMixin, Base):
     __tablename__ = "livelihood_profiles"
     id: Mapped[int] = mapped_column(primary_key=True)
     beneficiary_id: Mapped[int] = mapped_column(ForeignKey("beneficiaries.id", ondelete="CASCADE"), unique=True)
+    eligibility_facts: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     education_level: Mapped[str | None] = mapped_column(String(100))
     current_occupation: Mapped[str | None] = mapped_column(String(160))
     family_occupation: Mapped[str | None] = mapped_column(String(160))
@@ -154,6 +155,7 @@ class Qualification(TimestampMixin, Base):
     source_url: Mapped[str | None] = mapped_column(String(500))
     source_type: Mapped[SourceType] = mapped_column(Enum(SourceType), default=SourceType.SYNTHETIC)
     last_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    source_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     competencies: Mapped[list[QualificationCompetency]] = relationship(back_populates="qualification", cascade="all, delete-orphan")
 
 

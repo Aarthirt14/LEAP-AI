@@ -29,6 +29,8 @@ import { workspaceCopy } from "@/lib/workspace-copy";
 import { journeyCopy, journeyStatus } from "@/lib/journey-copy";
 import { reviewCopy } from "@/lib/review-copy";
 import { AnswerAssistance } from "@/components/leap/answer-assistance";
+import { EligibilityDetails } from "@/components/leap/eligibility-details";
+import { SpokenQuestion } from "@/components/leap/spoken-question";
 import { LandingPage } from "@/components/leap/landing";
 import { PageHeading, Panel, Notice, PendingReview, EvidenceRow, words } from "@/components/leap/primitives";
 import { Button } from "@/components/ui/button";
@@ -268,7 +270,7 @@ function LeapAppInner() {
   if (pathname === "/demo") content = <DemoChooser onSelect={role=>void openDemo(role)} locale={state.locale}/>;
   else if (pathname === "/auth") content = <AuthScreen onReady={refreshSession} locale={state.locale} />;
   else if (pathname === "/onboarding") content = <RequireRole role="BENEFICIARY" state={state}><Onboarding onCreated={refreshSession} locale={state.locale} /></RequireRole>;
-  else if (pathname === "/interview") content = <RequireBeneficiary state={state}><Interview beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
+  else if (pathname === "/interview") content = <RequireBeneficiary state={state}><Interview key={state.beneficiary?.id} beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
   else if (pathname === "/profile") content = <RequireBeneficiary state={state}><ProfileScreen beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
   else if (pathname === "/pathways") content = <RequireBeneficiary state={state}><PathwaysScreen beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
   else if (pathname === "/pathway") content = <RequireBeneficiary state={state}><PathwayScreen locale={state.locale} /></RequireBeneficiary>;
@@ -723,15 +725,39 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
+  const [recovering, setRecovering] = useState(true);
+  const [recoveryError, setRecoveryError] = useState("");
   const [aiEnabled, setAiEnabled] = useState(false);
   useEffect(() => { let active = true; void api.interviewAssistanceConfig().then(value=>{if(active)setAiEnabled(value.enabled);}).catch(()=>{});return()=>{active=false;}; }, []);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const question = questions[index];
   const progress = Math.round((index / questions.length) * 100);
 
+  const recoverInterview = async () => {
+    setRecovering(true);
+    setRecoveryError("");
+    try {
+      if (demoRole()) return;
+      const saved = await api.activeInterview(beneficiary.id);
+      if (!saved) return;
+      setSessionId(saved.id);
+      const restored = Object.fromEntries(saved.answers.map(a => [a.question_key, a.corrected_text ?? a.transcript]));
+      setAnswers(restored);
+      const next = questions.findIndex(q => !(q.key in restored));
+      if (next === -1) {
+        setReadyToReview(true);
+        setPreview(await api.previewInterview(saved.id));
+      } else { setIndex(next); setReadyToReview(false); setPreview(null); }
+    } catch (error) {
+      setRecoveryError(error instanceof Error ? error.message : "Could not restore your interview.");
+    } finally { setRecovering(false); }
+  };
+  useEffect(() => { void recoverInterview(); }, [beneficiary.id]);
+
   useEffect(() => () => recognitionRef.current?.stop(), []);
 
   const startListening = () => {
+    window.speechSynthesis?.cancel();
     const speechWindow = window as SpeechRecognitionWindow;
     const Recognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
     if (!Recognition) {
@@ -762,10 +788,11 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
   const saveAnswer = async () => {
     if (!answer.trim()) { toast.error(t("interview.empty",locale)); return; }
     setBusy(true);
+    window.speechSynthesis?.cancel();
     try {
       let activeSession = sessionId;
       if (!activeSession) {
-        const session = await api.startInterview(beneficiary.id, beneficiary.preferred_language);
+        const session = await api.startInterview(beneficiary.id, languageOptions.find(option=>option.value===locale)!.name);
         activeSession = session.id;
         setSessionId(activeSession);
       }
@@ -788,6 +815,10 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
       setPreview(await api.previewInterview(activeSession));
       return;
     } catch (error) {
+      if (error instanceof ApiError && error.code === "ANSWER_ALREADY_SAVED") {
+        await recoverInterview();
+        setAnswer("");
+      }
       toast.error(error instanceof Error ? error.message : "Could not save your answer.");
     } finally { setBusy(false); }
   };
@@ -815,6 +846,8 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
     } catch(e) { toast.error(e instanceof Error ? e.message : "Could not save correction."); }
     finally { setBusy(false); }
   };
+  if (recovering) return <PageLoader text={words(locale,"Checking saved interview…","சேமித்த நேர்காணலைச் சரிபார்க்கிறது…","सहेजा गया साक्षात्कार देखा जा रहा है…")}/>;
+  if (recoveryError) return <main className="mx-auto max-w-3xl px-5 py-12"><Notice tone="warning">{recoveryError}</Notice><Button className="mt-4" onClick={()=>void recoverInterview()}>{t("common.tryAgain",locale)}</Button></main>;
   if (readyToReview && !preview) return <main className="mx-auto max-w-3xl px-5 py-12"><PageHeading eyebrow="Assessment" title="Your draft answers are saved" description="Load the extracted values to review them. Your profile has not been finalized."/><Button disabled={busy} onClick={()=>{if(sessionId){setBusy(true);void api.previewInterview(sessionId).then(setPreview).catch(e=>toast.error(e.message)).finally(()=>setBusy(false));}}}>Review my answers</Button></main>;
   if (preview) return <main className="mx-auto max-w-[900px] px-5 py-12">
     <SectionLabel>{words(locale,"Review your answers","உங்கள் பதில்களைச் சரிபார்க்கவும்","अपने उत्तरों की समीक्षा करें")}</SectionLabel><h1 className="text-3xl font-semibold">{words(locale,"We understood:","நாங்கள் புரிந்துகொண்டது:","हमने यह समझा:")}</h1>
@@ -843,6 +876,7 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
           <div className="text-sm font-semibold text-[#087647]">{t("interview.question", locale)}</div>
           <h2 className="mt-2 text-2xl font-semibold leading-9 tracking-[-0.025em] text-[#071A3D] sm:text-3xl">{localizedQuestionTitles[locale][question.key] || question.title}</h2>
           <p className="mt-3 text-sm font-medium leading-6 text-[#1e293b]">{localizedQuestionHints[locale][question.key] || question.hint}</p>
+          <SpokenQuestion text={`${localizedQuestionTitles[locale][question.key] || question.title} ${localizedQuestionHints[locale][question.key] || question.hint}`} locale={locale} disabled={busy || listening}/>
           <div className="mt-7">
             <Textarea aria-label={localizedQuestionTitles[locale][question.key]} value={answer} onChange={(e) => setAnswer(e.target.value)} rows={5} placeholder={extraLocales.some(value=>value===locale) ? t("common.typeInstead", locale) : question.placeholder} className="resize-none rounded-2xl border-[#DDE3E5] bg-white p-4 text-base leading-7 font-medium text-[#071A3D]" />
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -920,6 +954,7 @@ function ProfileScreen({ beneficiary, locale, onAssess, onPathways }: { benefici
         <div className="space-y-5"><Card className="border-[#E9DBCE] bg-[#FFF1E6] shadow-none"><CardContent className="p-6 sm:p-7"><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#995421]">{t("profile.aspiration",locale)}</div><blockquote className="mt-4 text-2xl font-semibold leading-9 tracking-[-0.025em] text-[#713F1E]">“{profile.aspiration_text || copy.aspirationEmpty}”</blockquote><div className="mt-4 text-sm font-medium text-[#795E4B]">{copy.aspirationHint}</div></CardContent></Card><Card className="border-[#c5e4d9] bg-[#edf9f3] shadow-none"><CardContent className="p-6 sm:p-7"><div className="flex items-center gap-2 font-semibold text-[#176b58]"><BriefcaseBusiness size={18} /> {t("profile.skills",locale)}</div><div className="mt-5 flex flex-wrap gap-2">{skills.length ? skills.map((skill) => <span key={skill.id} className="rounded-full bg-white px-3 py-2 text-sm font-semibold text-[#176b58] shadow-sm">{skill.skill_name || copy.skill} · {skill.experience_years} {copy.yearUnit}{skill.verified ? ` · ${copy.verified}` : ""}</span>) : <p className="text-sm leading-6 font-medium text-[#176b58]">{t("profile.emptySkills",locale)}</p>}</div></CardContent></Card></div>
       </div>
       <div className="mt-6 grid gap-4 rounded-2xl border border-[#c5e4d9] bg-[#eaf8f1] p-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center"><div><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#1f8a70]">{copy.know}</div><div className="mt-1 font-semibold text-[#176b58]">{copy.experience}</div></div><div className="hidden text-2xl text-[#995421] sm:block">↔</div><div><div className="text-xs font-semibold uppercase tracking-[0.1em] text-[#995421]">{copy.want}</div><div className="mt-1 font-semibold text-[#713F1E]">{copy.possibility}</div></div><p className="text-sm font-semibold text-[#071A3D] sm:col-span-3">{t("profile.vision",locale)}</p></div>
+      <EligibilityDetails profile={profile} locale={locale} onSaved={setProfile} />
       <Panel className="mt-6"><h2 className="text-xl font-semibold">{copy.addExperience}</h2><p className="mt-2 text-sm text-slate-600">{copy.experienceHint}</p><form onSubmit={saveSkill} className="mt-5 grid items-end gap-4 sm:grid-cols-3"><Field label={copy.skillWork}><input required className="field" value={skillDraft.name} onChange={e=>setSkillDraft({...skillDraft,name:e.target.value})}/></Field><Field label={copy.sector}><input required className="field" value={skillDraft.sector} onChange={e=>setSkillDraft({...skillDraft,sector:e.target.value})}/></Field><Field label={copy.years}><input required type="number" min="0" step="0.1" className="field" value={skillDraft.years} onChange={e=>setSkillDraft({...skillDraft,years:e.target.value})}/></Field><Button disabled={skillBusy || !skillDraft.name.trim() || !skillDraft.sector.trim()}>{words(locale,"Save experience","அனுபவத்தைச் சேமி","अनुभव सहेजें")}</Button></form></Panel>
       <div className="mt-6 flex flex-wrap justify-end gap-3"><Button variant="outline" onClick={()=>setEditProfile(true)}>{words(locale,"Edit my profile","சுயவிவரத்தைத் திருத்து","मेरी प्रोफ़ाइल संपादित करें")}</Button><Button onClick={onPathways || (() => router.push("/pathways"))}>{t("profile.seePathways",locale)} <ArrowRight className="ml-2" size={17} /></Button></div>
     </main>

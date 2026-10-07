@@ -14,10 +14,10 @@ def records():
 
 def test_real_snapshot_and_preserved_alternative_routes():
     data = records()
-    assert validate_catalogue(data, date(2026, 10, 7)) == {'records': 2, 'expired': 0, 'review_due': 0}
-    assert all(len(r['eligibility_routes']) == 5 for r in data['records'])
+    assert validate_catalogue(data, date(2026, 10, 7)) == {'records': 3, 'expired': 0, 'review_due': 0}
+    assert [len(r['eligibility_routes']) for r in data['records']] == [5, 5, 2]
     assert data['records'][1]['duration_hours_max'] > data['records'][1]['duration_hours_min']
-    assert validate_catalogue(data, date(2029, 1, 1)) == {'records': 2, 'expired': 2, 'review_due': 2}
+    assert validate_catalogue(data, date(2029, 1, 1)) == {'records': 3, 'expired': 3, 'review_due': 3}
 
 
 @pytest.mark.parametrize('change', [

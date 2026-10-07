@@ -1,0 +1,183 @@
+{
+  "kind": "AUTHORED_SYNTHETIC_SCENARIOS",
+  "as_of": "2026-10-07",
+  "catalogue_sha256": "dba5595f42eeb4838964848552605e43b8dbb7297841791aa790db51f81b763d",
+  "reviewed_qualifications": 3,
+  "baseline": "Same current engine, restricted to the previous two registry IDs; catalogue ablation, not a historical engine or Saksham evaluation.",
+  "cases": 17,
+  "passed": 17,
+  "human_speakers_tested": 0,
+  "verified_open_pilot_batches": 0,
+  "results": [
+    {
+      "id": "solar-school-route",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": true,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "solar-relevant-experience",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": true,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "solar-unrelated-experience-is-unknown",
+      "expected_eligibility": "NEEDS_VERIFICATION",
+      "actual_eligibility": "NEEDS_VERIFICATION",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": true,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "solar-half-level-route",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": true,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "solar-nac-route",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": true,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "ev-two-year-ntc",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": true,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "ev-ntc-duration-unknown",
+      "expected_eligibility": "NEEDS_VERIFICATION",
+      "actual_eligibility": "NEEDS_VERIFICATION",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": true,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "ev-insufficient-known-facts",
+      "expected_eligibility": "NOT_ELIGIBLE",
+      "actual_eligibility": "NOT_ELIGIBLE",
+      "expected_in_recommendations": false,
+      "in_recommendations": false,
+      "baseline_in_recommendations": false,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "ev-experience-boundary",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": true,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "qualification-facts-stay-scoped",
+      "expected_eligibility": "NEEDS_VERIFICATION",
+      "actual_eligibility": "NEEDS_VERIFICATION",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": true,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "helper-no-schooling",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": false,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "helper-no-experience",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": false,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "helper-literacy-route",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": false,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "stale-review-blocks-ranking",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": false,
+      "in_recommendations": false,
+      "baseline_in_recommendations": false,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "thirty-day-review-boundary",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": true,
+      "in_recommendations": true,
+      "baseline_in_recommendations": false,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "future-review-blocks-ranking",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": false,
+      "in_recommendations": false,
+      "baseline_in_recommendations": false,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    },
+    {
+      "id": "expired-reference-blocks-ranking",
+      "expected_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "actual_eligibility": "ELIGIBLE_ON_REPORTED_FACTS",
+      "expected_in_recommendations": false,
+      "in_recommendations": false,
+      "baseline_in_recommendations": false,
+      "no_unsupported_opportunity_or_confidence": true,
+      "passed": true
+    }
+  ]
+}

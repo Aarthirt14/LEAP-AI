@@ -14,11 +14,14 @@ export default async function QualificationsPage({ searchParams }: { searchParam
     <Link href="/" className="font-semibold text-[#087647]">← Back to LEAP AI</Link>
     <h1 className="mt-8 text-3xl font-bold">Explore courses and qualifications</h1>
     <p className="mt-4 max-w-3xl leading-7">Find a trade, explore its catalogue entry and see what still needs confirmation before you apply.</p>
-    <a href="#reviewed-references" className="mt-3 inline-block py-2 font-semibold text-[#087647] underline">View the two independently reviewed entry-route references ↓</a>
+    <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+      <a href="#reviewed-references" className="py-2 font-semibold text-[#087647] underline">View {catalogue.records.length} source-reviewed entry-route references ↓</a>
+      <Link href="/pilot/coimbatore" className="py-2 font-semibold text-[#087647] underline">Coimbatore training contacts →</Link>
+    </div>
     <CatalogueBrowser params={params} />
     <section id="reviewed-references" className="mt-12 scroll-mt-6" aria-labelledby="reviewed-title">
     <h2 id="reviewed-title" className="text-2xl font-semibold">Independently reviewed NQR references</h2>
-    <p className="mt-3 text-sm leading-6 text-slate-600">These two records have source-reviewed alternative entry routes used by LEAP&apos;s eligibility engine. Review is dated, not a live feed or admission approval. Expiry and review age are checked separately.</p>
+    <p className="mt-3 text-sm leading-6 text-slate-600">These {catalogue.records.length} records have source-reviewed alternative entry routes used by LEAP&apos;s eligibility engine. Review is dated, not a live feed or admission approval. Expiry and review age are checked separately.</p>
     <div className="mt-8 grid gap-6">
       {catalogue.records.map(record => {
         const expired = record.valid_until < today;

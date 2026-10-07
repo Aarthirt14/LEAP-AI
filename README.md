@@ -25,7 +25,7 @@ LEAP goes beyond matching a voice answer to a course: it shows the evidence behi
 
 **Bulk-source status: awaiting official recheck.** Government sites could not be refreshed during this import. Catalogue facts were extracted from explicitly attributed public Saksham archives, pinned to a commit and SHA-256 hashes. LEAP did not import its application code, ranking logic or keyword annotations. Archive retrieval on 7 October 2026 is not an official verification date. These entries support browsing only; current eligibility, validity, funding and local availability remain unverified.
 
-**Two independently reviewed NQR references** retain their detailed entry routes: Solar PV Installer–Electrical and Electric Vehicle Service Technician, reviewed on 7 October 2026. Production startup imports that reviewed snapshot into the database. Structured rules distinguish matching reported facts, missing evidence and failed conditions. The bulk discovery archive is not imported into ranking and cannot grant eligibility or verified-opportunity credit.
+**Three source-reviewed NQR references** retain their detailed entry routes: Solar PV Installer–Electrical, Electric Vehicle Service Technician and Helper Electrician, reviewed on 7 October 2026. Production startup imports that reviewed snapshot into the database. Structured rules distinguish matching reported facts, missing evidence and failed conditions. The bulk discovery archive is not imported into ranking and cannot grant eligibility or verified-opportunity credit.
 
 See [catalogue provenance and limitations](docs/CATALOGUE_DISCOVERY.md) and [reviewed-source import notes](docs/NQR_REFERENCE_CATALOGUE.md).
 
@@ -50,6 +50,12 @@ flowchart TD
     C --> D[Evidence, confidence and human review]
     D --> E[Beneficiary choice and outcome follow-up]
 ```
+
+## Coimbatore pilot and evaluation
+
+[Training contacts and official evidence](https://leap-ai-khaki.vercel.app/pilot/coimbatore) now accompany the reviewed catalogue. **17/17 authored software scenarios pass** against a comparison restricted to the previous two records. **Real speakers tested: 0. Verified open batches: 0.** Official contacts and past training do not establish current admissions. The closed August notice is labelled accordingly.
+
+[Read the evaluation method and real-speaker protocol](docs/PILOT_EVALUATION.md) · [Inspect per-case results](docs/evaluation-results.json). A recording scorer and provider-verification worksheet are included; no superiority claim is made from these fixtures.
 
 ## Screenshots
 
@@ -191,7 +197,7 @@ This command creates a temporary database, runs the existing synthetic seed and 
 
 ## Alternative qualification entry routes
 
-The profile accepts optional **qualification-specific** prior NSQF levels, relevant experience and NTC/NAC/CITS certificates. LEAP evaluates alternative routes from two reviewed NQR records using OR between routes and AND within each route. A two-year NTC also counts as an NTC; an unspecified NTC does not establish a two-year qualification.
+The profile accepts optional **qualification-specific** prior NSQF levels, relevant experience and NTC/NAC/CITS certificates. LEAP evaluates alternative routes from three reviewed NQR records using OR between routes and AND within each route. A two-year NTC also counts as an NTC; an unspecified NTC does not establish a two-year qualification.
 
 Blank means unknown; zero experience and an explicitly empty certificate list mean none reported. Experience for one qualification cannot establish eligibility for another. These are self-reported facts, never verified admission decisions. Save details in **My profile**, then recalculate pathways. Provider confirmation and human review remain required; local batches, seats and fees are unverified.
 

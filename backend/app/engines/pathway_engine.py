@@ -10,9 +10,10 @@ from app.engines.rpl_engine import evaluate_rpl
 from app.engines.skill_ontology import occupation_match
 
 
-def rank_pathways(profile: dict, skills: list[dict], qualifications: list[dict], training_by_qualification: dict[int, dict], outcome_scores: dict[int, float | None], *, gender: str | None = None, caste: str | None = None) -> list[dict]:
+def rank_pathways(profile: dict, skills: list[dict], qualifications: list[dict], training_by_qualification: dict[int, dict], outcome_scores: dict[int, float | None], *, gender: str | None = None, caste: str | None = None, as_of: date | None = None) -> list[dict]:
     settings = get_settings()
-    valid = [q for q in qualifications if qualification_is_current(q)]
+    today = as_of or date.today()
+    valid = [q for q in qualifications if qualification_is_current(q, today)]
     guarded = {g.title: g for g in protect_aspiration(candidates=valid, skills=skills, family_occupation=profile.get("family_occupation"), aspiration=profile.get("aspiration_text"), education=profile.get("education_level"), constraints=profile, gender=gender, caste=caste)}
     ranked: list[dict] = []
     for q in valid:
@@ -27,7 +28,7 @@ def rank_pathways(profile: dict, skills: list[dict], qualifications: list[dict],
             continue
         if official:
             try:
-                age = (date.today() - date.fromisoformat(metadata["source_checked_on"])).days
+                age = (today - date.fromisoformat(metadata["source_checked_on"])).days
                 if not 0 <= age <= 30:
                     continue
             except (ValueError, KeyError, TypeError):

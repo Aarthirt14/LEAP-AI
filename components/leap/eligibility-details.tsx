@@ -38,6 +38,13 @@ export function EligibilityDetails({ profile, locale, onSaved }: { profile: Prof
         return <fieldset key={key} disabled={busy} className="rounded-xl border border-slate-200 p-4">
           <legend className="px-2 font-semibold">{record.title}</legend>
           <a href={record.source_url} target="_blank" rel="noreferrer" className="text-sm text-emerald-800 underline">NQR {record.registry_id}</a>
+          {record.eligibility_rules.some(route => route.all.some(condition => condition.field === "can_read_write")) && <label className="mt-4 block text-sm font-medium">{w("Can you read and write?", "உங்களால் படிக்கவும் எழுதவும் முடியுமா?", "क्या आप पढ़ और लिख सकते हैं?")}
+            <select className="field mt-2" value={value.can_read_write == null ? "" : String(value.can_read_write)} onChange={e => change(key, { can_read_write: e.target.value === "" ? null : e.target.value === "true" })}>
+              <option value="">{w("Unknown", "தெரியவில்லை", "अज्ञात")}</option>
+              <option value="true">{w("Yes", "ஆம்", "हाँ")}</option>
+              <option value="false">{w("No", "இல்லை", "नहीं")}</option>
+            </select>
+          </label>}
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-medium">{w("Previous relevant NSQF level", "முந்தைய பொருத்தமான NSQF நிலை", "पिछला संबंधित NSQF स्तर")}
               <select className="field mt-2" value={value.previous_nsqf_level ?? ""} onChange={e => change(key, { previous_nsqf_level: e.target.value === "" ? null : Number(e.target.value) })}>

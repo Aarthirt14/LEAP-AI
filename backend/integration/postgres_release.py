@@ -48,11 +48,11 @@ def main():
     with SessionLocal.begin() as db:
         assert db.scalar(select(func.count()).select_from(InterviewSession)) == 1
         assert db.scalar(select(func.count()).select_from(InterviewAnswer)) == 1
-        assert import_catalogue(db, document)['created'] == 2
+        assert import_catalogue(db, document)['created'] == len(document['records'])
         assert db.scalar(select(func.count()).select_from(Qualification)) == 0
-        assert import_catalogue(db, document, apply=True)['created'] == 2
+        assert import_catalogue(db, document, apply=True)['created'] == len(document['records'])
     with SessionLocal.begin() as db:
-        assert import_catalogue(db, document, apply=True)['unchanged'] == 2
+        assert import_catalogue(db, document, apply=True)['unchanged'] == len(document['records'])
         assert db.scalar(select(func.count()).select_from(TrainingOpportunity)) == 0
     facts = {'NQR:11689': {'previous_nsqf_level': None, 'relevant_experience_years': 3, 'certificates': []}}
     with SessionLocal() as db:

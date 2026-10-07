@@ -221,6 +221,58 @@
           ]
         }
       ]
+    },
+    {
+      "registry_id": "13770",
+      "title": "Helper Electrician",
+      "sector": "Construction",
+      "nsqf_level": 2,
+      "awarding_body": "Construction Skill Development Council of India",
+      "source_url": "https://www.nqr.gov.in/qualifications/13770",
+      "source_checked_on": "2026-10-07",
+      "originally_approved_on": "2025-05-08",
+      "valid_until": "2028-04-30",
+      "duration_hours_min": 270,
+      "duration_hours_max": 270,
+      "eligibility_routes": [
+        "No formal education or prior experience is required in this published entry route.",
+        "Ability to read and write, with no prior experience required."
+      ],
+      "nos_codes": [
+        "CON/N0606",
+        "CON/N0607",
+        "CON/N0101",
+        "CON/N9001",
+        "CON/N8001",
+        "DGT/VSQ/N0101"
+      ],
+      "summary": "Assisting construction electricians under supervision, including preparation, tools and basic site tasks. This qualification does not establish competence for unsupervised electrical work.",
+      "batch_availability": "UNVERIFIED",
+      "review_note": "Complete register entry reviewed on 7 October 2026. Subsequent retrieval attempts timed out; this is a dated review, not a live connection. No local batch is confirmed.",
+      "eligibility_rules": [
+        {
+          "id": "13770-route-1",
+          "summary": "No formal education or prior experience is required in this published entry route.",
+          "all": [
+            {
+              "field": "no_formal_prerequisites",
+              "operator": "eq",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "13770-route-2",
+          "summary": "Ability to read and write, with no prior experience required.",
+          "all": [
+            {
+              "field": "can_read_write",
+              "operator": "eq",
+              "value": true
+            }
+          ]
+        }
+      ]
     }
   ]
 }

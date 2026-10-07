@@ -19,6 +19,12 @@ LEAP goes beyond matching a voice answer to a course: it shows the evidence behi
 
 **Demo access:** open the role-demo link and choose Beneficiary, Field worker, Facilitator, District officer or Administrator. No LEAP email/password is needed. All demo records are fictional, marked read-only, and stored in a frontend snapshot. Public demo sessions confer no backend permissions. Saving, interview submission, approval and outcome reporting require a real account; these actions never mutate live data in a demo.
 
+## Official qualification reference catalogue
+
+The `/qualifications` page contains two real NQR references reviewed on 7 October 2026: Solar PV Installer–Electrical and Electric Vehicle Service Technician. Each preserves alternative entry routes, duration, NSQF level, source link and published validity. It marks expired or overdue-for-review records. This is a manually maintained reference snapshot, not a live government feed or a list of available batches. These references are not yet used by the recommendation engine: its single education/experience fields cannot faithfully represent all official alternatives.
+
+See [source and import notes](docs/NQR_REFERENCE_CATALOGUE.md).
+
 ## The problem LEAP addresses
 
 A useful livelihood suggestion needs more than a qualification and a list of courses. Someone may have years of informal tailoring experience, want to grow a home enterprise, have limited travel options and need to work around caregiving. Ignoring any one of those details can make a technically eligible option impractical.

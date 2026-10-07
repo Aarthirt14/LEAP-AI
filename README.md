@@ -49,6 +49,12 @@ These are captures of the running redesign, not mockups. Role screenshots show *
 
 ![Production landing page with original LEAP logo](docs/visual-checks/production-home.jpg)
 
+### Choose from ten languages
+
+English, Tamil, Hindi, Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati and Odia. See [Languages and accessibility](#languages-and-accessibility) for translation coverage.
+
+![Live LEAP language selector showing all ten language options](docs/visual-checks/production-ten-languages.jpg)
+
 ### Explore all five roles
 
 ![Public production role demo chooser](docs/visual-checks/production-roles.jpg)

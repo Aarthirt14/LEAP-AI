@@ -56,8 +56,8 @@ class BeneficiaryCreate(BaseModel):
     age: int | None = Field(default=None, ge=14, le=100)
     gender: str | None = None
     district: str
-    state: str = "Tamil Nadu"
-    preferred_language: str = "Tamil"
+    state: str = ""  # Missing location stays unknown; language never implies geography.
+    preferred_language: str = "English"
     digital_literacy: str | None = None
     consent_given: bool
     user_id: int | None = None
@@ -201,6 +201,8 @@ class PathwayOut(ORMModel):
     confidence: ConfidenceLevel = Field(validation_alias="confidence_level")
     recommended_route: str
     status: PathwayStatus
+    review_status: str | None = None
+    pending_human_review: bool = False
     rpl_status: str = "NOT_APPLICABLE"
     constraints: list[ConstraintOut] = []
     evidence: list[EvidenceOut] = []

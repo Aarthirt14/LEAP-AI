@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from collections.abc import Iterable
 
 
 # Aliases are intentionally explicit: this is an auditable ontology, not fuzzy inference.
 OCCUPATION_ALIASES: dict[str, tuple[str, ...]] = {
-    "TAILORING": ("tailor", "tailoring", "garment tailoring", "dress making", "dressmaking", "sewing", "stitching", "seamstress", "apparel"),
+    "TAILORING": ("தையல்", "தையல் வேலை", "सिलाई", "दर्जी", "tailor", "tailoring", "garment tailoring", "dress making", "dressmaking", "sewing", "stitching", "seamstress", "apparel"),
     "GARMENT_REPAIR": ("garment repair", "clothing repair", "repair clothes", "alterations"),
     "GARMENT_PRODUCTION": ("garment production", "garment worker", "garment operator", "apparel production", "clothing production"),
-    "SOLAR_INSTALLATION": ("solar technician", "solar installation", "solar installer", "solar work", "solar"),
-    "ELECTRICAL": ("electrical work", "electrician", "electrical technician", "electrical wiring", "electric wiring"),
+    "SOLAR_INSTALLATION": ("சூரிய மின்சக்தி நிறுவல்", "सौर स्थापना", "solar technician", "solar installation", "solar installer", "solar work", "solar"),
+    "ELECTRICAL": ("மின்சார வேலை", "மின்பணி", "बिजली का काम", "इलेक्ट्रीशियन", "electrical work", "electrician", "electrical technician", "electrical wiring", "electric wiring"),
     "HEALTHCARE": ("healthcare", "health care", "patient support", "health assistant"),
 }
 
@@ -36,7 +37,9 @@ SKILL_COMPETENCIES: dict[str, dict[str, float]] = {
 def normalize_text(value: str | None) -> str:
     if not value:
         return ""
-    text = re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
+    value = unicodedata.normalize("NFKC", value).casefold()
+    text = "".join(ch if unicodedata.category(ch)[0] in {"L", "M", "N"} else " " for ch in value)
+    text = " ".join(text.split())
     # Small deterministic suffix normalization covers common occupation forms.
     tokens = []
     for token in text.split():
@@ -58,7 +61,7 @@ def canonical_occupations(value: str | None) -> set[str]:
     for canonical, aliases in OCCUPATION_ALIASES.items():
         for alias in aliases:
             alias_normalized = normalize_text(alias)
-            if alias_normalized and (alias_normalized in normalized or normalized in alias_normalized):
+            if alias_normalized and (f" {alias_normalized} " in f" {normalized} "):
                 matches.add(canonical)
                 break
     return matches

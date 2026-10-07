@@ -99,7 +99,7 @@ def test_generated_pathway_evidence_contains_only_traced_records(client, db):
 
 
 def test_all_eight_evidence_categories_generated_when_data_present(client, db):
-    from app.models import LivelihoodPathway, OutcomeFollowup, EmploymentStatus
+    from app.models import LivelihoodPathway, OutcomeFollowup, EmploymentStatus, Provenance
     user = make_user(db, UserRole.BENEFICIARY, "eight_ev_user@example.com")
     headers = auth(user)
     b_resp = client.post("/api/beneficiaries", headers=headers, json={"name":"Eight Ev User","age":24,"district":"Madurai","state":"Tamil Nadu","consent_given":True})
@@ -159,6 +159,7 @@ def test_all_eight_evidence_categories_generated_when_data_present(client, db):
             training_completed=True,
             employment_status=EmploymentStatus.EMPLOYED,
             still_active=True,
+            verification_status=Provenance.FIELD_VERIFIED,
             reported_by=sample_user.id
         ))
         db.add(OutcomeFollowup(
@@ -168,6 +169,7 @@ def test_all_eight_evidence_categories_generated_when_data_present(client, db):
             training_completed=True,
             employment_status=EmploymentStatus.EMPLOYED,
             still_active=True,
+            verification_status=Provenance.FIELD_VERIFIED,
             reported_by=sample_user.id
         ))
     db.commit()

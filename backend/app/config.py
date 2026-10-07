@@ -1,5 +1,5 @@
 from functools import lru_cache
-from pydantic import Field
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     app_name: str = "LEAP AI API"
     environment: str = "development"
     demo_mode: bool = False
+    ai_interview_enabled: bool = False
+    openai_api_key: SecretStr = SecretStr("")
+    openai_interview_model: str = "gpt-6-luna"
     database_url: str = "sqlite:///./leap_ai.db"
     secret_key: str = "development-only-change-me"
     jwt_secret: str = "development-jwt-change-me"
@@ -23,9 +26,23 @@ class Settings(BaseSettings):
         "high_demand_ratio": 1.5, "oversupply_ratio": 1.5,
         "low_outcome_rate": 0.40, "balanced_ratio_delta": 0.20,
     })
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore", hide_input_in_errors=True)
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def use_installed_postgres_driver(cls, value: str) -> str:
+        # Render supplies a bare URL; this project installs psycopg 3, not psycopg2.
+        for prefix in ("postgres://", "postgresql://"):
+            if value.startswith(prefix):
+                return "postgresql+psycopg://" + value[len(prefix):]
+        return value
 
     def model_post_init(self, __context: object) -> None:
+        if self.environment.lower() == "production":
+            for field, default in (("jwt_secret", "development-jwt-change-me"), ("secret_key", "development-only-change-me")):
+                value = getattr(self, field)
+                if value == default or len(value.strip()) < 32:
+                    raise ValueError(f"Production requires a non-default {field} of at least 32 characters")
         if abs(sum(self.scoring_weights.values()) - 1.0) > 0.0001:
             raise ValueError("SCORING_WEIGHTS must add up to 1.0")
 

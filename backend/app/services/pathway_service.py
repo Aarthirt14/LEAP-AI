@@ -11,6 +11,7 @@ def _profile_dict(beneficiary: Beneficiary) -> dict:
     skills = beneficiary.skills
     return {
         "education_level": profile.education_level if profile else None,
+        "current_occupation": profile.current_occupation if profile else None,
         "family_occupation": profile.family_occupation if profile else None,
         "aspiration_text": profile.aspiration_text if profile else None,
         "mobility_km": profile.mobility_km if profile else None,
@@ -32,26 +33,21 @@ def _add_evidence(db: Session, pathway_id: int, evidence_type: str, label: str, 
 
 
 def _pathway_description(title: str, sector: str | None, aspiration_fit: float, skill_fit: float) -> str:
-    text = f"{title} {sector or ''}".lower()
-    if "tailor" in text or "apparel" in text:
-        if aspiration_fit >= 0.75 and skill_fit >= 0.6:
-            return "This pathway builds on your existing tailoring experience and matches your goal of working as a tailor."
-        return "This pathway uses your tailoring background but may require additional production-focused training."
-    if "solar" in text:
-        return "This pathway matches your interest in technical work but requires new technical training."
+    if aspiration_fit >= 0.75 and skill_fit >= 0.6:
+        return "This option matches your stated aspiration and recorded skill evidence. Confirm eligibility and practical availability before deciding."
     if aspiration_fit >= 0.75:
-        return f"This pathway matches your stated goal and the evidence currently available in your profile."
+        return "This option matches your stated aspiration. Skills, eligibility and practical requirements still need review."
     if skill_fit >= 0.6:
-        return "This pathway builds on skills and experience already present in your profile."
-    return "This pathway is a possible option based on your current profile and local opportunity data."
+        return "This option builds on your recorded experience. Discuss whether it fits your aspirations and circumstances."
+    return "This is an option for further discussion. The current evidence does not establish a strong skill or aspiration match; practical availability needs confirmation."
 
 
 def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathway]:
     beneficiary = db.execute(select(Beneficiary).where(Beneficiary.id == beneficiary_id).options(selectinload(Beneficiary.profile), selectinload(Beneficiary.skills).selectinload(BeneficiarySkill.skill))).scalar_one()
     qualifications = db.execute(select(Qualification).options(selectinload(Qualification.competencies))).scalars().all()
     trainings = db.execute(select(TrainingOpportunity).where(TrainingOpportunity.district == beneficiary.district)).scalars().all()
-    training_map = {t.qualification_id: {"distance_km": t.distance_km, "seats_available": t.seats_available, "verification_status": t.verification_status.value, "provider_name": t.provider_name} for t in trainings}
-    q_data = [{"id": q.id, "title": q.occupational_role, "sector": q.sector, "validity_status": q.validity_status.value, "minimum_education": q.minimum_education, "minimum_experience_years": q.minimum_experience_years, "duration_hours": q.duration_hours, "competencies": [{"name": c.competency_name, "weight": c.weight} for c in q.competencies]} for q in qualifications]
+    training_map = {t.qualification_id: {"distance_km": t.distance_km, "seats_available": t.seats_available, "verification_status": t.verification_status.value, "source_type": t.source_type.value, "provider_name": t.provider_name} for t in trainings}
+    q_data = [{"id": q.id, "title": q.occupational_role, "sector": q.sector, "validity_status": q.validity_status.value, "valid_from": q.valid_from, "valid_until": q.valid_until, "minimum_education": q.minimum_education, "minimum_experience_years": q.minimum_experience_years, "duration_hours": q.duration_hours, "competencies": [{"name": c.competency_name, "weight": c.weight} for c in q.competencies]} for q in qualifications]
     skill_data = [{"name": s.skill.name, "experience_years": s.experience_years, "verified": s.verified} for s in beneficiary.skills]
     ranked = rank_pathways(_profile_dict(beneficiary), skill_data, q_data, training_map, qualification_evidence_scores(db), gender=beneficiary.gender)
     db.execute(delete(LivelihoodPathway).where(LivelihoodPathway.beneficiary_id == beneficiary_id, LivelihoodPathway.status == PathwayStatus.PROPOSED))
@@ -101,26 +97,26 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
         min_edu = q_obj.minimum_education if q_obj else None
         ben_edu = profile.education_level if profile else "Not specified"
         _add_evidence(db, pathway.id, "ELIGIBILITY", "Educational qualification eligibility",
-            f"Eligible — You completed {ben_edu}; this pathway requires {min_edu}." if min_edu else f"Eligible — Your education is {ben_edu}.",
+            f"Needs confirmation — You reported {ben_edu}; this pathway requires {min_edu}." if min_edu else f"Needs confirmation — Your education is {ben_edu}.",
             "livelihood_profile.education_level", SourceType.SELF_REPORTED, VerificationStatus.UNVERIFIED)
 
         # 4. OPPORTUNITY
-        if training and training.get("distance_km") is not None and training.get("seats_available") is not None:
+        if training and training.get("verification_status") == "VERIFIED" and training.get("source_type") != "SYNTHETIC" and training.get("distance_km") is not None and training.get("seats_available") is not None:
             provider = training.get("provider_name", "Local training centre")
             seats = training.get("seats_available", 0)
             dist = training.get("distance_km")
             dist_str = f" | {dist:.1f} km away" if dist is not None else ""
             _add_evidence(db, pathway.id, "OPPORTUNITY", f"Local training centre: {provider}",
                 f"{seats} seats available{dist_str}",
-                "training_opportunities", SourceType.SYNTHETIC, VerificationStatus.SYNTHETIC)
+                "training_opportunities", SourceType(training["source_type"]), VerificationStatus.VERIFIED)
         else:
             _add_evidence(db, pathway.id, "OPPORTUNITY", "Training availability",
                 "Qualification available; local training availability is not yet verified.",
-                "training_opportunities", SourceType.SYNTHETIC, VerificationStatus.UNVERIFIED)
+                "training_opportunities", SourceType(training["source_type"]) if training else SourceType.SYSTEM_EXTRACTED, VerificationStatus.UNVERIFIED)
 
         # 5. MOBILITY
         pref_km = profile.mobility_km if profile else None
-        t_dist = training.get("distance_km") if training else None
+        t_dist = training.get("distance_km") if training and training.get("verification_status") == "VERIFIED" and training.get("source_type") != "SYNTHETIC" else None
         if pref_km is not None:
             if t_dist is None:
                 fits = "Unable to confirm travel fit"
@@ -165,7 +161,7 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
                     "constraint_engine", SourceType.SELF_REPORTED, VerificationStatus.UNVERIFIED)
         else:
             _add_evidence(db, pathway.id, "CONSTRAINT", "Practical constraints check",
-                "No mobility, capital, or schedule constraints violated",
+                "No conflicts detected in the available checks. Missing information still needs confirmation.",
                 "constraint_engine", SourceType.SELF_REPORTED, VerificationStatus.UNVERIFIED)
 
         # 8. OUTCOME EVIDENCE (Recorded ONLY if historical outcome score was present in evidence_scores)
@@ -176,6 +172,8 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
                 f"Historical employment score: {raw_outcome_score:.2f} based on verified 90-day post-training records",
                 "outcome_evidence_service", SourceType.FIELD_WORKER, VerificationStatus.VERIFIED)
 
+        for reason in result["confidence_reasons"]:
+            _add_evidence(db, pathway.id, "CONFIDENCE", "Needs confirmation", reason.replace("_", " ").capitalize(), "confidence_engine", SourceType.SYSTEM_EXTRACTED, VerificationStatus.UNVERIFIED)
         if pathway.confidence_level == ConfidenceLevel.RED:
             db.add(HumanReview(beneficiary_id=beneficiary_id, pathway_id=pathway.id, reason_code="LOW_CONFIDENCE", reason_description=", ".join(result["confidence_reasons"])))
         created.append(pathway)

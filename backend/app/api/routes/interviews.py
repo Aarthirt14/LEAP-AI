@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, status
+from pydantic import BaseModel
+from app.services.interview_preview import preview
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 from app.database import get_db
@@ -36,7 +38,8 @@ def add_answer(session_id: int, payload: InterviewAnswerCreate, db: Session = De
     session = get_session(db, session_id); beneficiary = assert_beneficiary_access(db, user, session.beneficiary_id, True)
     if not beneficiary.consent_given: raise AppError("CONSENT_REQUIRED", "Consent was withdrawn; interview evidence cannot be stored.", 422)
     if session.status != InterviewStatus.IN_PROGRESS: raise AppError("INTERVIEW_CLOSED", "Answers cannot be added to a closed interview.", 409)
-    row = InterviewAnswer(session_id=session_id, **payload.model_dump()); db.add(row); db.commit(); db.refresh(row); return row
+    data = payload.model_dump(); data["extraction_confidence"] = None; data["speech_confidence"] = None
+    row = InterviewAnswer(session_id=session_id, **data); db.add(row); db.commit(); db.refresh(row); return row
 
 
 @router.patch("/{session_id}/answers/{answer_id}", response_model=InterviewAnswerOut, description="Correct interpreted text while preserving the original transcript.")
@@ -44,13 +47,67 @@ def patch_answer(session_id: int, answer_id: int, payload: InterviewAnswerPatch,
     session = get_session(db, session_id); assert_beneficiary_access(db, user, session.beneficiary_id, True)
     row = db.get(InterviewAnswer, answer_id)
     if not row or row.session_id != session_id: raise AppError("ANSWER_NOT_FOUND", "Interview answer not found.", 404)
+    if session.status != InterviewStatus.IN_PROGRESS: raise AppError("INTERVIEW_CLOSED", "Completed evidence cannot be edited here.", 409)
+    beneficiary = assert_beneficiary_access(db, user, session.beneficiary_id, True)
+    if not beneficiary.consent_given: raise AppError("CONSENT_REQUIRED", "Consent is required.", 422)
     row.corrected_text = payload.corrected_text
-    if payload.extraction_confidence is not None: row.extraction_confidence = payload.extraction_confidence
+    row.extraction_confidence = None
     db.commit(); db.refresh(row); return row
 
 
-@router.post("/{session_id}/complete", response_model=InterviewOut, description="Complete the interview, create traceable extracted facts, and update profile completeness.")
-def complete_interview(session_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    session = get_session(db, session_id); assert_beneficiary_access(db, user, session.beneficiary_id, True)
+class ConfirmPreview(BaseModel):
+    confirmed: bool = False
+    preview_token: str = ""
+
+
+@router.get("/{session_id}/preview", description="Preview normalized values without changing the livelihood profile.")
+def interview_preview(session_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    session = get_session(db, session_id)
+    assert_beneficiary_access(db, user, session.beneficiary_id)
+    return preview(session)
+
+
+@router.post("/{session_id}/complete", response_model=InterviewOut)
+def complete_interview(session_id: int, payload: ConfirmPreview = ConfirmPreview(), db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    session = get_session(db, session_id)
+    beneficiary = assert_beneficiary_access(db, user, session.beneficiary_id, True)
+    if not beneficiary.consent_given: raise AppError("CONSENT_REQUIRED", "Consent is required before finalization.", 422)
     if not session.answers: raise AppError("INTERVIEW_EMPTY", "At least one answer is required.", 422)
-    session.status = InterviewStatus.COMPLETED; session.completed_at = datetime.now(timezone.utc); profile = apply_interview_facts(db, session); record_audit(db, user.id, "COMPLETE", "InterviewSession", session.id, after={"profile_completion_percentage": profile.profile_completion_percentage}); db.commit(); return get_session(db, session_id)
+    current = preview(session)
+    if not payload.confirmed or payload.preview_token != current["preview_token"]:
+        raise AppError("CONFIRMATION_REQUIRED", "Review the current extracted values and explicitly confirm them first.", 409)
+    if session.status == InterviewStatus.COMPLETED: return session  # Safe retry after a lost response.
+    if session.status != InterviewStatus.IN_PROGRESS: raise AppError("INTERVIEW_CLOSED", "This interview is closed.", 409)
+    session.status = InterviewStatus.COMPLETED
+    session.completed_at = datetime.now(timezone.utc)
+    profile = apply_interview_facts(db, session)
+    record_audit(db, user.id, "CONFIRM_INTERVIEW", "InterviewSession", session.id, after={"preview_token": current["preview_token"], "profile_completion_percentage": profile.profile_completion_percentage, "evidence_verification": "SELF_REPORTED"})
+    db.commit()
+    return get_session(db, session_id)
+
+
+class AssistanceConsent(BaseModel):
+    consent: bool = False
+
+
+@router.get("/assistance/config")
+def assistance_config(user: User = Depends(get_current_user)):
+    from app.services.ai_interview import available
+    return {"enabled": available()}
+
+
+@router.post("/{session_id}/answers/{answer_id}/suggestion")
+def suggest_answer(session_id: int, answer_id: int, payload: AssistanceConsent, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    from app.services.ai_interview import suggest
+    session = get_session(db, session_id)
+    beneficiary = assert_beneficiary_access(db, user, session.beneficiary_id, True)
+    if not beneficiary.consent_given or not payload.consent:
+        raise AppError("CONSENT_REQUIRED", "Permission to send this answer for AI language assistance is required.", 422)
+    if session.status != InterviewStatus.IN_PROGRESS:
+        raise AppError("INTERVIEW_CLOSED", "This interview is closed.", 409)
+    answer = next((a for a in session.answers if a.id == answer_id), None)
+    if not answer:
+        raise AppError("ANSWER_NOT_FOUND", "Interview answer not found.", 404)
+    text = answer.corrected_text if answer.corrected_text is not None else answer.transcript
+    result = suggest(user_id=user.id, key=answer.question_key, text=text, language=session.language)
+    return {**result, "source_text": text}

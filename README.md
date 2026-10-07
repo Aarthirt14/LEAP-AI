@@ -47,11 +47,11 @@ These are captures of the running redesign, not mockups. Role screenshots show *
 
 ### Landing page and original LEAP identity
 
-![Telugu landing page with original LEAP logo](docs/visual-checks/telugu-logo-desktop.jpg)
+![Production landing page with original LEAP logo](docs/visual-checks/production-home.jpg)
 
 ### Explore all five roles
 
-![Role demo chooser](docs/visual-checks/demo-roles.jpg)
+![Public production role demo chooser](docs/visual-checks/production-roles.jpg)
 
 ### Beneficiary profile and pathway evidence
 

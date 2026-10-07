@@ -5,7 +5,7 @@ services:
     runtime: docker
     plan: free
     region: oregon
-    branch: redesign/leap-ui-v2
+    branch: main
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     healthCheckPath: /health

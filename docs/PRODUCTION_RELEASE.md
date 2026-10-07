@@ -24,7 +24,9 @@ Vercel's production `NEXT_PUBLIC_API_URL` points to the fresh API. The build cre
 
 ## Verification
 
-Local release checks: 96 backend tests passed; ten-language and public-demo isolation checks passed; TypeScript and the Next.js production build passed. The production build's route manifest includes the API relay and no-store headers. Hosted verification is recorded after deployment.
+Local release checks: 96 backend tests passed; ten-language and public-demo isolation checks passed; TypeScript and the Next.js production build passed. The production build's route manifest includes the API relay and no-store headers. Hosted checks passed on October 7: Vercel reported the merged production deployment ready; `/leap-api/health` returned healthy, database connected, environment production; registration, login and `/api/auth/me` worked; privileged API routes rejected a beneficiary with HTTP 403; live demo credentials were disabled; the authenticated assistance-config endpoint responded. Browser checks covered the landing page and all five role tours, including beneficiary profile. One empty deployment-test account was created, with no beneficiary profile or interview records.
+
+Full real-data interview E2E, microphone behavior and authoritative catalogue imports are not claimed verified.
 
 ## Future releases
 

@@ -1,17 +1,24 @@
 import Link from "next/link";
 import catalogue from "@/data/nqr-reference.json";
+import { CatalogueBrowser } from "@/components/leap/catalogue-browser";
+import type { SearchParams } from "@/lib/catalogue-search";
 
 // Evaluate expiry/freshness per request, even when the source snapshot is unchanged.
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Official qualification references | LEAP AI" };
+export const metadata = { title: "Course and qualification catalogue | LEAP AI" };
 
-export default function QualificationsPage() {
+export default async function QualificationsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const params = await searchParams;
   const today = new Date().toISOString().slice(0, 10);
   return <main className="mx-auto max-w-5xl px-5 py-12 text-[#071A3D]">
     <Link href="/" className="font-semibold text-[#087647]">← Back to LEAP AI</Link>
-    <h1 className="mt-8 text-3xl font-bold">Explore NSQF qualification references</h1>
-    <p className="mt-4 max-w-3xl leading-7">These records come from the National Qualifications Register. They describe recognized qualifications and entry routes. A listed qualification does not confirm a nearby training batch, free training, admission or a job.</p>
-    <p className="mt-3 text-sm text-slate-600">Manually reviewed source snapshot • English source summaries • Not a live government feed. Check the official entry and ask the provider to confirm the route that applies to you.</p>
+    <h1 className="mt-8 text-3xl font-bold">Explore courses and qualifications</h1>
+    <p className="mt-4 max-w-3xl leading-7">Find a trade, explore its catalogue entry and see what still needs confirmation before you apply.</p>
+    <a href="#reviewed-references" className="mt-3 inline-block py-2 font-semibold text-[#087647] underline">View the two independently reviewed entry-route references ↓</a>
+    <CatalogueBrowser params={params} />
+    <section id="reviewed-references" className="mt-12 scroll-mt-6" aria-labelledby="reviewed-title">
+    <h2 id="reviewed-title" className="text-2xl font-semibold">Independently reviewed NQR references</h2>
+    <p className="mt-3 text-sm leading-6 text-slate-600">These two records have source-reviewed alternative entry routes used by LEAP&apos;s eligibility engine. Review is dated, not a live feed or admission approval. Expiry and review age are checked separately.</p>
     <div className="mt-8 grid gap-6">
       {catalogue.records.map(record => {
         const expired = record.valid_until < today;
@@ -36,5 +43,6 @@ export default function QualificationsPage() {
         </article>;
       })}
     </div>
+    </section>
   </main>;
 }

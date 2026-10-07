@@ -1,159 +1,206 @@
-<p align="center"><img src="public/leap-mark.svg" width="88" alt="LEAP AI logo"></p>
+<div align="center">
 
-# LEAP AI
-### Livelihood Enablement through AI Pathways
+<img src="public/leap-mark.svg" width="80" alt="LEAP AI logo">
 
-**Understand the person’s full situation before suggesting a livelihood pathway.**
+<h1>LEAP AI</h1>
+<p><strong>Livelihood Enablement through AI Pathways</strong></p>
+<p>Your skills matter. So does your story.</p>
 
-LEAP AI is a decision-support prototype for **PM-AJAY, PS 26097**. It connects informal work experience, skills, aspirations, education, mobility, family responsibilities and practical constraints to explainable livelihood options. A person’s current occupation does not define their future.
+<p>
+  <a href="https://leap-ai-khaki.vercel.app/"><strong>Open the app ↗</strong></a>
+  &nbsp; · &nbsp;
+  <a href="https://leap-ai-khaki.vercel.app/demo"><strong>Explore five roles</strong></a>
+  &nbsp; · &nbsp;
+  <a href="https://leap-ai-khaki.vercel.app/qualifications"><strong>Browse courses</strong></a>
+</p>
 
-LEAP goes beyond matching a voice answer to a course: it shows the evidence behind each pathway, possible Recognition of Prior Learning (RPL), missing competencies, confidence reasons and where a human must review the case. The beneficiary and their human support team retain the final decision.
+<p>PM-AJAY · Problem Statement 26097 · Explainable livelihood guidance</p>
 
-## Open the application
+<a href="https://leap-ai-khaki.vercel.app/">
+  <img src="docs/visual-checks/production-home.jpg" width="900" alt="LEAP AI homepage: Your skills matter. So does your story.">
+</a>
 
-| Link | What to expect |
-| --- | --- |
-| [Open LEAP AI](https://leap-ai-khaki.vercel.app/) | Main application: language selection, assessment and role workspaces. |
-| [Try all five roles](https://leap-ai-khaki.vercel.app/demo) | Public, credential-free tours on the same application domain. |
-| [Sign in or register](https://leap-ai-khaki.vercel.app/auth) | Real accounts use the fresh PostgreSQL-backed API. |
+<sub>Production interface. The landing illustration depicts fictional people.</sub>
 
-**Demo access:** open the role-demo link and choose Beneficiary, Field worker, Facilitator, District officer or Administrator. No LEAP email/password is needed. All demo records are fictional, marked read-only, and stored in a frontend snapshot. Public demo sessions confer no backend permissions. Saving, interview submission, approval and outcome reporting require a real account; these actions never mutate live data in a demo.
+</div>
 
-## Search courses and qualifications
+<p align="center">
+  <a href="#the-solution">Solution</a> ·
+  <a href="#inside-leap">Screenshots</a> ·
+  <a href="#data-and-evidence">Data &amp; evidence</a> ·
+  <a href="#run-locally">Quick start</a> ·
+  <a href="#documentation">Documentation</a>
+</p>
 
-[Open the searchable catalogue](https://leap-ai-khaki.vercel.app/qualifications): **1,283 archived NQR records + 2,366 archived PM-AJAY course entries**, with text search, sector/source/NSQF-level filters and pagination. These catalogues can overlap; 3,649 entries does not mean 3,649 unique qualifications or available batches.
+## The solution
 
-**Bulk-source status: awaiting official recheck.** Government sites could not be refreshed during this import. Catalogue facts were extracted from explicitly attributed public Saksham archives, pinned to a commit and SHA-256 hashes. LEAP did not import its application code, ranking logic or keyword annotations. Archive retrieval on 7 October 2026 is not an official verification date. These entries support browsing only; current eligibility, validity, funding and local availability remain unverified.
+A course can match someone's skills and still be impractical for their life. Travel, caregiving, available time, education and the person's own aspirations all matter.
 
-**Three source-reviewed NQR references** retain their detailed entry routes: Solar PV Installer–Electrical, Electric Vehicle Service Technician and Helper Electrician, reviewed on 7 October 2026. Production startup imports that reviewed snapshot into the database. Structured rules distinguish matching reported facts, missing evidence and failed conditions. The bulk discovery archive is not imported into ranking and cannot grant eligibility or verified-opportunity credit.
+**LEAP starts with the person, then explains the pathway.** It captures informal experience and practical constraints, asks the beneficiary to confirm their story, and compares livelihood options using inspectable rules. Evidence, missing information and human-review needs stay visible throughout.
 
-See [catalogue provenance and limitations](docs/CATALOGUE_DISCOVERY.md) and [reviewed-source import notes](docs/NQR_REFERENCE_CATALOGUE.md).
+| Understand | Explain | Support |
+| :--- | :--- | :--- |
+| Skills, experience, aspirations and constraints | Eligibility, fit, potential RPL and confidence reasons | Assisted assessments, human review and outcome follow-up |
 
-## The problem LEAP addresses
+### From a conversation to a next step
 
-A useful livelihood suggestion needs more than a qualification and a list of courses. Someone may have years of informal tailoring experience, want to grow a home enterprise, have limited travel options and need to work around caregiving. Ignoring any one of those details can make a technically eligible option impractical.
+1. **Speak or type** — complete a structured interview in the chosen interface language.
+2. **Review your story** — correct extracted answers and confirm the current preview. Original transcripts are retained.
+3. **Explore pathways** — deterministic engines consider aspirations, skills, eligibility and practical constraints.
+4. **See the reasons** — inspect evidence, uncertainty, potential Recognition of Prior Learning and suggested interventions.
+5. **Choose with support** — beneficiaries retain the choice; support staff review uncertain cases and record follow-up.
 
-LEAP asks about the person’s situation first, separates confirmed answers from verified evidence, and identifies the uncertainties that still need a field worker, facilitator or training provider.
+**An LLM does not rank pathways, certify skills or verify evidence.** Optional, consent-based AI assistance can clarify an interview answer; it is disabled by default and its suggestions still require confirmation. [How AI assistance works →](docs/AI_INTERVIEW_SETUP.md)
 
-## How the solution works
+## Try LEAP
 
-1. **Listen and capture:** a structured interview accepts text and browser-supported speech. Informal experience, aspirations, family work, work preference, mobility, investment and constraints are recorded.
-2. **Review and confirm:** extracted facts remain drafts until the beneficiary reviews or corrects them and confirms the current preview. Original transcripts are preserved. Confirmation does not make a fact independently verified.
-3. **Compare practical pathways:** deterministic engines apply qualification validity, eligibility, aspiration, skills, constraints and available evidence. Synthetic availability does not receive verified opportunity credit.
-4. **Explain uncertainty:** pathway details show score components, evidence provenance, potential RPL and interventions. RED-confidence options remain pending human review; closing a case alone does not approve it.
-5. **Support the next step:** field workers assist assessments and follow-ups; facilitators review uncertain cases; officers view aggregate recorded activity. Reported outcomes are not advertised as verified placements.
+| Experience | Link | Access |
+| :--- | :--- | :--- |
+| Full application | [leap-ai-khaki.vercel.app](https://leap-ai-khaki.vercel.app/) | Start here |
+| Five role tours | [Explore the demo](https://leap-ai-khaki.vercel.app/demo) | No credentials required |
+| Real assessments | [Sign in or register](https://leap-ai-khaki.vercel.app/auth) | Beneficiary account required |
+| Course discovery | [Search the catalogue](https://leap-ai-khaki.vercel.app/qualifications) | Public |
+| Coimbatore pilot | [Find training contacts](https://leap-ai-khaki.vercel.app/pilot/coimbatore) | Public; open batches unconfirmed |
 
-```mermaid
-flowchart TD
-    A[Experience, aspirations and constraints] --> B[Review and confirm facts]
-    B --> C[Deterministic pathway and RPL engines]
-    C --> D[Evidence, confidence and human review]
-    D --> E[Beneficiary choice and outcome follow-up]
-```
+> **Demo records are fictional and read-only.** Public tours grant no backend permissions and never modify live data. Saving assessments, submitting interviews and recording reviews require an authorized real account.
 
-## Coimbatore pilot and evaluation
+## Inside LEAP
 
-[Training contacts and official evidence](https://leap-ai-khaki.vercel.app/pilot/coimbatore) now accompany the reviewed catalogue. **17/17 authored software scenarios pass** against a comparison restricted to the previous two records. **Real speakers tested: 0. Verified open batches: 0.** Official contacts and past training do not establish current admissions. The closed August notice is labelled accordingly.
+Actual application captures. Role workspaces below use synthetic demo records. Select any image to view it at full size.
 
-![Live Coimbatore pilot with dated official contacts and unconfirmed batch notice](docs/visual-checks/coimbatore-pilot-live.jpg)
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <strong>01 · Choose your language</strong><br><sub>Ten choices, with translation coverage disclosed</sub><br><br>
+      <a href="docs/visual-checks/production-ten-languages.jpg"><img src="docs/visual-checks/production-ten-languages.jpg" width="440" alt="LEAP language selector with all ten language options"></a>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <strong>02 · Explore your workspace</strong><br><sub>Credential-free tours for five roles</sub><br><br>
+      <a href="docs/visual-checks/production-roles.jpg"><img src="docs/visual-checks/production-roles.jpg" width="440" alt="LEAP public demo chooser for five user roles"></a>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <strong>03 · Understand the recommendation</strong><br><sub>Pathway evidence and pending human review</sub><br><br>
+      <a href="docs/visual-checks/demo-pathway.jpg"><img src="docs/visual-checks/demo-pathway.jpg" width="440" alt="Demo pathway details showing evidence and confidence"></a>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <strong>04 · Support an assessment</strong><br><sub>Field worker worklists and follow-up</sub><br><br>
+      <a href="docs/visual-checks/demo-field-worker.jpg"><img src="docs/visual-checks/demo-field-worker.jpg" width="440" alt="Field worker demo workspace"></a>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <strong>05 · Review uncertain cases</strong><br><sub>Facilitator decisions supported by evidence</sub><br><br>
+      <a href="docs/visual-checks/demo-review.jpg"><img src="docs/visual-checks/demo-review.jpg" width="440" alt="Facilitator demo review workspace"></a>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <strong>06 · Inspect catalogue quality</strong><br><sub>Read-only administrator diagnostics</sub><br><br>
+      <a href="docs/visual-checks/demo-admin.jpg"><img src="docs/visual-checks/demo-admin.jpg" width="440" alt="Administrator demo diagnostics"></a>
+    </td>
+  </tr>
+</table>
 
-[Read the evaluation method and real-speaker protocol](docs/PILOT_EVALUATION.md) · [Inspect per-case results](docs/evaluation-results.json). A recording scorer and provider-verification worksheet are included; no superiority claim is made from these fixtures.
+<details>
+<summary><strong>View the complete beneficiary profile and district dashboard</strong></summary>
 
-## Screenshots
+### Beneficiary profile
 
-These are captures of the running redesign, not mockups. Role screenshots show **synthetic read-only data**. The landing artwork depicts fictional people, not actual beneficiaries.
+Confirmed answers and synthetic profile details in the demo workspace.
 
-### Landing page and original LEAP identity
+<p align="center"><a href="docs/visual-checks/demo-profile.jpg"><img src="docs/visual-checks/demo-profile.jpg" width="800" alt="Complete beneficiary demo profile"></a></p>
 
-![Production landing page with original LEAP logo](docs/visual-checks/production-home.jpg)
+### District officer dashboard
 
-### Choose from ten languages
+Aggregate recorded activity, with scope and verification limitations. These are demo counts, not measured programme outcomes.
 
-English, Tamil, Hindi, Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati and Odia. See [Languages and accessibility](#languages-and-accessibility) for translation coverage.
+<p align="center"><a href="docs/visual-checks/demo-officer.jpg"><img src="docs/visual-checks/demo-officer.jpg" width="800" alt="District officer demo dashboard showing aggregate activity"></a></p>
 
-![Live LEAP language selector showing all ten language options](docs/visual-checks/production-ten-languages.jpg)
+</details>
 
-### Explore all five roles
+## Built for five roles
 
-![Public production role demo chooser](docs/visual-checks/production-roles.jpg)
+| Role | What they can do | Workspace |
+| :--- | :--- | :--- |
+| **Beneficiary** | Confirm their story, inspect pathways and record follow-up | `/profile`, `/pathways`, `/progress` |
+| **Field worker** | Assist assessments and support follow-up | `/field-worker` |
+| **Facilitator** | Inspect evidence and record review decisions | `/review` |
+| **District officer** | Review aggregate recorded activity | `/officer` |
+| **Administrator** | Inspect catalogue and review diagnostics | `/admin` |
 
-### Beneficiary profile and pathway evidence
-
-![Beneficiary profile using synthetic records](docs/visual-checks/demo-profile.jpg)
-
-![Pathway evidence and pending human review](docs/visual-checks/demo-pathway.jpg)
-
-### Field support and human review
-
-![Field worker sample worklist](docs/visual-checks/demo-field-worker.jpg)
-
-![Facilitator review workspace](docs/visual-checks/demo-review.jpg)
-
-### Aggregate recorded activity
-
-![District officer demo dashboard](docs/visual-checks/demo-officer.jpg)
-
-## Role workspaces
-
-| Role | Screens | Purpose |
-| --- | --- | --- |
-| Beneficiary | `/`, `/onboarding`, `/interview`, `/profile`, `/pathways`, `/pathway`, `/progress` | Confirm their story, inspect options and record follow-up. |
-| Field worker | `/field-worker` | Assisted assessments, profiles, pathways and follow-up. |
-| Facilitator | `/review` | Inspect evidence and record review decisions. |
-| District officer | `/officer` | Aggregate recorded counts with explicit scope/verification limitations. |
-| Administrator | `/admin` | Catalogue and review diagnostics. |
-
-Public registration creates beneficiary accounts only. Real staff roles require authorized provisioning. The public administrator demo is only a sample screen, not administrative access.
-
-### Sample administrator diagnostics
-
-![Read-only sample administrator diagnostics](docs/visual-checks/demo-admin.jpg)
+Public registration creates beneficiary accounts only. Staff roles require authorized provisioning; opening a public role tour does not grant staff access.
 
 ## Languages and accessibility
 
-- English, Tamil and Hindi interfaces; **seven additional language previews:** Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati and Odia.
-- Each new language has 129 translated messages covering key controls, consent, and all ten interview questions and hints. Longer guidance and some staff copy remain English; this is disclosed in the app. Native-speaker review is outstanding.
-- Browser speech recognition receives the chosen language tag. Actual availability depends on the browser/provider and device. Dialect coverage has not been validated; typing remains available.
-- Interview questions and hints can be read aloud on request when the device has a matching language voice; missing voices are disclosed. Speech quality still requires device and speaker testing.
-- Raw Unicode answers are preserved. Unknown work descriptions require confirmation/human review, rather than invented skill matches. Language selection never sets geographic state.
-- Responsive layouts, keyboard focus, accessible labels and reduced-motion support. Actual screen-reader and field usability validation remain outstanding.
+**English · தமிழ் · हिन्दी · తెలుగు · ಕನ್ನಡ · മലയാളം · मराठी · বাংলা · ગુજરાતી · ଓଡ଼ିଆ**
 
-See [language and demo implementation notes](docs/LANGUAGES_AND_DEMOS.md).
+English, Tamil and Hindi interfaces are available. Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati and Odia are **language previews**, each with 129 translated messages covering key controls, consent and all ten interview questions and hints. Some longer guidance and staff copy remain English; native-speaker review is outstanding.
 
-## AI assistance and the decision boundary
+- **Speak or type:** browser recognition uses the selected language tag; availability depends on the browser, provider and device.
+- **Listen when available:** questions can be read aloud when a matching device voice exists. Missing voices are disclosed.
+- **Keep the original answer:** Unicode text is preserved. Unrecognized work descriptions require confirmation, not invented skill matches.
+- **Accessible foundations:** responsive layouts, keyboard focus, labels and reduced-motion support. Screen-reader and field usability validation remain outstanding.
 
-The optional OpenAI integration clarifies one answer only after explicit consent. It is disabled by default, uses `store: false`, keeps the original answer, and returns a suggestion that still needs review and confirmation. Timeouts or provider errors preserve the manual workflow.
+[Language coverage and demo isolation →](docs/LANGUAGES_AND_DEMOS.md)
 
-**An LLM does not rank pathways, certify skills, verify evidence or decide someone’s livelihood.** Ranking remains deterministic and inspectable. Optional AI provider access and multilingual semantic accuracy need separate live validation. See [AI setup and limitations](docs/AI_INTERVIEW_SETUP.md).
+## Data and evidence
 
-## What is implemented—and what is not
+| Layer | Current coverage | What it establishes |
+| :--- | :--- | :--- |
+| **Discovery archive** | 1,283 NQR records + 2,366 PM-AJAY course entries | Searchable reference material; awaiting official recheck |
+| **Reviewed recommendations** | 3 NQR qualifications | Source-reviewed alternative entry rules used in ranking |
+| **Coimbatore pilot** | Five government ITI contacts and the district training office | Dated directory evidence; no confirmed open batches |
+| **Scenario evaluation** | 17/17 authored scenarios pass | Software behaviour on fixtures; not real-speaker effectiveness |
 
-| Area | Current status |
-| --- | --- |
-| Interview confirmation, provenance, date-based qualification validity, RED review gating | Implemented with backend regression tests. |
-| RPL | Competency comparison and potential routes; **not official certification**. |
-| Local opportunities and training | Provenance-aware records; **no verified live district-wide availability feed**. Synthetic centres, seats and distances need confirmation. |
-| Official NQR / NSQF / QP / NOS grounding | Two reviewed NQR qualifications imported with alternative entry rules, source links and review dates. Manually maintained snapshots; no live official feed. NOS competency mapping and provider confirmation remain pending. |
-| Outcomes | Recorded follow-ups and aggregates; not independently verified placement rates. |
-| Low connectivity | Saved interviews resume after refresh; repeated identical answer submissions reuse the saved record. Unsent answers remain current-page only; **no complete offline/PWA sync**. |
-| WhatsApp / IVR | Future integration work, not working adapters. |
-| Staff authorization | Existing role controls. Explicit worker assignment policy and comprehensive district scoping remain separate backend tasks. |
+The two discovery catalogues can overlap: **3,649 entries does not mean 3,649 unique qualifications or available batches.** Their facts were extracted from attributed Saksham archives pinned to a commit and hashes. Government sites could not be refreshed during import. LEAP did not import Saksham's application code, ranking logic or keyword annotations. Those archive entries remain outside eligibility and ranking. [Provenance and limits →](docs/CATALOGUE_DISCOVERY.md)
 
-The [PS acceptance checklist](docs/PS_26097_REQUIREMENTS.md) records requirement gaps. This prototype does **not** yet satisfy every PS requirement or constitute a field-validated production service.
+### Reviewed entry routes
+
+Solar PV Installer–Electrical, Electric Vehicle Service Technician and Helper Electrician were source-reviewed on **7 October 2026**. Production startup imports the reviewed snapshot. Qualifications are checked for expiry and source-review age; this is a dated catalogue, not a live government feed.
+
+Rules use **OR between alternative routes and AND within each route**. Education, prior NSQF levels, relevant experience, certificates and applicable literacy facts remain separate. Blank means unknown; zero experience means none reported. Facts for one qualification cannot establish eligibility for another. A matching route is a pre-screen, not admission approval.
+
+[Explore the reviewed references →](https://leap-ai-khaki.vercel.app/qualifications#reviewed-references) · [Import documentation →](docs/NQR_REFERENCE_CATALOGUE.md)
+
+### Coimbatore pilot
+
+The pilot page links official contacts and supporting sources. It labels the August admission notice as closed and distinguishes training history from open enrolment.
+
+<p align="center"><a href="https://leap-ai-khaki.vercel.app/pilot/coimbatore"><img src="docs/visual-checks/coimbatore-pilot-live.jpg" width="900" alt="Live Coimbatore pilot: official training contacts with open batches explicitly unconfirmed"></a></p>
+
+**Real speakers tested: 0. Verified open batches: 0.** A recording scorer, collection protocol and provider-verification worksheet are ready for fieldwork. The 17 scenarios compare against the previous two-record catalogue using the same engine; they are not a Saksham head-to-head trial.
+
+[Evaluation method](docs/PILOT_EVALUATION.md) · [Per-case results](docs/evaluation-results.json) · [Batch verification worksheet](docs/pilot-batch-verification.csv)
+
+## Current boundaries
+
+| Implemented | Still requires work or external confirmation |
+| :--- | :--- |
+| Interview confirmation, provenance and human-review gating | Independently verified beneficiary evidence |
+| Deterministic eligibility, constraint and pathway engines | Broader reviewed qualification and competency coverage |
+| Potential RPL routes and competency comparisons | Official assessment and certification |
+| Saved-interview recovery and duplicate-submission protection | Complete offline/PWA synchronization |
+| Recorded outcomes and aggregate workspaces | Independently verified placement or income outcomes |
+| Server-side roles | Explicit worker assignment and comprehensive district scoping |
+| Browser-supported speech | Real-speaker validation; WhatsApp and IVR adapters |
+
+LEAP is a decision-support prototype. It does not yet satisfy every problem-statement requirement or constitute a field-validated production service. [PS 26097 acceptance checklist →](docs/PS_26097_REQUIREMENTS.md)
 
 ## Technology
 
-- **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS, Lucide.
-- **Backend:** Python, FastAPI, SQLAlchemy, Pydantic, Alembic.
-- **Data:** SQLite for local/demo use; PostgreSQL driver support. Database choice alone does not provide persistence or operational readiness.
-- **Authentication:** JWT access/refresh tokens, Argon2 password hashing and server-side role checks.
-- **Engines:** constraints, qualification validity, aspiration matching, RPL, deterministic ranking, confidence and outcome evidence.
+| Frontend | Backend | Data and security |
+| :--- | :--- | :--- |
+| Next.js 16 · React 19 · TypeScript | FastAPI · Python · Pydantic | PostgreSQL production database |
+| Tailwind CSS · Lucide | SQLAlchemy · Alembic | JWT · Argon2 · server-side role checks |
+| Browser speech and text input | Deterministic decision engines | SQLite for local tests and synthetic fixtures |
 
 ## Run locally
 
-Prerequisites: Node.js >=22.13, pnpm 11+, Python 3.12+.
+**Prerequisites:** Node.js ≥22.13, pnpm 11+, Python 3.12+.
 
-Backend, from the repository root:
+### 1. Start the backend
+
+From the repository root:
 
 ```bash
 cd backend
@@ -166,16 +213,18 @@ python -m seed.load_nqr_database seed/data/nqr-reference.json --apply
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Frontend, in a second terminal at the repository root:
+### 2. Start the frontend
+
+In a second terminal at the repository root:
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Open `http://localhost:3000`. `/demo` works without the backend. Real workflows use `NEXT_PUBLIC_API_URL`, defaulting to `http://localhost:8000`. API documentation is at `http://127.0.0.1:8000/docs`.
+Open **http://localhost:3000**. Public `/demo` tours work without a backend. Real workflows use `NEXT_PUBLIC_API_URL`, defaulting to `http://localhost:8000`. Interactive API documentation: **http://127.0.0.1:8000/docs**.
 
-## Verify changes
+### 3. Verify changes
 
 ```bash
 node scripts/check-localization.mjs
@@ -184,63 +233,62 @@ pnpm exec tsc --noEmit
 pnpm build
 cd backend
 python -m pytest -q
+python -m evaluation.run_scenarios --output ../docs/evaluation-results.json
 ```
 
-Latest backend run: **125 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
+[Release checks passed](https://github.com/Aarthirt14/LEAP-AI/actions/runs/37606059169): backend tests, catalogue bundle consistency, PostgreSQL import/concurrency and migration rollback/re-upgrade. Frontend checks cover language mappings and demo isolation. Software tests do not establish field effectiveness.
 
-Regenerate the public synthetic snapshot locally:
+<details>
+<summary><strong>Regenerate the synthetic demo snapshot</strong></summary>
 
 ```bash
 cd backend
 python -m seed.export_public_demo
 ```
 
-This command creates a temporary database, runs the existing synthetic seed and deterministic engine, and exports selected GET responses to `lib/demo-snapshot.json`. It never exports passwords, password hashes or tokens. Do not replace this fixture with real beneficiary records.
+This creates a temporary database, runs the synthetic seed and deterministic engine, and exports selected GET responses to `lib/demo-snapshot.json`. Passwords, hashes and tokens are excluded. Never replace this public fixture with real beneficiary records.
 
-## Alternative qualification entry routes
+</details>
 
-The profile accepts optional **qualification-specific** prior NSQF levels, relevant experience and NTC/NAC/CITS certificates. LEAP evaluates alternative routes from three reviewed NQR records using OR between routes and AND within each route. A two-year NTC also counts as an NTC; an unspecified NTC does not establish a two-year qualification.
+## Deployment
 
-Blank means unknown; zero experience and an explicitly empty certificate list mean none reported. Experience for one qualification cannot establish eligibility for another. These are self-reported facts, never verified admission decisions. Save details in **My profile**, then recalculate pathways. Provider confirmation and human review remain required; local batches, seats and fees are unverified.
+**Production branch: `main`.** Development previews remain separate.
 
-Released through [PR #6](https://github.com/Aarthirt14/LEAP-AI/pull/6). On 7 October 2026, production logs confirmed both PostgreSQL migrations and the import of two reviewed NQR qualifications. The live API reports a connected production database and exposes the eligibility profile schema. [PostgreSQL release checks passed](https://github.com/Aarthirt14/LEAP-AI/actions/runs/37594052401), including concurrent retry deduplication and migration rollback/re-upgrade. See [release details](docs/ELIGIBILITY_RELEASE.md).
+| Service | Address |
+| :--- | :--- |
+| Application | https://leap-ai-khaki.vercel.app |
+| Backend | https://leap-ai-production.onrender.com |
+| Health check | https://leap-ai-production.onrender.com/health |
+| Infrastructure | [`render.yaml`](render.yaml) |
 
-[Open the live qualification catalogue](https://leap-ai-khaki.vercel.app/qualifications)
+The fresh production database does not contain accounts or records from the old backend. Create a new account for real workflows; staff access requires provisioning. Evaluation hosting can have cold starts and database-lifetime limits—check the active service plan before relying on it for continued operation. [Operations notes →](docs/PRODUCTION_RELEASE.md)
 
-![Live NQR qualification catalogue with alternative entry routes and source links](docs/visual-checks/nqr-qualifications-live.jpg)
-
-## Deployment and configuration
-
-The public application is consolidated at **https://leap-ai-khaki.vercel.app**. Production code lives on `main`; branch previews are for development only.
-
-- Frontend: `https://leap-ai-khaki.vercel.app`
-- Fresh backend: `https://leap-ai-production.onrender.com`
-- Health: `https://leap-ai-production.onrender.com/health`
-- Infrastructure: [`render.yaml`](render.yaml), with generated server secrets and a private-network PostgreSQL connection.
-
-**Fresh database:** accounts and records from the old backend have not been migrated. Create a new account for real workflows. Staff roles require authorized provisioning; qualification and opportunity catalogues require validated imports. The five role tours remain immediately usable with isolated synthetic data.
-
-**No-cost hosting limits:** the Render API sleeps when idle, so the first request can be slow. The free PostgreSQL database expires after 30 days; upgrade or migrate before expiry. This deployment is suitable for evaluation, not unattended long-term operation.
+<details>
+<summary><strong>Environment variables and request routing</strong></summary>
 
 | Setting | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_API_URL` | Frontend API base URL; public configuration, never a secret. |
-| `DATABASE_URL` | Backend database connection. |
-| `JWT_SECRET`, `SECRET_KEY` | Server-only, non-default secrets. Production startup rejects defaults/short values. |
-| `FRONTEND_URL` | Explicit allowed frontend origins. |
-| `DEMO_MODE` | Keep **false** on live services. Public read-only tours do not need it. |
-| `AI_INTERVIEW_ENABLED`, `OPENAI_API_KEY`, `OPENAI_INTERVIEW_MODEL` | Optional server-only answer assistance; see setup document. Never put the API key in client variables. |
+| :--- | :--- |
+| `NEXT_PUBLIC_API_URL` | Public frontend API base URL; never a secret |
+| `DATABASE_URL` | Server database connection |
+| `JWT_SECRET`, `SECRET_KEY` | Server-only secrets; production rejects default/short values |
+| `FRONTEND_URL` | Explicit allowed frontend origins |
+| `DEMO_MODE` | Keep `false` on live services; public tours do not need it |
+| `AI_INTERVIEW_ENABLED`, `OPENAI_API_KEY`, `OPENAI_INTERVIEW_MODEL` | Optional server-only answer assistance |
 
-Vercel proxies API requests through `/leap-api` on the app domain to the environment’s configured backend. API responses are marked `no-store`; authentication and role checks remain server-side. Preview retains its separate staging backend. No staging records are copied into production.
+Vercel proxies API requests through `/leap-api` to the environment's configured backend. API responses use `no-store`; authentication and authorization remain server-side. Preview uses its separate staging backend. No staging records are copied into production.
+
+</details>
 
 ## Documentation
 
-- [Voice, recovery and import validation milestone](docs/VOICE_DATA_IMPROVEMENT.md)
-- [Production release and operations](docs/PRODUCTION_RELEASE.md)
-- [Milestone report and visual checks](docs/UI_V2_MILESTONE_REPORT.md)
-- [Credibility safeguards](docs/MILESTONE_1_5.md)
-- [Problem-statement acceptance checklist](docs/PS_26097_REQUIREMENTS.md)
-- [AI interview setup](docs/AI_INTERVIEW_SETUP.md)
-- [Language previews and public demos](docs/LANGUAGES_AND_DEMOS.md)
+| Product and evidence | Engineering and operations |
+| :--- | :--- |
+| [PS 26097 acceptance checklist](docs/PS_26097_REQUIREMENTS.md) | [Production operations](docs/PRODUCTION_RELEASE.md) |
+| [Pilot and evaluation protocol](docs/PILOT_EVALUATION.md) | [Qualification release details](docs/ELIGIBILITY_RELEASE.md) |
+| [Catalogue provenance](docs/CATALOGUE_DISCOVERY.md) | [Voice, recovery and import validation](docs/VOICE_DATA_IMPROVEMENT.md) |
+| [Language previews and demos](docs/LANGUAGES_AND_DEMOS.md) | [AI interview setup](docs/AI_INTERVIEW_SETUP.md) |
+| [Credibility safeguards](docs/MILESTONE_1_5.md) | [UI milestone and visual checks](docs/UI_V2_MILESTONE_REPORT.md) |
 
-No license is currently declared in this repository.
+---
+
+<p align="center"><strong>Understand the person. Explain the pathway. Keep the choice human.</strong><br><sub>No license is currently declared in this repository.</sub></p>

@@ -55,6 +55,8 @@ flowchart TD
 
 [Training contacts and official evidence](https://leap-ai-khaki.vercel.app/pilot/coimbatore) now accompany the reviewed catalogue. **17/17 authored software scenarios pass** against a comparison restricted to the previous two records. **Real speakers tested: 0. Verified open batches: 0.** Official contacts and past training do not establish current admissions. The closed August notice is labelled accordingly.
 
+![Live Coimbatore pilot with dated official contacts and unconfirmed batch notice](docs/visual-checks/coimbatore-pilot-live.jpg)
+
 [Read the evaluation method and real-speaker protocol](docs/PILOT_EVALUATION.md) · [Inspect per-case results](docs/evaluation-results.json). A recording scorer and provider-verification worksheet are included; no superiority claim is made from these fixtures.
 
 ## Screenshots

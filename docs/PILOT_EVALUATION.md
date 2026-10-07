@@ -62,3 +62,7 @@ The scorer computes word error rate, character error rate and exact profile-slot
 - A head-to-head claim requires comparable tasks, pinned versions and independent review for both systems.
 
 This release improves the engineering foundation. The open-batch and real-speaker gates remain unmet.
+
+## Deployment verification
+
+[PR #9](https://github.com/Aarthirt14/LEAP-AI/pull/9) merged as `eae10742d731674c4b47fc4350ee344b35547454`. [Release CI](https://github.com/Aarthirt14/LEAP-AI/actions/runs/37606059169) passed the backend tests, catalogue bundle comparison, PostgreSQL import/concurrency checks and migration rollback/re-upgrade. The production Vercel page was visually checked, and the production API returned healthy/connected with the new nullable literacy field in its OpenAPI schema. The live-page screenshot is committed under `docs/visual-checks/coimbatore-pilot-live.jpg`.

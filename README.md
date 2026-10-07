@@ -21,7 +21,7 @@ LEAP goes beyond matching a voice answer to a course: it shows the evidence behi
 
 ## Official qualification reference catalogue
 
-The `/qualifications` page contains two real NQR references reviewed on 7 October 2026: Solar PV Installer–Electrical and Electric Vehicle Service Technician. Each preserves alternative entry routes, duration, NSQF level, source link and published validity. It marks expired or overdue-for-review records. This is a manually maintained reference snapshot, not a live government feed or a list of available batches. These references are not yet used by the recommendation engine: its single education/experience fields cannot faithfully represent all official alternatives.
+The `/qualifications` page contains two real NQR references reviewed on 7 October 2026: Solar PV Installer–Electrical and Electric Vehicle Service Technician. Each preserves alternative entry routes, duration, NSQF level, source link and published validity. It marks expired or overdue-for-review records. This is a manually maintained reference snapshot, not a live government feed or a list of available batches. A dry-run-first database importer connects these references to ranking after an explicit import. Structured rules preserve alternative entry routes and distinguish matching reported facts, missing evidence and failed conditions. Uncollected prior qualifications, certificates and relevant experience stay unknown. Production import is pending.
 
 See [source and import notes](docs/NQR_REFERENCE_CATALOGUE.md).
 
@@ -173,7 +173,7 @@ cd backend
 python -m pytest -q
 ```
 
-Latest backend run: **101 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
+Latest backend run: **117 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
 
 Regenerate the public synthetic snapshot locally:
 

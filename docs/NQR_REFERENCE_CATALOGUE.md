@@ -24,8 +24,28 @@ The importer checks unique registry IDs, matching official URLs, required fields
 
 Expired records remain visible with an expiry warning for traceability. Rechecking must inspect the official source before changing `source_checked_on`; never advance dates automatically. NQR's homepage currently announces migration to Kaushalverse. Confirm redirected records and identifiers before changing the allowed source hosts; no undocumented API has been assumed.
 
-## Recommendation boundary
+## Database import and recommendation integration
 
-The current Qualification model has one minimum education/experience pair, while these source entries have several alternative routes including prior NSQF levels and certificates. Flattening these alternatives could wrongly exclude or admit beneficiaries. Therefore this change provides real browsable references without silently inserting them into ranking or converting all alternatives to a single threshold.
+The Qualification model has nullable `source_metadata` JSON, added by Alembic revision `20261007_nqr_metadata`. It holds the reviewed snapshot, structured routes and a SHA-256 digest. Existing records remain compatible. The latest snapshot is stored; Git preserves source-file history. This is not a full version-history database.
 
-Next integration requires a model/migration for versioned qualifications and alternative eligibility routes, evaluation against confirmed beneficiary facts, regression tests for those alternatives, and source-backed competency mapping. Live provider/batch information remains a separately verified dataset. No seats, fees, providers, district coverage, government funding or employment outcomes are invented here.
+After applying migrations, run from `backend` against the intended configured database:
+
+```bash
+python -m alembic upgrade head
+python -m seed.load_nqr_database ../data/nqr-reference.json
+python -m seed.load_nqr_database ../data/nqr-reference.json --apply
+```
+
+The first import reports changes only. `--apply` commits an idempotent transaction. In a backend-only container, supply the reviewed JSON at a mounted/copied path. Import does not run automatically at startup and has not been run against production.
+
+Keys `NQR:11689` and `NQR:13239` are internal registry references, not QP codes. Originally-approved dates are not substituted for current-version valid-from dates. Duration uses the published maximum for conservative training-burden scoring; the range stays in evidence. No training opportunities, seats, fees or competencies are invented.
+
+## Alternative-route evaluation
+
+Conditions within a route use AND; alternative routes use OR. A satisfied route yields `ELIGIBLE_ON_REPORTED_FACTS`, not admission approval. Missing information yields `NEEDS_VERIFICATION`, half eligibility credit and RED human review. Every route must be definitely unmet before `NOT_ELIGIBLE` excludes the candidate. Invalid/empty rules cannot grant eligibility.
+
+The current profile supplies recognized completed school classes. Prior NSQF level, vocational certificates and qualification-relevant experience are not collected by the existing UI, so remain unknown. Generic work experience does not prove relevant experience. An unspecified NTC does not satisfy a two-year NTC requirement. Degree/diploma text is not silently converted into a school class.
+
+NQR references older than 30 days since source review, future review timestamps and missing review dates are excluded from new recommendations. Published expiry is enforced independently. Review dates may only advance after source inspection. Missing competency mapping forces RED review; NOS identifiers alone do not establish RPL. Previously generated pathways are not retroactively regenerated; they need recalculation/review after catalogue changes.
+
+Source links, review dates, expiry and route explanations accompany generated evidence. Local provider/batch verification remains separate. Before production release, verify migrations on staging, review the source-to-rule mapping, test real profiles with facilitators and finish PR #6 voice/recovery validation.

@@ -20,9 +20,97 @@
         "A previous NSQF level 3.5 qualification plus 1.5 years of experience.",
         "A previous NSQF level 3 qualification plus three years of experience."
       ],
-      "nos_codes": ["SGJ/N0101", "SGJ/N0102", "SGJ/N0104", "SGJ/N0105", "SGJ/N0106", "DGT/VSQ/N0102"],
+      "nos_codes": [
+        "SGJ/N0101",
+        "SGJ/N0102",
+        "SGJ/N0104",
+        "SGJ/N0105",
+        "SGJ/N0106",
+        "DGT/VSQ/N0102"
+      ],
       "summary": "Covers surveying, component procurement, electrical installation, commissioning and site safety for solar photovoltaic systems.",
-      "batch_availability": "UNVERIFIED"
+      "batch_availability": "UNVERIFIED",
+      "eligibility_rules": [
+        {
+          "id": "11689-route-1",
+          "summary": "Completed Class 12 or equivalent, with no prior experience required.",
+          "all": [
+            {
+              "field": "completed_school_grade",
+              "operator": "gte",
+              "value": 12
+            }
+          ]
+        },
+        {
+          "id": "11689-route-2",
+          "summary": "Completed Class 10 with three years of experience.",
+          "all": [
+            {
+              "field": "completed_school_grade",
+              "operator": "gte",
+              "value": 10
+            },
+            {
+              "field": "relevant_experience_years",
+              "operator": "gte",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "id": "11689-route-3",
+          "summary": "Completed Class 10 with NTC, NAC or CITS; no prior experience is listed for this route.",
+          "all": [
+            {
+              "field": "completed_school_grade",
+              "operator": "gte",
+              "value": 10
+            },
+            {
+              "field": "certificates",
+              "operator": "any",
+              "value": [
+                "NTC",
+                "NAC",
+                "CITS"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "11689-route-4",
+          "summary": "A previous NSQF level 3.5 qualification plus 1.5 years of experience.",
+          "all": [
+            {
+              "field": "previous_nsqf_level",
+              "operator": "eq",
+              "value": 3.5
+            },
+            {
+              "field": "relevant_experience_years",
+              "operator": "gte",
+              "value": 1.5
+            }
+          ]
+        },
+        {
+          "id": "11689-route-5",
+          "summary": "A previous NSQF level 3 qualification plus three years of experience.",
+          "all": [
+            {
+              "field": "previous_nsqf_level",
+              "operator": "eq",
+              "value": 3
+            },
+            {
+              "field": "relevant_experience_years",
+              "operator": "gte",
+              "value": 3
+            }
+          ]
+        }
+      ]
     },
     {
       "registry_id": "13239",
@@ -43,9 +131,96 @@
         "Completed Class 11 with 1.5 years of experience.",
         "Completed Class 10 with a two-year NTC; no prior experience is listed for this route."
       ],
-      "nos_codes": ["ASC/N9801", "ASC/N9846", "DGT/VSQ/N0102", "ASC/N1450", "ASC/N1451", "ASC/N1312", "ASC/N1452"],
+      "nos_codes": [
+        "ASC/N9801",
+        "ASC/N9846",
+        "DGT/VSQ/N0102",
+        "ASC/N1450",
+        "ASC/N1451",
+        "ASC/N1312",
+        "ASC/N1452"
+      ],
       "summary": "Covers maintenance and repair of electric or hybrid vehicles, with vehicle-specific electives. Duration depends on the chosen combination.",
-      "batch_availability": "UNVERIFIED"
+      "batch_availability": "UNVERIFIED",
+      "eligibility_rules": [
+        {
+          "id": "13239-route-1",
+          "summary": "A previous NSQF level 3 qualification plus three years of experience.",
+          "all": [
+            {
+              "field": "previous_nsqf_level",
+              "operator": "eq",
+              "value": 3
+            },
+            {
+              "field": "relevant_experience_years",
+              "operator": "gte",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "id": "13239-route-2",
+          "summary": "Completed Class 12, with no prior experience required.",
+          "all": [
+            {
+              "field": "completed_school_grade",
+              "operator": "gte",
+              "value": 12
+            }
+          ]
+        },
+        {
+          "id": "13239-route-3",
+          "summary": "Completed Class 10 with three years of experience.",
+          "all": [
+            {
+              "field": "completed_school_grade",
+              "operator": "gte",
+              "value": 10
+            },
+            {
+              "field": "relevant_experience_years",
+              "operator": "gte",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "id": "13239-route-4",
+          "summary": "Completed Class 11 with 1.5 years of experience.",
+          "all": [
+            {
+              "field": "completed_school_grade",
+              "operator": "gte",
+              "value": 11
+            },
+            {
+              "field": "relevant_experience_years",
+              "operator": "gte",
+              "value": 1.5
+            }
+          ]
+        },
+        {
+          "id": "13239-route-5",
+          "summary": "Completed Class 10 with a two-year NTC; no prior experience is listed for this route.",
+          "all": [
+            {
+              "field": "completed_school_grade",
+              "operator": "gte",
+              "value": 10
+            },
+            {
+              "field": "certificates",
+              "operator": "any",
+              "value": [
+                "NTC_2_YEAR"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -47,7 +47,7 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
     qualifications = db.execute(select(Qualification).options(selectinload(Qualification.competencies))).scalars().all()
     trainings = db.execute(select(TrainingOpportunity).where(TrainingOpportunity.district == beneficiary.district)).scalars().all()
     training_map = {t.qualification_id: {"distance_km": t.distance_km, "seats_available": t.seats_available, "verification_status": t.verification_status.value, "source_type": t.source_type.value, "provider_name": t.provider_name} for t in trainings}
-    q_data = [{"id": q.id, "title": q.occupational_role, "sector": q.sector, "validity_status": q.validity_status.value, "valid_from": q.valid_from, "valid_until": q.valid_until, "minimum_education": q.minimum_education, "minimum_experience_years": q.minimum_experience_years, "duration_hours": q.duration_hours, "competencies": [{"name": c.competency_name, "weight": c.weight} for c in q.competencies]} for q in qualifications]
+    q_data = [{"source_metadata": q.source_metadata, "source_type": q.source_type.value, "id": q.id, "title": q.occupational_role, "sector": q.sector, "validity_status": q.validity_status.value, "valid_from": q.valid_from, "valid_until": q.valid_until, "minimum_education": q.minimum_education, "minimum_experience_years": q.minimum_experience_years, "duration_hours": q.duration_hours, "competencies": [{"name": c.competency_name, "weight": c.weight} for c in q.competencies]} for q in qualifications]
     skill_data = [{"name": s.skill.name, "experience_years": s.experience_years, "verified": s.verified} for s in beneficiary.skills]
     ranked = rank_pathways(_profile_dict(beneficiary), skill_data, q_data, training_map, qualification_evidence_scores(db), gender=beneficiary.gender)
     db.execute(delete(LivelihoodPathway).where(LivelihoodPathway.beneficiary_id == beneficiary_id, LivelihoodPathway.status == PathwayStatus.PROPOSED))
@@ -96,9 +96,21 @@ def generate_pathways(db: Session, beneficiary_id: int) -> list[LivelihoodPathwa
         q_obj = next((q for q in qualifications if q.id == result["qualification_id"]), None)
         min_edu = q_obj.minimum_education if q_obj else None
         ben_edu = profile.education_level if profile else "Not specified"
-        _add_evidence(db, pathway.id, "ELIGIBILITY", "Educational qualification eligibility",
-            f"Needs confirmation — You reported {ben_edu}; this pathway requires {min_edu}." if min_edu else f"Needs confirmation — Your education is {ben_edu}.",
-            "livelihood_profile.education_level", SourceType.SELF_REPORTED, VerificationStatus.UNVERIFIED)
+        eligibility = result.get("eligibility_assessment")
+        if eligibility:
+            met = [r["summary"] for r in eligibility["routes"] if r["status"] == "MET"]
+            missing = sorted({f for r in eligibility["routes"] if r["status"] == "NEEDS_VERIFICATION" for f in r["missing_facts"]})
+            explanation = ("Appears to meet an entry route on reported facts: " + "; ".join(met) + " Provider must confirm admission.") if met else ("Needs verification: " + ", ".join(f.replace("_", " ") for f in missing) + ". Alternative entry routes have not been established.")
+            _add_evidence(db, pathway.id, "ELIGIBILITY", "Alternative entry-route assessment", explanation,
+                q_obj.source_url or "NQR", SourceType.NQR, VerificationStatus.UNVERIFIED)
+            metadata = q_obj.source_metadata or {}
+            _add_evidence(db, pathway.id, "ELIGIBILITY", "Qualification source and scope",
+                f"NQR record {metadata.get('registry_id', 'unknown')}; source reviewed {metadata.get('source_checked_on', 'unknown')}; published expiry {q_obj.valid_until}. Hours: {metadata.get('duration_hours_min')}–{metadata.get('duration_hours_max')}. Local batches, fees and seats remain unverified.",
+                q_obj.source_url or "NQR", SourceType.NQR, VerificationStatus.UNVERIFIED)
+        else:
+            _add_evidence(db, pathway.id, "ELIGIBILITY", "Educational qualification eligibility",
+                f"Needs confirmation — You reported {ben_edu}; this pathway requires {min_edu}." if min_edu else f"Needs confirmation — Your education is {ben_edu}.",
+                "livelihood_profile.education_level", SourceType.SELF_REPORTED, VerificationStatus.UNVERIFIED)
 
         # 4. OPPORTUNITY
         if training and training.get("verification_status") == "VERIFIED" and training.get("source_type") != "SYNTHETIC" and training.get("distance_km") is not None and training.get("seats_available") is not None:

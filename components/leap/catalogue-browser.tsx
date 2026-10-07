@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import archive from '@/data/catalogue-archive.json';
-import { catalogueHref, searchCatalogue, type SearchParams } from '@/lib/catalogue-search';
+import { catalogueHref, hasArchiveLevelConflict, searchCatalogue, type SearchParams } from '@/lib/catalogue-search';
 
 export function CatalogueBrowser({ params }: { params: SearchParams }) {
   const results = searchCatalogue(archive.records, params);
@@ -26,7 +26,8 @@ export function CatalogueBrowser({ params }: { params: SearchParams }) {
       {results.rows.map(record => <article key={record.id} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">{record.source === 'NQR' ? 'NQR qualification archive' : 'PM-AJAY course archive'}</p>
         <h3 className="mt-2 break-words text-lg font-semibold">{record.title}</h3>
-        <p className="mt-2 text-sm text-slate-600">{record.sector}{record.nsqf_level !== undefined ? ` · NSQF level ${record.nsqf_level}` : ''}</p>
+        <p className="mt-2 text-sm text-slate-600">{record.sector}{record.nsqf_level !== undefined ? ` · Archived NSQF level ${record.nsqf_level}` : ''}</p>
+        {hasArchiveLevelConflict(record) && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-950">Archive inconsistency: the level field differs from the level segment in its code. Confirm the current level on the official record; neither value has been corrected or verified by LEAP.</p>}
         <dl className="mt-4 space-y-2 text-sm">
           <div><dt className="font-semibold">Published code</dt><dd className="break-words">{record.code}</dd></div>
           {record.awarding_body && <div><dt className="font-semibold">Awarding body in archive</dt><dd>{record.awarding_body}</dd></div>}

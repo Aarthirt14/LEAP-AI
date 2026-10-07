@@ -14,6 +14,8 @@ The archive's documentation identifies NQR and PM-AJAY as its original sources. 
 
 Search is server-rendered with 24 entries per page, title/code/sector/awarding-body matching and catalogue, sector and NSQF-level filters. Only a page of results is sent to the browser. Search and pagination work with ordinary links and GET forms, including without JavaScript. Source titles remain in English. NSQF-level filtering applies to the NQR archive; PM-AJAY entries without that field cannot match it.
 
+Some archive level fields disagree with the numeric level segment in their qualification code. The UI flags these conflicts explicitly without guessing which is current. Both require official recheck; the filter uses the archived level field.
+
 ## What can influence recommendations?
 
 The separate, two-record `data/nqr-reference.json` remains the source-reviewed eligibility catalogue. Its database import is already run by `backend/seed/start_production.sh`. Expiry, review age and alternative entry-route checks continue to apply. The discovery archive is **not imported into the Qualification table**, cannot grant eligibility, and cannot contribute opportunity, RPL, funding or placement evidence.

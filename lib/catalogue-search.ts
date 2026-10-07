@@ -9,6 +9,11 @@ export type SearchParams = Record<string, string | string[] | undefined>;
 const single = (value: string | string[] | undefined) => typeof value === 'string' ? value : '';
 const normalize = (value: string) => value.normalize('NFKC').toLocaleLowerCase('en').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
+export function hasArchiveLevelConflict(record: CatalogueRecord) {
+  const encoded = /^(?:QG|NG|NM)-(\d+(?:\.\d+)?)-/.exec(record.code);
+  return record.source === 'NQR' && record.nsqf_level !== undefined && encoded !== null && Number(encoded[1]) !== record.nsqf_level;
+}
+
 export function searchCatalogue(records: CatalogueRecord[], params: SearchParams) {
   const q = single(params.q).trim().slice(0, 120);
   const source = ['NQR', 'PMAJAY'].includes(single(params.source)) ? single(params.source) : '';

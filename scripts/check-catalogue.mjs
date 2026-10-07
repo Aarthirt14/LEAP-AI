@@ -1,0 +1,36 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+
+const module = { exports: {} };
+const code = ts.transpileModule(fs.readFileSync('lib/catalogue-search.ts', 'utf8'), {compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022}}).outputText;
+vm.runInNewContext(code, {module, exports: module.exports, URLSearchParams});
+const {searchCatalogue, catalogueHref} = module.exports;
+const archive = JSON.parse(fs.readFileSync('data/catalogue-archive.json', 'utf8'));
+const records = archive.records;
+assert.equal(records.length, 3649);
+assert.equal(new Set(records.map(row => row.id)).size, records.length);
+assert.ok(records.every(row => row.recommendation_eligible === false && row.review_status === 'AWAITING_OFFICIAL_RECHECK' && row.batch_availability === 'UNVERIFIED'));
+assert.ok(archive.sources.every(source => source.official_checked_on === null));
+const all = searchCatalogue(records, {});
+assert.equal(all.total, 3649);
+assert.equal(all.rows.length, 24);
+assert.equal(searchCatalogue(records, {source: 'NQR'}).total, 1283);
+assert.equal(searchCatalogue(records, {source: 'PMAJAY'}).total, 2366);
+const solar = searchCatalogue(records, {q: ' SOLAR ', source: 'NQR', level: '4'});
+assert.ok(solar.total > 0);
+assert.ok(solar.rows.every(row => row.source === 'NQR' && row.nsqf_level === 4));
+assert.equal(searchCatalogue(records, {q: 'notarealtradezzzz'}).total, 0);
+assert.equal(searchCatalogue(records, {source: 'PMAJAY', level: '4'}).total, 0, 'PM-AJAY scope must not be presented as NSQF level');
+assert.equal(searchCatalogue(records, {page: '-1'}).page, 1);
+assert.equal(searchCatalogue(records, {page: 'Infinity'}).page, 1);
+assert.equal(searchCatalogue(records, {page: '9999'}).page, all.pages);
+assert.equal(searchCatalogue(records, {q: ['solar', 'tailor']}).q, '');
+const next = searchCatalogue(records, {page: '2'});
+assert.ok(!next.rows.some(row => all.rows.some(first => first.id === row.id)));
+const href = catalogueHref({...solar, sector: 'Handicrafts & Carpet'}, 2);
+assert.ok(href.includes('sector=Handicrafts+%26+Carpet') && href.includes('source=NQR') && href.includes('level=4'));
+// The discovery archive must not enter the reviewed database import path.
+assert.ok(!fs.readFileSync('backend/seed/start_production.sh', 'utf8').includes('catalogue-archive'));
+console.log('PASS: source counts, review boundaries, search, combined filters, pagination and URL encoding');

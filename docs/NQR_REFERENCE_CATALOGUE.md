@@ -36,7 +36,7 @@ python -m seed.load_nqr_database ../data/nqr-reference.json
 python -m seed.load_nqr_database ../data/nqr-reference.json --apply
 ```
 
-The first import reports changes only. `--apply` commits an idempotent transaction. In a backend-only container, supply the reviewed JSON at a mounted/copied path. Import does not run automatically at startup and has not been run against production.
+The first import reports changes only. `--apply` commits an idempotent transaction. In a backend-only container, supply the reviewed JSON at a mounted/copied path. Production startup now applies migrations and imports the bundled reviewed snapshot through `seed/start_production.sh`; the release has been deployed.
 
 Keys `NQR:11689` and `NQR:13239` are internal registry references, not QP codes. Originally-approved dates are not substituted for current-version valid-from dates. Duration uses the published maximum for conservative training-burden scoring; the range stays in evidence. No training opportunities, seats, fees or competencies are invented.
 
@@ -44,8 +44,12 @@ Keys `NQR:11689` and `NQR:13239` are internal registry references, not QP codes.
 
 Conditions within a route use AND; alternative routes use OR. A satisfied route yields `ELIGIBLE_ON_REPORTED_FACTS`, not admission approval. Missing information yields `NEEDS_VERIFICATION`, half eligibility credit and RED human review. Every route must be definitely unmet before `NOT_ELIGIBLE` excludes the candidate. Invalid/empty rules cannot grant eligibility.
 
-The current profile supplies recognized completed school classes. Prior NSQF level, vocational certificates and qualification-relevant experience are not collected by the existing UI, so remain unknown. Generic work experience does not prove relevant experience. An unspecified NTC does not satisfy a two-year NTC requirement. Degree/diploma text is not silently converted into a school class.
+The current profile supplies recognized completed school classes. The profile UI collects optional qualification-specific prior NSQF level, vocational certificates and relevant experience. Omitted facts remain unknown. Generic work experience does not prove relevant experience. An unspecified NTC does not satisfy a two-year NTC requirement. Degree/diploma text is not silently converted into a school class.
 
 NQR references older than 30 days since source review, future review timestamps and missing review dates are excluded from new recommendations. Published expiry is enforced independently. Review dates may only advance after source inspection. Missing competency mapping forces RED review; NOS identifiers alone do not establish RPL. Previously generated pathways are not retroactively regenerated; they need recalculation/review after catalogue changes.
 
-Source links, review dates, expiry and route explanations accompany generated evidence. Local provider/batch verification remains separate. Before production release, verify migrations on staging, review the source-to-rule mapping, test real profiles with facilitators and finish PR #6 voice/recovery validation.
+Source links, review dates, expiry and route explanations accompany generated evidence. Local provider/batch verification remains separate. The PostgreSQL release gate covers migrations and imports. Real-profile validation with facilitators remains outstanding.
+
+## Bulk discovery archive
+
+The separate `data/catalogue-archive.json` adds searchable, attributed archived listings. It does not enter this reviewed importer or change ranking. See [catalogue discovery boundaries](CATALOGUE_DISCOVERY.md).

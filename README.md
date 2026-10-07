@@ -19,11 +19,15 @@ LEAP goes beyond matching a voice answer to a course: it shows the evidence behi
 
 **Demo access:** open the role-demo link and choose Beneficiary, Field worker, Facilitator, District officer or Administrator. No LEAP email/password is needed. All demo records are fictional, marked read-only, and stored in a frontend snapshot. Public demo sessions confer no backend permissions. Saving, interview submission, approval and outcome reporting require a real account; these actions never mutate live data in a demo.
 
-## Official qualification reference catalogue
+## Search courses and qualifications
 
-The `/qualifications` page contains two real NQR references reviewed on 7 October 2026: Solar PV Installer–Electrical and Electric Vehicle Service Technician. Each preserves alternative entry routes, duration, NSQF level, source link and published validity. It marks expired or overdue-for-review records. This is a manually maintained reference snapshot, not a live government feed or a list of available batches. A dry-run-first database importer connects these references to ranking after an explicit import. Structured rules preserve alternative entry routes and distinguish matching reported facts, missing evidence and failed conditions. Uncollected prior qualifications, certificates and relevant experience stay unknown. Production import is pending.
+[Open the searchable catalogue](https://leap-ai-khaki.vercel.app/qualifications): **1,283 archived NQR records + 2,366 archived PM-AJAY course entries**, with text search, sector/source/NSQF-level filters and pagination. These catalogues can overlap; 3,649 entries does not mean 3,649 unique qualifications or available batches.
 
-See [source and import notes](docs/NQR_REFERENCE_CATALOGUE.md).
+**Bulk-source status: awaiting official recheck.** Government sites could not be refreshed during this import. Catalogue facts were extracted from explicitly attributed public Saksham archives, pinned to a commit and SHA-256 hashes. LEAP did not import its application code, ranking logic or keyword annotations. Archive retrieval on 7 October 2026 is not an official verification date. These entries support browsing only; current eligibility, validity, funding and local availability remain unverified.
+
+**Two independently reviewed NQR references** retain their detailed entry routes: Solar PV Installer–Electrical and Electric Vehicle Service Technician, reviewed on 7 October 2026. Production startup imports that reviewed snapshot into the database. Structured rules distinguish matching reported facts, missing evidence and failed conditions. The bulk discovery archive is not imported into ranking and cannot grant eligibility or verified-opportunity credit.
+
+See [catalogue provenance and limitations](docs/CATALOGUE_DISCOVERY.md) and [reviewed-source import notes](docs/NQR_REFERENCE_CATALOGUE.md).
 
 ## The problem LEAP addresses
 

@@ -13,11 +13,11 @@ LEAP goes beyond matching a voice answer to a course: it shows the evidence behi
 
 | Link | What to expect |
 | --- | --- |
-| [Production website](https://leap-ai-khaki.vercel.app/) | Current stable release. The redesign below is awaiting a coordinated frontend/backend release. |
-| [Redesign and role demos](https://leap-ai-git-redesign-leap-ui-v2-aarthiii333-9025s-projects.vercel.app/demo) | Latest redesign on `redesign/leap-ui-v2`. Vercel Preview protection may require project access. |
-| [Release pull request](https://github.com/Aarthirt14/LEAP-AI/pull/5) | Review the changes before merging to production `main`. |
+| [Open LEAP AI](https://leap-ai-khaki.vercel.app/) | Main application: language selection, assessment and role workspaces. |
+| [Try all five roles](https://leap-ai-khaki.vercel.app/demo) | Public, credential-free tours on the same application domain. |
+| [Sign in or register](https://leap-ai-khaki.vercel.app/auth) | Real accounts use the fresh PostgreSQL-backed API. |
 
-**Demo access:** open the redesign link and choose Beneficiary, Field worker, Facilitator, District officer or Administrator. No LEAP email/password is needed. All demo records are fictional, marked read-only, and stored in a frontend snapshot. Public demo sessions confer no backend permissions. Saving, interview submission, approval and outcome reporting require a real account; these actions never mutate live data in a demo.
+**Demo access:** open the role-demo link and choose Beneficiary, Field worker, Facilitator, District officer or Administrator. No LEAP email/password is needed. All demo records are fictional, marked read-only, and stored in a frontend snapshot. Public demo sessions confer no backend permissions. Saving, interview submission, approval and outcome reporting require a real account; these actions never mutate live data in a demo.
 
 ## The problem LEAP addresses
 
@@ -160,7 +160,7 @@ cd backend
 python -m pytest -q
 ```
 
-Latest backend run: **92 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
+Latest backend run: **96 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
 
 Regenerate the public synthetic snapshot locally:
 
@@ -173,12 +173,16 @@ This command creates a temporary database, runs the existing synthetic seed and 
 
 ## Deployment and configuration
 
-Both production services follow `main`:
+The public application is consolidated at **https://leap-ai-khaki.vercel.app**. Production code lives on `main`; branch previews are for development only.
 
 - Frontend: `https://leap-ai-khaki.vercel.app`
-- Backend: `https://leap-ai-l6n2.onrender.com`
+- Fresh backend: `https://leap-ai-production.onrender.com`
+- Health: `https://leap-ai-production.onrender.com/health`
+- Infrastructure: [`render.yaml`](render.yaml), with generated server secrets and a private-network PostgreSQL connection.
 
-Development and Preview use `redesign/leap-ui-v2`. A merge can deploy **both** services. Coordinate migrations, persistent database storage, server secrets, frontend API configuration and CORS before releasing. The redesigned interview requires its matching backend endpoints.
+**Fresh database:** accounts and records from the old backend have not been migrated. Create a new account for real workflows. Staff roles require authorized provisioning; qualification and opportunity catalogues require validated imports. The five role tours remain immediately usable with isolated synthetic data.
+
+**No-cost hosting limits:** the Render API sleeps when idle, so the first request can be slow. The free PostgreSQL database expires after 30 days; upgrade or migrate before expiry. This deployment is suitable for evaluation, not unattended long-term operation.
 
 | Setting | Purpose |
 | --- | --- |
@@ -189,11 +193,11 @@ Development and Preview use `redesign/leap-ui-v2`. A merge can deploy **both** s
 | `DEMO_MODE` | Keep **false** on live services. Public read-only tours do not need it. |
 | `AI_INTERVIEW_ENABLED`, `OPENAI_API_KEY`, `OPENAI_INTERVIEW_MODEL` | Optional server-only answer assistance; see setup document. Never put the API key in client variables. |
 
-The redesign Preview has an isolated same-origin relay to its staging backend. The relay does not change production routing or authentication. Staging SQLite records are disposable and may disappear on restart; they are not production data.
+Vercel proxies API requests through `/leap-api` on the app domain to the environment’s configured backend. API responses are marked `no-store`; authentication and role checks remain server-side. Preview retains its separate staging backend. No staging records are copied into production.
 
 ## Documentation
 
-- [Production release prerequisites](docs/PRODUCTION_RELEASE.md)
+- [Production release and operations](docs/PRODUCTION_RELEASE.md)
 - [Milestone report and visual checks](docs/UI_V2_MILESTONE_REPORT.md)
 - [Credibility safeguards](docs/MILESTONE_1_5.md)
 - [Problem-statement acceptance checklist](docs/PS_26097_REQUIREMENTS.md)

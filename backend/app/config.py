@@ -1,5 +1,5 @@
 from functools import lru_cache
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,6 +27,15 @@ class Settings(BaseSettings):
         "low_outcome_rate": 0.40, "balanced_ratio_delta": 0.20,
     })
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore", hide_input_in_errors=True)
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def use_installed_postgres_driver(cls, value: str) -> str:
+        # Render supplies a bare URL; this project installs psycopg 3, not psycopg2.
+        for prefix in ("postgres://", "postgresql://"):
+            if value.startswith(prefix):
+                return "postgresql+psycopg://" + value[len(prefix):]
+        return value
 
     def model_post_init(self, __context: object) -> None:
         if self.environment.lower() == "production":

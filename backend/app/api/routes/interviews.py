@@ -25,7 +25,29 @@ def get_session(db: Session, session_id: int) -> InterviewSession:
 def start_interview(payload: InterviewCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     beneficiary = assert_beneficiary_access(db, user, payload.beneficiary_id, True)
     if not beneficiary.consent_given: raise AppError("CONSENT_REQUIRED", "Consent is required before interview evidence can be stored.", 422)
+    # Serialize starts for this beneficiary on PostgreSQL, including a lost-response retry.
+    db.execute(select(Beneficiary.id).where(Beneficiary.id == beneficiary.id).with_for_update()).scalar_one()
+    if payload.resume_existing:
+        existing = active_session(db, beneficiary.id, user.id)
+        if existing:
+            return existing
     row = InterviewSession(beneficiary_id=payload.beneficiary_id, language=payload.language, created_by=user.id); db.add(row); db.commit(); db.refresh(row); return row
+
+
+def active_session(db: Session, beneficiary_id: int, user_id: int):
+    return db.scalars(select(InterviewSession).where(
+        InterviewSession.beneficiary_id == beneficiary_id,
+        InterviewSession.created_by == user_id,
+        InterviewSession.status == InterviewStatus.IN_PROGRESS,
+    ).order_by(InterviewSession.id.desc()).options(selectinload(InterviewSession.answers))).first()
+
+
+@router.get("/active/{beneficiary_id}", response_model=InterviewOut | None)
+def read_active_interview(beneficiary_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    beneficiary = assert_beneficiary_access(db, user, beneficiary_id, True)
+    if not beneficiary.consent_given:
+        raise AppError("CONSENT_REQUIRED", "Consent is required to resume an interview.", 422)
+    return active_session(db, beneficiary_id, user.id)
 
 
 @router.get("/{session_id}", response_model=InterviewOut, description="Get an authorized interview and its preserved transcript evidence.")
@@ -36,8 +58,18 @@ def read_interview(session_id: int, db: Session = Depends(get_db), user: User = 
 @router.post("/{session_id}/answers", response_model=InterviewAnswerOut, status_code=201, description="Store the original transcript separately from corrected text.")
 def add_answer(session_id: int, payload: InterviewAnswerCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     session = get_session(db, session_id); beneficiary = assert_beneficiary_access(db, user, session.beneficiary_id, True)
+    db.execute(select(InterviewSession.id).where(InterviewSession.id == session_id).with_for_update()).scalar_one()
+    db.refresh(session)
     if not beneficiary.consent_given: raise AppError("CONSENT_REQUIRED", "Consent was withdrawn; interview evidence cannot be stored.", 422)
     if session.status != InterviewStatus.IN_PROGRESS: raise AppError("INTERVIEW_CLOSED", "Answers cannot be added to a closed interview.", 409)
+    existing = db.scalars(select(InterviewAnswer).where(
+        InterviewAnswer.session_id == session_id,
+        InterviewAnswer.question_key == payload.question_key,
+    ).order_by(InterviewAnswer.id.desc())).first()
+    if existing:
+        if existing.transcript == payload.transcript and existing.language == payload.language and existing.question_text == payload.question_text and payload.corrected_text is None:
+            return existing
+        raise AppError("ANSWER_ALREADY_SAVED", "This question already has an answer. Resume the interview and use review corrections to change it.", 409)
     data = payload.model_dump(); data["extraction_confidence"] = None; data["speech_confidence"] = None
     row = InterviewAnswer(session_id=session_id, **data); db.add(row); db.commit(); db.refresh(row); return row
 

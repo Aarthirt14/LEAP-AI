@@ -96,6 +96,7 @@ Public registration creates beneficiary accounts only. Real staff roles require 
 - English, Tamil and Hindi interfaces; **seven additional language previews:** Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati and Odia.
 - Each new language has 129 translated messages covering key controls, consent, and all ten interview questions and hints. Longer guidance and some staff copy remain English; this is disclosed in the app. Native-speaker review is outstanding.
 - Browser speech recognition receives the chosen language tag. Actual availability depends on the browser/provider and device. Dialect coverage has not been validated; typing remains available.
+- Interview questions and hints can be read aloud on request when the device has a matching language voice; missing voices are disclosed. Speech quality still requires device and speaker testing.
 - Raw Unicode answers are preserved. Unknown work descriptions require confirmation/human review, rather than invented skill matches. Language selection never sets geographic state.
 - Responsive layouts, keyboard focus, accessible labels and reduced-motion support. Actual screen-reader and field usability validation remain outstanding.
 
@@ -116,7 +117,7 @@ The optional OpenAI integration clarifies one answer only after explicit consent
 | Local opportunities and training | Provenance-aware records; **no verified live district-wide availability feed**. Synthetic centres, seats and distances need confirmation. |
 | Official NQR / NSQF / QP / NOS grounding | Import/normalization foundations; current authoritative catalogue validation is still needed. No claim of a live official integration. |
 | Outcomes | Recorded follow-ups and aggregates; not independently verified placement rates. |
-| Low connectivity | Text fallback and current-page unsent-answer retention; **no complete offline/PWA sync**. |
+| Low connectivity | Saved interviews resume after refresh; repeated identical answer submissions reuse the saved record. Unsent answers remain current-page only; **no complete offline/PWA sync**. |
 | WhatsApp / IVR | Future integration work, not working adapters. |
 | Staff authorization | Existing role controls. Explicit worker assignment policy and comprehensive district scoping remain separate backend tasks. |
 
@@ -166,7 +167,7 @@ cd backend
 python -m pytest -q
 ```
 
-Latest backend run: **96 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
+Latest backend run: **101 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
 
 Regenerate the public synthetic snapshot locally:
 
@@ -203,6 +204,7 @@ Vercel proxies API requests through `/leap-api` on the app domain to the environ
 
 ## Documentation
 
+- [Voice, recovery and import validation milestone](docs/VOICE_DATA_IMPROVEMENT.md)
 - [Production release and operations](docs/PRODUCTION_RELEASE.md)
 - [Milestone report and visual checks](docs/UI_V2_MILESTONE_REPORT.md)
 - [Credibility safeguards](docs/MILESTONE_1_5.md)

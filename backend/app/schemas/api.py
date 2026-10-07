@@ -133,6 +133,7 @@ class SkillOut(ORMModel):
 class InterviewCreate(BaseModel):
     beneficiary_id: int
     language: str = "Tamil"
+    resume_existing: bool = False
 
 
 class InterviewAnswerCreate(BaseModel):

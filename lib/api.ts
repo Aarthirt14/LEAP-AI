@@ -82,6 +82,7 @@ export type Pathway = {
 };
 
 export type InterviewPreview = { preview_token: string; answers: Array<{ id: number; key: string; question: string; transcript: string; text: string; value: string | number | boolean | null; warning: string | null }> };
+export type InterviewSession = { id: number; language: string; status: string; answers: Array<{ question_key: string; transcript: string; corrected_text: string | null }> };
 export type Outcome = { id: number; pathway_id: number; followup_day: number; training_started: boolean; training_completed: boolean; certified: boolean; employment_status: string; verification_status: string; created_at: string };
 
 export class ApiError extends Error {
@@ -162,7 +163,8 @@ export const api = {
   addSkill: (id: number, payload: Record<string, unknown>) =>
     request<Skill>(`/api/beneficiaries/${id}/skills`, { method: "POST", body: JSON.stringify(payload) }),
   startInterview: (beneficiaryId: number, language: string) =>
-    request<{ id: number }>("/api/interviews", { method: "POST", body: JSON.stringify({ beneficiary_id: beneficiaryId, language }) }),
+    request<InterviewSession>("/api/interviews", { method: "POST", body: JSON.stringify({ beneficiary_id: beneficiaryId, language, resume_existing: true }) }),
+  activeInterview: (beneficiaryId: number) => request<InterviewSession | null>(`/api/interviews/active/${beneficiaryId}`),
   addInterviewAnswer: (sessionId: number, payload: Record<string, unknown>) =>
     request(`/api/interviews/${sessionId}/answers`, { method: "POST", body: JSON.stringify(payload) }),
   interviewAssistanceConfig: () => request<{enabled:boolean}>("/api/interviews/assistance/config"),

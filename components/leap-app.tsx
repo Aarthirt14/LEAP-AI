@@ -29,6 +29,7 @@ import { workspaceCopy } from "@/lib/workspace-copy";
 import { journeyCopy, journeyStatus } from "@/lib/journey-copy";
 import { reviewCopy } from "@/lib/review-copy";
 import { AnswerAssistance } from "@/components/leap/answer-assistance";
+import { SpokenQuestion } from "@/components/leap/spoken-question";
 import { LandingPage } from "@/components/leap/landing";
 import { PageHeading, Panel, Notice, PendingReview, EvidenceRow, words } from "@/components/leap/primitives";
 import { Button } from "@/components/ui/button";
@@ -268,7 +269,7 @@ function LeapAppInner() {
   if (pathname === "/demo") content = <DemoChooser onSelect={role=>void openDemo(role)} locale={state.locale}/>;
   else if (pathname === "/auth") content = <AuthScreen onReady={refreshSession} locale={state.locale} />;
   else if (pathname === "/onboarding") content = <RequireRole role="BENEFICIARY" state={state}><Onboarding onCreated={refreshSession} locale={state.locale} /></RequireRole>;
-  else if (pathname === "/interview") content = <RequireBeneficiary state={state}><Interview beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
+  else if (pathname === "/interview") content = <RequireBeneficiary state={state}><Interview key={state.beneficiary?.id} beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
   else if (pathname === "/profile") content = <RequireBeneficiary state={state}><ProfileScreen beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
   else if (pathname === "/pathways") content = <RequireBeneficiary state={state}><PathwaysScreen beneficiary={state.beneficiary!} locale={state.locale} /></RequireBeneficiary>;
   else if (pathname === "/pathway") content = <RequireBeneficiary state={state}><PathwayScreen locale={state.locale} /></RequireBeneficiary>;
@@ -723,15 +724,39 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
+  const [recovering, setRecovering] = useState(true);
+  const [recoveryError, setRecoveryError] = useState("");
   const [aiEnabled, setAiEnabled] = useState(false);
   useEffect(() => { let active = true; void api.interviewAssistanceConfig().then(value=>{if(active)setAiEnabled(value.enabled);}).catch(()=>{});return()=>{active=false;}; }, []);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const question = questions[index];
   const progress = Math.round((index / questions.length) * 100);
 
+  const recoverInterview = async () => {
+    setRecovering(true);
+    setRecoveryError("");
+    try {
+      if (demoRole()) return;
+      const saved = await api.activeInterview(beneficiary.id);
+      if (!saved) return;
+      setSessionId(saved.id);
+      const restored = Object.fromEntries(saved.answers.map(a => [a.question_key, a.corrected_text ?? a.transcript]));
+      setAnswers(restored);
+      const next = questions.findIndex(q => !(q.key in restored));
+      if (next === -1) {
+        setReadyToReview(true);
+        setPreview(await api.previewInterview(saved.id));
+      } else { setIndex(next); setReadyToReview(false); setPreview(null); }
+    } catch (error) {
+      setRecoveryError(error instanceof Error ? error.message : "Could not restore your interview.");
+    } finally { setRecovering(false); }
+  };
+  useEffect(() => { void recoverInterview(); }, [beneficiary.id]);
+
   useEffect(() => () => recognitionRef.current?.stop(), []);
 
   const startListening = () => {
+    window.speechSynthesis?.cancel();
     const speechWindow = window as SpeechRecognitionWindow;
     const Recognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
     if (!Recognition) {
@@ -762,10 +787,11 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
   const saveAnswer = async () => {
     if (!answer.trim()) { toast.error(t("interview.empty",locale)); return; }
     setBusy(true);
+    window.speechSynthesis?.cancel();
     try {
       let activeSession = sessionId;
       if (!activeSession) {
-        const session = await api.startInterview(beneficiary.id, beneficiary.preferred_language);
+        const session = await api.startInterview(beneficiary.id, languageOptions.find(option=>option.value===locale)!.name);
         activeSession = session.id;
         setSessionId(activeSession);
       }
@@ -788,6 +814,10 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
       setPreview(await api.previewInterview(activeSession));
       return;
     } catch (error) {
+      if (error instanceof ApiError && error.code === "ANSWER_ALREADY_SAVED") {
+        await recoverInterview();
+        setAnswer("");
+      }
       toast.error(error instanceof Error ? error.message : "Could not save your answer.");
     } finally { setBusy(false); }
   };
@@ -815,6 +845,8 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
     } catch(e) { toast.error(e instanceof Error ? e.message : "Could not save correction."); }
     finally { setBusy(false); }
   };
+  if (recovering) return <PageLoader text={words(locale,"Checking saved interview…","சேமித்த நேர்காணலைச் சரிபார்க்கிறது…","सहेजा गया साक्षात्कार देखा जा रहा है…")}/>;
+  if (recoveryError) return <main className="mx-auto max-w-3xl px-5 py-12"><Notice tone="warning">{recoveryError}</Notice><Button className="mt-4" onClick={()=>void recoverInterview()}>{t("common.tryAgain",locale)}</Button></main>;
   if (readyToReview && !preview) return <main className="mx-auto max-w-3xl px-5 py-12"><PageHeading eyebrow="Assessment" title="Your draft answers are saved" description="Load the extracted values to review them. Your profile has not been finalized."/><Button disabled={busy} onClick={()=>{if(sessionId){setBusy(true);void api.previewInterview(sessionId).then(setPreview).catch(e=>toast.error(e.message)).finally(()=>setBusy(false));}}}>Review my answers</Button></main>;
   if (preview) return <main className="mx-auto max-w-[900px] px-5 py-12">
     <SectionLabel>{words(locale,"Review your answers","உங்கள் பதில்களைச் சரிபார்க்கவும்","अपने उत्तरों की समीक्षा करें")}</SectionLabel><h1 className="text-3xl font-semibold">{words(locale,"We understood:","நாங்கள் புரிந்துகொண்டது:","हमने यह समझा:")}</h1>
@@ -843,6 +875,7 @@ function Interview({ beneficiary, locale, onFinished }: { beneficiary: Beneficia
           <div className="text-sm font-semibold text-[#087647]">{t("interview.question", locale)}</div>
           <h2 className="mt-2 text-2xl font-semibold leading-9 tracking-[-0.025em] text-[#071A3D] sm:text-3xl">{localizedQuestionTitles[locale][question.key] || question.title}</h2>
           <p className="mt-3 text-sm font-medium leading-6 text-[#1e293b]">{localizedQuestionHints[locale][question.key] || question.hint}</p>
+          <SpokenQuestion text={`${localizedQuestionTitles[locale][question.key] || question.title} ${localizedQuestionHints[locale][question.key] || question.hint}`} locale={locale} disabled={busy || listening}/>
           <div className="mt-7">
             <Textarea aria-label={localizedQuestionTitles[locale][question.key]} value={answer} onChange={(e) => setAnswer(e.target.value)} rows={5} placeholder={extraLocales.some(value=>value===locale) ? t("common.typeInstead", locale) : question.placeholder} className="resize-none rounded-2xl border-[#DDE3E5] bg-white p-4 text-base leading-7 font-medium text-[#071A3D]" />
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

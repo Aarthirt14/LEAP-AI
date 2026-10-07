@@ -121,7 +121,7 @@ The optional OpenAI integration clarifies one answer only after explicit consent
 | Interview confirmation, provenance, date-based qualification validity, RED review gating | Implemented with backend regression tests. |
 | RPL | Competency comparison and potential routes; **not official certification**. |
 | Local opportunities and training | Provenance-aware records; **no verified live district-wide availability feed**. Synthetic centres, seats and distances need confirmation. |
-| Official NQR / NSQF / QP / NOS grounding | Import/normalization foundations; current authoritative catalogue validation is still needed. No claim of a live official integration. |
+| Official NQR / NSQF / QP / NOS grounding | Two reviewed NQR qualifications imported with alternative entry rules, source links and review dates. Manually maintained snapshots; no live official feed. NOS competency mapping and provider confirmation remain pending. |
 | Outcomes | Recorded follow-ups and aggregates; not independently verified placement rates. |
 | Low connectivity | Saved interviews resume after refresh; repeated identical answer submissions reuse the saved record. Unsent answers remain current-page only; **no complete offline/PWA sync**. |
 | WhatsApp / IVR | Future integration work, not working adapters. |
@@ -150,6 +150,7 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env      # PowerShell: Copy-Item .env.example .env
 python -m alembic upgrade head
+python -m seed.load_nqr_database seed/data/nqr-reference.json --apply
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
@@ -173,7 +174,7 @@ cd backend
 python -m pytest -q
 ```
 
-Latest backend run: **117 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
+Latest backend run: **125 passed**, with one dependency deprecation warning. Frontend checks include ten-language mappings and demo isolation: no live API calls during a demo, even for mutations or missing sample records. Tests are not a guarantee of field effectiveness or complete browser E2E coverage.
 
 Regenerate the public synthetic snapshot locally:
 
@@ -190,7 +191,11 @@ The profile accepts optional **qualification-specific** prior NSQF levels, relev
 
 Blank means unknown; zero experience and an explicitly empty certificate list mean none reported. Experience for one qualification cannot establish eligibility for another. These are self-reported facts, never verified admission decisions. Save details in **My profile**, then recalculate pathways. Provider confirmation and human review remain required; local batches, seats and fees are unverified.
 
-Release requires database migrations and an authorized NQR catalogue import. See [eligibility release checks](docs/ELIGIBILITY_RELEASE.md). This implementation is tracked in [PR #6](https://github.com/Aarthirt14/LEAP-AI/pull/6); it is not yet verified on production.
+Released through [PR #6](https://github.com/Aarthirt14/LEAP-AI/pull/6). On 7 October 2026, production logs confirmed both PostgreSQL migrations and the import of two reviewed NQR qualifications. The live API reports a connected production database and exposes the eligibility profile schema. [PostgreSQL release checks passed](https://github.com/Aarthirt14/LEAP-AI/actions/runs/37594052401), including concurrent retry deduplication and migration rollback/re-upgrade. See [release details](docs/ELIGIBILITY_RELEASE.md).
+
+[Open the live qualification catalogue](https://leap-ai-khaki.vercel.app/qualifications)
+
+![Live NQR qualification catalogue with alternative entry routes and source links](docs/visual-checks/nqr-qualifications-live.jpg)
 
 ## Deployment and configuration
 

@@ -13,9 +13,9 @@ This branch improves implementation reliability. It does not establish field acc
 
 Only answers already saved to the server are recoverable across refreshes. Unsent text remains in the current page; no sensitive transcript is persisted in browser storage by this change. There is no durable offline queue or automatic background submission. Resume requires connectivity and a signed-in session. It restores only interviews created by the current user, not another staff member's interview.
 
-Source URL validation checks structure and hostname, not the contents or truth of the source. This branch does not populate the production catalogue, independently verify a provider, or add a database import endpoint. Reviewed records still need an authorized import process. Multiple versions/eligibility routes should use a suitable composite unique key when passed to the normalization function.
+Source URL validation checks structure and hostname, not the contents or truth of the source. The release now imports two reviewed NQR qualifications into production using the bundled CLI snapshot. It does not independently verify providers or add a database import endpoint. Reviewed records still need an authorized import process. Multiple versions/eligibility routes should use a suitable composite unique key when passed to the normalization function.
 
-The tests run on SQLite and cover sequential lost-response retries and authorization. PostgreSQL locking behavior still requires a concurrent integration test against a staging PostgreSQL database. Microphone quality, speech synthesis availability and screen-reader usability need device testing.
+The tests run on SQLite and cover sequential lost-response retries and authorization. PostgreSQL 18 concurrent start/answer-retry integration checks passed in GitHub Actions; see ELIGIBILITY_RELEASE.md. Microphone quality, speech synthesis availability and screen-reader usability need device testing.
 
 ## Next acceptance gates
 

@@ -41,11 +41,11 @@ def test_malformed_rules_never_grant_eligibility(routes):
 
 def test_import_dry_run_idempotency_and_actual_recommendations(db):
     data = document()
-    assert import_catalogue(db, data)['created'] == 2
+    assert import_catalogue(db, data)['created'] == 3
     assert db.scalar(select(Qualification)) is None
-    assert import_catalogue(db, data, apply=True)['created'] == 2
+    assert import_catalogue(db, data, apply=True)['created'] == 3
     db.commit()
-    assert import_catalogue(db, data, apply=True)['unchanged'] == 2
+    assert import_catalogue(db, data, apply=True)['unchanged'] == 3
     assert db.scalar(select(TrainingOpportunity)) is None
     beneficiary, _ = person(db)
     db.add(LivelihoodProfile(beneficiary_id=beneficiary.id, education_level='12th Standard', aspiration_text='solar', profile_completion_percentage=80))

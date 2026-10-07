@@ -13,9 +13,10 @@ def test_save_retrieve_scoping_and_preservation(client, db):
     facts = {'NQR:11689': {'previous_nsqf_level': None, 'relevant_experience_years': 3, 'certificates': []}}
     saved = client.patch(url, headers=headers, json={'education_level': '10th', 'eligibility_facts': facts})
     assert saved.status_code == 200
-    assert saved.json()['eligibility_facts'] == facts
+    response_facts = {'NQR:11689': {**facts['NQR:11689'], 'can_read_write': None}}
+    assert saved.json()['eligibility_facts'] == response_facts
     client.patch(url, headers=headers, json={'aspiration_text': 'solar'})
-    assert client.get(url, headers=headers).json()['eligibility_facts'] == facts
+    assert client.get(url, headers=headers).json()['eligibility_facts'] == response_facts
     db.expire_all()
     assert _profile_dict(beneficiary)['eligibility_facts'] == facts
     qualifications = [{'id': i, 'qualification_code': f"NQR:{record['registry_id']}",
@@ -31,8 +32,8 @@ def test_save_retrieve_scoping_and_preservation(client, db):
 def test_unknown_zero_and_clear_are_distinct(client, db):
     beneficiary, headers = person(db)
     url = f'/api/beneficiaries/{beneficiary.id}/profile'
-    facts = {'NQR:11689': {'previous_nsqf_level': 0, 'relevant_experience_years': 0, 'certificates': []},
-             'NQR:13239': {'previous_nsqf_level': None, 'relevant_experience_years': None, 'certificates': None}}
+    facts = {'NQR:11689': {'can_read_write': False, 'previous_nsqf_level': 0, 'relevant_experience_years': 0, 'certificates': []},
+             'NQR:13239': {'can_read_write': None, 'previous_nsqf_level': None, 'relevant_experience_years': None, 'certificates': None}}
     assert client.patch(url, headers=headers, json={'eligibility_facts': facts}).json()['eligibility_facts'] == facts
     assert client.patch(url, headers=headers, json={'eligibility_facts': None}).json()['eligibility_facts'] is None
 

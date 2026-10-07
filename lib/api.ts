@@ -26,6 +26,7 @@ export type Beneficiary = {
 };
 
 export type QualificationEligibilityFacts = {
+  can_read_write?: boolean | null;
   previous_nsqf_level: number | null;
   relevant_experience_years: number | null;
   certificates: ("NTC" | "NAC" | "CITS" | "NTC_2_YEAR")[] | null;

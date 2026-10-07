@@ -1,0 +1,28 @@
+{
+  "district": "Coimbatore",
+  "state": "Tamil Nadu",
+  "source_checked_on": "2026-10-07",
+  "review_after_days": 30,
+  "directory_source": "https://skilltrainingdet.in/coimbatore",
+  "providers": [
+    { "id": "district-office", "name": "District Skill Training Office, Coimbatore", "phone": "9499055687" },
+    { "id": "iti-coimbatore", "name": "Government ITI, Coimbatore", "phone": "9499055688" },
+    { "id": "iti-women", "name": "Government ITI (Women), Coimbatore", "phone": "9499055691" },
+    { "id": "iti-anaikatti", "name": "Government ITI (ST), Anaikatti", "phone": "9499055693" },
+    { "id": "iti-perur", "name": "Government ITI, Perur", "phone": "9499055687" },
+    { "id": "iti-valparai", "name": "Government ITI, Valparai", "phone": "9442175780" }
+  ],
+  "admission_notice": {
+    "published_on": "2026-08-17",
+    "closes_on": "2026-08-31",
+    "source_url": "https://coimbatore.nic.in/direct-admission-open-at-government-itis-till-august-31/",
+    "summary": "The district announced an extension of government ITI direct admission through 31 August 2026. This notice does not establish a later admission window."
+  },
+  "training_history": {
+    "provider": "Aathava Garments Unit 3",
+    "address": "SF No 71, No 1, Ammasai Gounder Street, Vellakinaru, Coimbatore 641029",
+    "source_url": "https://samarth-textiles.gov.in/public_dashboard/dashboard/data/29/538/11607",
+    "summary": "The Ministry of Textiles dashboard lists completed batches at this centre. Training history does not establish open enrolment or available seats."
+  },
+  "verified_open_batches": []
+}

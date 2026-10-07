@@ -40,6 +40,11 @@ def validate_rules(routes):
             elif field == 'certificates':
                 if operator != 'any' or not isinstance(value, list) or not value or any(not isinstance(v, str) or not v for v in value):
                     raise ValueError('Invalid certificate condition')
+            elif field in {'can_read_write', 'no_formal_prerequisites'}:
+                # The latter is an explicit statement in a reviewed qualification,
+                # never a user-supplied fact or an inference from missing data.
+                if operator != 'eq' or value is not True:
+                    raise ValueError('Invalid explicit entry condition')
             else:
                 raise ValueError('Unknown eligibility field')
 
@@ -61,6 +66,10 @@ def evaluate_eligibility(profile, routes):
             if field in NUMERIC_FIELDS:
                 valid = not isinstance(actual, bool) and isinstance(actual, (int, float)) and math.isfinite(actual) and actual >= 0
                 result = None if not valid else actual >= required if operator == 'gte' else actual == required
+            elif field == 'no_formal_prerequisites':
+                result = True
+            elif field == 'can_read_write':
+                result = actual if isinstance(actual, bool) else None
             else:
                 valid = isinstance(actual, list) and all(isinstance(v, str) for v in actual)
                 result = None if not valid else any(v.casefold() in {a.casefold() for a in actual} for v in required)

@@ -18,7 +18,7 @@ Some archive level fields disagree with the numeric level segment in their quali
 
 ## What can influence recommendations?
 
-The separate, two-record `data/nqr-reference.json` remains the source-reviewed eligibility catalogue. Its database import is already run by `backend/seed/start_production.sh`. Expiry, review age and alternative entry-route checks continue to apply. The discovery archive is **not imported into the Qualification table**, cannot grant eligibility, and cannot contribute opportunity, RPL, funding or placement evidence.
+The separate, three-record `data/nqr-reference.json` remains the source-reviewed eligibility catalogue. Its database import is already run by `backend/seed/start_production.sh`. Expiry, review age and alternative entry-route checks continue to apply. The discovery archive is **not imported into the Qualification table**, cannot grant eligibility, and cannot contribute opportunity, RPL, funding or placement evidence.
 
 To promote a bulk entry: independently inspect its current official detail page; verify its identity/version, dates, duration and all alternative entry routes; encode and test the routes; add it to the reviewed snapshot and bundled backend copy using the existing validation/import workflow. Do not mark an archived entry reviewed merely because its URL resolves or its title matches. Source-to-competency mapping still needs separate review.
 

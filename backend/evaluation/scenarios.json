@@ -1,0 +1,23 @@
+{
+  "as_of": "2026-10-07",
+  "baseline_registry_ids": ["11689", "13239"],
+  "cases": [
+    {"id":"solar-school-route","registry_id":"11689","profile":{"education_level":"12th","aspiration_text":"solar"},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":true},
+    {"id":"solar-relevant-experience","registry_id":"11689","profile":{"education_level":"10th","eligibility_facts":{"NQR:11689":{"relevant_experience_years":3}}},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":true},
+    {"id":"solar-unrelated-experience-is-unknown","registry_id":"11689","profile":{"education_level":"10th","experience_years":20},"expected":"NEEDS_VERIFICATION","ranked":true},
+    {"id":"solar-half-level-route","registry_id":"11689","profile":{"eligibility_facts":{"NQR:11689":{"previous_nsqf_level":3.5,"relevant_experience_years":1.5}}},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":true},
+    {"id":"solar-nac-route","registry_id":"11689","profile":{"education_level":"10th","eligibility_facts":{"NQR:11689":{"certificates":["NAC"]}}},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":true},
+    {"id":"ev-two-year-ntc","registry_id":"13239","profile":{"education_level":"10th","eligibility_facts":{"NQR:13239":{"certificates":["NTC_2_YEAR"]}}},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":true},
+    {"id":"ev-ntc-duration-unknown","registry_id":"13239","profile":{"education_level":"10th","eligibility_facts":{"NQR:13239":{"certificates":["NTC"]}}},"expected":"NEEDS_VERIFICATION","ranked":true},
+    {"id":"ev-insufficient-known-facts","registry_id":"13239","profile":{"education_level":"5th","eligibility_facts":{"NQR:13239":{"previous_nsqf_level":0,"relevant_experience_years":0,"certificates":[]}}},"expected":"NOT_ELIGIBLE","ranked":false},
+    {"id":"ev-experience-boundary","registry_id":"13239","profile":{"education_level":"11th","eligibility_facts":{"NQR:13239":{"relevant_experience_years":1.5}}},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":true},
+    {"id":"qualification-facts-stay-scoped","registry_id":"13239","profile":{"education_level":"10th","eligibility_facts":{"NQR:11689":{"certificates":["NTC_2_YEAR"],"relevant_experience_years":8}}},"expected":"NEEDS_VERIFICATION","ranked":true},
+    {"id":"helper-no-schooling","registry_id":"13770","profile":{"education_level":"No formal education","aspiration_text":"electrician"},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":true},
+    {"id":"helper-no-experience","registry_id":"13770","profile":{"aspiration_text":"மின்சார வேலை","eligibility_facts":{"NQR:13770":{"relevant_experience_years":0,"can_read_write":false}}},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":true},
+    {"id":"helper-literacy-route","registry_id":"13770","profile":{"aspiration_text":"इलेक्ट्रीशियन","eligibility_facts":{"NQR:13770":{"can_read_write":true}}},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":true},
+    {"id":"stale-review-blocks-ranking","registry_id":"13770","source_checked_on":"2026-09-06","profile":{"education_level":"12th"},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":false},
+    {"id":"thirty-day-review-boundary","registry_id":"13770","source_checked_on":"2026-09-07","profile":{},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":true},
+    {"id":"future-review-blocks-ranking","registry_id":"13770","source_checked_on":"2026-10-08","profile":{},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":false},
+    {"id":"expired-reference-blocks-ranking","registry_id":"11689","valid_until":"2026-10-06","profile":{"education_level":"12th"},"expected":"ELIGIBLE_ON_REPORTED_FACTS","ranked":false}
+  ]
+}
